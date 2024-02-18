@@ -1,0 +1,1 @@
+Scaffold-DbContext 'Name=ConnectionStrings:Portfolio' Microsoft.EntityFrameworkCore.SqlServer -OutputDir "Models" -Force

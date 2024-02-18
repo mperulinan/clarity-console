@@ -1,0 +1,43 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+
+namespace Portfolio.Server.Models;
+
+public partial class PortfolioContext : DbContext
+{
+    public PortfolioContext()
+    {
+    }
+
+    public PortfolioContext(DbContextOptions<PortfolioContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<Trade> Trades { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:Portfolio");
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Trade>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__YourTabl__3214EC0704F226F8");
+
+            entity.ToTable("Trade");
+
+            entity.Property(e => e.AmountReceived).HasColumnType("decimal(18, 10)");
+            entity.Property(e => e.AmountSpent).HasColumnType("decimal(18, 10)");
+            entity.Property(e => e.Date).HasColumnType("datetime");
+            entity.Property(e => e.Fee).HasColumnType("decimal(18, 10)");
+            entity.Property(e => e.FromAssetCode).HasMaxLength(50);
+            entity.Property(e => e.ToAssetCode).HasMaxLength(50);
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+}
