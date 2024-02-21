@@ -8,13 +8,16 @@ import { ApiService } from './services/api.service';
 })
 export class AppComponent implements OnInit {
 
+    displayedColumns: string[] = ['assetCode', 'holdings'];
+    assetsWithHoldings: any;
+
     constructor(
         private api: ApiService,
     ) { }
 
     async ngOnInit() {
-        let assetsWithHoldings = await this.api.getAssetsWithHoldings();
-        console.log("assetsWithHoldings", assetsWithHoldings);
+        this.assetsWithHoldings = await this.api.getAssetsWithHoldings();
+        console.log(this.assetsWithHoldings);
         
     }
 
