@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Server.Models;
 using Portfolio.Server.Models.Others;
+using Portfolio.Server.Models.Others.DataContracts.Trade;
 
 namespace Portfolio.Server.Controllers
 {
@@ -56,6 +57,26 @@ namespace Portfolio.Server.Controllers
         private decimal GetAmountReceivedByAsset(string asset)
         {
             return context.Trades.Where(t => t.ToAssetCode == asset).Sum(t => t.AmountReceived);
+        }
+
+
+        [HttpPost]
+        public ActionResult PostTrade(Trade trade)
+        {
+            context.Trades.Add(new Trade()
+            {
+                Date = DateTime.Now.ToUniversalTime(),
+                FromAssetCode = trade.FromAssetCode,
+                ToAssetCode = trade.ToAssetCode,
+                AmountSpent = trade.AmountSpent,
+                AmountReceived = trade.AmountReceived,
+                Fee = trade.Fee,
+                Notes = trade.Notes,
+            });
+
+            context.SaveChanges();
+
+            return CreatedAtAction(nameof(PostTrade), new { id = trade.Id }, trade);
         }
     }
 }
