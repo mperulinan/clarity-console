@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from './services/api.service';
 import { AssetWithHoldings } from './models/asset-with-holdings';
-import { CoinGeckoService } from './services/coin-gecko.service';
+import { Coin, CoinGeckoService, Price } from './services/coin-gecko.service';
 
 export type PortfolioRow = {
     name: string,
     symbol: string,
-    price: string,
+    price: number,
     holdingsPrice: number,
     holdingsAmount: number,
 };
@@ -17,7 +17,6 @@ export type PortfolioRow = {
     styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
-    title = 'portfolio';
 
     displayedColumns: string[] = ['assetId', 'price', 'holdings'];
     portfolioRows: PortfolioRow[] = [];
@@ -38,20 +37,45 @@ export class AppComponent implements OnInit {
         let assetIds: string[] = this.assetsWithHoldings.map(a => a.assetId);
 
         let prices = await this.coinGecko.getPrice(assetIds, ["usd", "eur"]);
-        console.log("coinGeckoinfo", prices);
+        prices["eur"] = {
+            usd: 1.08,
+            eur: 1
+        };
+        prices["usd"] = {
+            usd: 1,
+            eur: 0.92
+        };
+        console.log("prices", prices);
+
+        let coins: Coin[] = await this.coinGecko.getCoinsList();
+        coins = coins.filter(coin => coin.id !== 'eur' && coin.id !== 'usd');
+        let eur: Coin = {
+            id: 'eur',
+            symbol: 'eur',
+            name: 'Euro'
+        };
+        let usd: Coin = {
+            id: 'usd',
+            symbol: 'usd',
+            name: 'US Dollar'
+        };
+        coins.push(...[eur, usd]);
+        console.log("coins", coins);
 
 
-        this.assetsWithHoldings.forEach(asset => {
-            if (asset.assetId != "EUR" && asset.assetId != "USD") {
-                this.portfolioRows.push({
-                    name: asset.assetId,
-                    symbol: 'n/a',
-                    price: prices[asset.assetId]["usd"],
-                    holdingsPrice: asset.holdings * prices[asset.assetId].usd,
-                    holdingsAmount: asset.holdings
-                });
-            }
-        });
+        for (let index = 0; index < this.assetsWithHoldings.length; index++) {
+            const asset = this.assetsWithHoldings[index];
+
+            let coin: Coin | undefined = coins.find(c => c.id == asset.assetId);
+            let newRow: PortfolioRow = {
+                name: coin?.name ?? asset.assetId,
+                symbol: coin?.symbol.toUpperCase() ?? '',
+                price: prices[asset.assetId].usd,
+                holdingsPrice: asset.holdings * prices[asset.assetId].usd,
+                holdingsAmount: asset.holdings
+            };
+            this.portfolioRows.push(newRow);
+        }
 
         this.isLoading = false;
     }

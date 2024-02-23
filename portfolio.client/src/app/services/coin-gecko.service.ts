@@ -2,6 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 
+
+export type Price = {
+    [id: string]: {
+        usd: number,
+        eur: number,
+    }
+};
 export type Coin = {
     id: string,
     symbol: string,
