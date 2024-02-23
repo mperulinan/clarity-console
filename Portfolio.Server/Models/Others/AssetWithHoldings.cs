@@ -2,7 +2,7 @@
 {
     public class AssetWithHoldings
     {
-        public required string AssetCode { get; set; }
+        public required string AssetId { get; set; }
         public decimal Holdings { get; set; }
     }
 }

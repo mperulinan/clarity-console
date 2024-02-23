@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Server.Models;
 using Portfolio.Server.Models.Others;
-using Portfolio.Server.Models.Others.DataContracts.Trade;
 
 namespace Portfolio.Server.Controllers
 {
@@ -29,7 +28,7 @@ namespace Portfolio.Server.Controllers
             {
                 AssetWithHoldings assetWithHoldings = new()
                 {
-                    AssetCode = asset,
+                    AssetId = asset,
                     Holdings = GetHoldingsByAsset(asset)
                 };
                 holdings.Add(assetWithHoldings);
@@ -39,8 +38,8 @@ namespace Portfolio.Server.Controllers
 
         private string[] GetAssets()
         {
-            string[] fromAssets = [.. context.Trades.Select(t => t.FromAssetCode).Distinct()];
-            string[] toAssets = [.. context.Trades.Select(t => t.ToAssetCode).Distinct()];
+            string[] fromAssets = [.. context.Trades.Select(t => t.FromAssetId).Distinct()];
+            string[] toAssets = [.. context.Trades.Select(t => t.ToAssetId).Distinct()];
             return fromAssets.Concat(toAssets).Distinct().ToArray();
         }
 
@@ -51,12 +50,12 @@ namespace Portfolio.Server.Controllers
 
         private decimal GetAmountSpentByAsset(string asset)
         {
-            return context.Trades.Where(t => t.FromAssetCode == asset).Sum(t => t.AmountSpent);
+            return context.Trades.Where(t => t.FromAssetId == asset).Sum(t => t.AmountSpent);
         }
 
         private decimal GetAmountReceivedByAsset(string asset)
         {
-            return context.Trades.Where(t => t.ToAssetCode == asset).Sum(t => t.AmountReceived);
+            return context.Trades.Where(t => t.ToAssetId == asset).Sum(t => t.AmountReceived);
         }
 
 
@@ -66,8 +65,8 @@ namespace Portfolio.Server.Controllers
             context.Trades.Add(new Trade()
             {
                 Date = DateTime.Now.ToUniversalTime(),
-                FromAssetCode = trade.FromAssetCode,
-                ToAssetCode = trade.ToAssetCode,
+                FromAssetId = trade.FromAssetId,
+                ToAssetId = trade.ToAssetId,
                 AmountSpent = trade.AmountSpent,
                 AmountReceived = trade.AmountReceived,
                 Fee = trade.Fee,

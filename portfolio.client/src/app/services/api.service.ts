@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
+import { AssetWithHoldings } from '../models/asset-with-holdings';
 
 @Injectable({
     providedIn: 'root'
@@ -15,7 +16,7 @@ export class ApiService {
 
     getAssetsWithHoldings() {
         return lastValueFrom(
-            this.http.get<any>(this.baseUrl + "trade/" + "getAssetsWithHoldings")
+            this.http.get<AssetWithHoldings[]>(this.baseUrl + "trade/" + "getAssetsWithHoldings")
         );
     }
 }

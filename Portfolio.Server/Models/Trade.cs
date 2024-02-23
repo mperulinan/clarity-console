@@ -11,10 +11,10 @@ public partial class Trade
     public DateTime Date { get; set; }
 
     [Required]
-    public string FromAssetCode { get; set; } = null!;
+    public string FromAssetId { get; set; } = null!;
 
     [Required]
-    public string ToAssetCode { get; set; } = null!;
+    public string ToAssetId { get; set; } = null!;
 
     [Required]
     public decimal AmountSpent { get; set; }

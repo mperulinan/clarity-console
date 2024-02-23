@@ -32,8 +32,8 @@ public partial class PortfolioContext : DbContext
             entity.Property(e => e.AmountSpent).HasColumnType("decimal(18, 10)");
             entity.Property(e => e.Date).HasColumnType("datetime");
             entity.Property(e => e.Fee).HasColumnType("decimal(18, 10)");
-            entity.Property(e => e.FromAssetCode).HasMaxLength(50);
-            entity.Property(e => e.ToAssetCode).HasMaxLength(50);
+            entity.Property(e => e.FromAssetId).HasMaxLength(50);
+            entity.Property(e => e.ToAssetId).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);
