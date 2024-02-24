@@ -30,16 +30,14 @@ export class ErApiService {
     }
 
     async getEur2Usd() {
-        // Obtenemos el valor de la cookie.
         let value: string = this.cookieService.get(this.cookieName);
 
-        // Si no se encuentra, lo cargamos.
         if (!value) {
             let erData: ERRepsonse = await this.getData();
             value = erData.rates.USD.toString();
             this.cookieService.set(this.cookieName, value, 1);
         }
 
-        return parseInt(value);
+        return parseFloat(value);
     }
 }
