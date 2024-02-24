@@ -7,19 +7,21 @@ import { AppComponent } from './app.component';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 import { MatTableModule } from '@angular/material/table';
+import { CookieService } from 'ngx-cookie-service';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule, HttpClientModule,
-    AppRoutingModule,
-    MatTableModule,
-  ],
-  providers: [
-    provideAnimationsAsync()
-  ],
-  bootstrap: [AppComponent]
+    declarations: [
+        AppComponent
+    ],
+    imports: [
+        BrowserModule, HttpClientModule,
+        AppRoutingModule,
+        MatTableModule,
+    ],
+    providers: [
+        provideAnimationsAsync(),
+        CookieService,
+    ],
+    bootstrap: [AppComponent]
 })
 export class AppModule { }

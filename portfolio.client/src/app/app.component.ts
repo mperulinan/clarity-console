@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from './services/api.service';
 import { AssetWithHoldings } from './models/asset-with-holdings';
 import { Coin, CoinGeckoService, Price } from './services/coin-gecko.service';
+import { ErApiService } from './services/er-api.service';
 
 export type PortfolioRow = {
     name: string,
@@ -28,6 +29,7 @@ export class AppComponent implements OnInit {
     constructor(
         private api: ApiService,
         private coinGecko: CoinGeckoService,
+        private erApi: ErApiService,
     ) { }
 
     async ngOnInit() {
@@ -36,14 +38,15 @@ export class AppComponent implements OnInit {
 
         let assetIds: string[] = this.assetsWithHoldings.map(a => a.assetId);
 
+        let eur2usd: number = await this.erApi.getEur2Usd();
         let prices = await this.coinGecko.getPrice(assetIds, ["usd", "eur"]);
         prices["eur"] = {
-            usd: 1.08,
+            usd: eur2usd,
             eur: 1
         };
         prices["usd"] = {
             usd: 1,
-            eur: 0.92
+            eur: 1 / eur2usd
         };
         console.log("prices", prices);
 
