@@ -58,7 +58,7 @@ namespace Portfolio.Server.Controllers
             return context.Trades.Where(t => t.ToAssetId == asset).Sum(t => t.AmountReceived);
         }
 
-        [HttpGet("getAmountSpent")]
+        //[HttpGet("getAmountSpent")]
 
 
 

@@ -1,0 +1,74 @@
+<h2 mat-dialog-title i18n>New transaction data</h2>
+<mat-dialog-content>
+    <form [formGroup]="transactionForm">
+        <mat-form-field class="w-50">
+            <mat-label i18n>From</mat-label>
+            <input type="text" placeholder="Search" matInput formControlName="fromAsset" [matAutocomplete]="autoFrom"
+                i18n-placeholder>
+            <mat-autocomplete autoActiveFirstOption #autoFrom="matAutocomplete">
+                @for (coin of filteredCoinsFrom | async; track coin) {
+                <mat-option [value]="coin.id">
+                    <span class="fw-bold">{{coin.name}}</span>
+                    {{coin.symbol.toUpperCase()}}
+                </mat-option>
+                }
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field class="w-50">
+            <mat-label i18n>To</mat-label>
+            <input type="text" placeholder="Search" matInput formControlName="toAsset" [matAutocomplete]="autoTo"
+                i18n-placeholder>
+            <mat-autocomplete autoActiveFirstOption #autoTo="matAutocomplete">
+                @for (coin of filteredCoinsTo | async; track coin) {
+                <mat-option [value]="coin.id">
+                    <span class="fw-bold">{{coin.name}}</span>
+                    {{coin.symbol.toUpperCase()}}
+                </mat-option>
+                }
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field class="w-50">
+            <mat-label i18n>Amount spent</mat-label>
+            <input matInput type="number" placeholder="0" formControlName="amountSpent">
+        </mat-form-field>
+
+        <mat-form-field class="w-50">
+            <mat-label i18n>Amount received</mat-label>
+            <input matInput type="number" placeholder="0" formControlName="amountReceived">
+        </mat-form-field>
+
+        <mat-form-field class="w-100" floatLabel="always">
+            <mat-label i18n>Fee</mat-label>
+            <input matInput type="number" placeholder="0" formControlName="fee">
+            <span matTextPrefix>$&nbsp;</span>
+        </mat-form-field>
+
+        <mat-form-field class="w-50">
+            <mat-label i18n>Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="date">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field class="w-25">
+            <mat-label i18n>Hour</mat-label>
+            <input matInput type="number" placeholder="0" formControlName="hour">
+        </mat-form-field>
+
+        <mat-form-field class="w-25">
+            <mat-label i18n>Minute</mat-label>
+            <input matInput type="number" placeholder="0" formControlName="minute">
+        </mat-form-field>
+
+        <mat-form-field class="w-100">
+            <mat-label i18n>Notes</mat-label>
+            <textarea matInput formControlName="notes"></textarea>
+        </mat-form-field>
+    </form>
+
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-raised-button color="primary" class="w-100" (click)="add()" i18n>Add transaction</button>
+</mat-dialog-actions>

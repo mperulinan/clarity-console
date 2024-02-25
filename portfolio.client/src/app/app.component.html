@@ -1,6 +1,9 @@
 ﻿<div class="container-fluid">
     @if (!isLoading) {
-    <table mat-table [dataSource]="portfolioRows" class="mat-elevation-z8">
+
+    <button mat-raised-button color="primary" (click)="openNewTransactionDialog()" i18n>Add transaction</button>
+
+    <table mat-table [dataSource]="portfolioRows" class="mat-elevation-z8 mt-3">
 
         <!-- Asset Column -->
         <ng-container matColumnDef="assetId">
