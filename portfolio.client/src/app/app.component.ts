@@ -24,6 +24,7 @@ export class AppComponent implements OnInit {
     portfolioRows: PortfolioRow[] = [];
     assetsWithHoldings: AssetWithHoldings[] = [];
     coins: Coin[] = [];
+    portfolioValue: number = 0;
 
     // Inteface control
     isLoading: boolean = true;
@@ -36,11 +37,12 @@ export class AppComponent implements OnInit {
 
     async ngOnInit() {
         await this.loadTable();
+        this.setPortfolioValue();
     }
 
     async loadTable() {
         this.assetsWithHoldings = await this.api.getAssetsWithHoldings();
-        console.log(this.assetsWithHoldings);
+        console.log("assetsWithHoldings", this.assetsWithHoldings);
 
         let assetIds: string[] = this.assetsWithHoldings.map(a => a.assetId);
         let prices = await this.coinGecko.getPrices(assetIds);
@@ -80,5 +82,15 @@ export class AppComponent implements OnInit {
                 alert(error);
             });
         });
+    }
+
+    private setPortfolioValue() {
+        let value: number = 0;
+        this.portfolioRows.forEach(row => {
+            if (row.holdingsPrice > 0) {
+                value += row.holdingsPrice;
+            }
+        });
+        this.portfolioValue = value;
     }
 }
