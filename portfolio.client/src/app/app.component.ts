@@ -20,7 +20,7 @@ export type PortfolioRow = {
 })
 export class AppComponent implements OnInit {
 
-    displayedColumns: string[] = ['assetId', 'price', 'holdings'];
+    displayedColumns: string[] = ['assetId', 'price', 'holdings', 'percentage'];
     portfolioRows: PortfolioRow[] = [];
     assetsWithHoldings: AssetWithHoldings[] = [];
     coins: Coin[] = [];
@@ -56,12 +56,13 @@ export class AppComponent implements OnInit {
             const asset = this.assetsWithHoldings[index];
 
             let coin: Coin | undefined = this.coins.find(c => c.id == asset.assetId);
+            let holdingsPrice: number = asset.holdings * prices[asset.assetId]?.usd
             let newRow: PortfolioRow = {
                 name: coin?.name ?? asset.assetId,
                 symbol: coin?.symbol.toUpperCase() ?? '',
                 price: prices[asset.assetId]?.usd,
-                holdingsPrice: asset.holdings * prices[asset.assetId]?.usd,
-                holdingsAmount: asset.holdings
+                holdingsPrice: holdingsPrice,
+                holdingsAmount: asset.holdings,
             };
             this.portfolioRows.push(newRow);
         }
@@ -94,5 +95,10 @@ export class AppComponent implements OnInit {
             }
         });
         this.portfolioValue = value;
+    }
+
+    getPercentage(holdingsPrice: number) {
+        let percentage: number = holdingsPrice / this.portfolioValue * 100;
+        return percentage >= 0 ? percentage : 0;
     }
 }
