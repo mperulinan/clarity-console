@@ -66,6 +66,8 @@ export class AppComponent implements OnInit {
             this.portfolioRows.push(newRow);
         }
 
+        this.portfolioRows.sort((a, b) => b.holdingsPrice - a.holdingsPrice);
+
         this.isLoading = false;
     }
 

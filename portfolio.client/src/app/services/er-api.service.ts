@@ -35,7 +35,7 @@ export class ErApiService {
         if (!value) {
             let erData: ERRepsonse = await this.getData();
             value = erData.rates.USD.toString();
-            this.cookieService.set(this.cookieName, value, 1);
+            this.cookieService.set(this.cookieName, value, 0.1);
         }
 
         return parseFloat(value);
