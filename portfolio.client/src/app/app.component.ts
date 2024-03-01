@@ -79,6 +79,10 @@ export class AppComponent implements OnInit {
         });
 
         dialogRef.afterClosed().subscribe(async (newTransaction: NewTransaction) => {
+            if (!newTransaction) {
+                return;
+            }
+
             this.api.postTransaction(newTransaction).then(async result => {
                 await this.loadTable();
             }).catch(error => {
