@@ -25,6 +25,8 @@ export class AppComponent implements OnInit {
     assetsWithHoldings: AssetWithHoldings[] = [];
     coins: Coin[] = [];
     portfolioValue: number = 0;
+    profit: number = 0;
+    profitPercentage: number = 0;
 
     // Inteface control
     isLoading: boolean = true;
@@ -38,6 +40,8 @@ export class AppComponent implements OnInit {
     async ngOnInit() {
         await this.loadTable();
         this.setPortfolioValue();
+        this.setProfit();
+        this.setProfitPercentage();
     }
 
     async loadTable() {
@@ -99,6 +103,18 @@ export class AppComponent implements OnInit {
             }
         });
         this.portfolioValue = value;
+    }
+
+    private setProfit() {
+        let value: number = 0;
+        this.portfolioRows.forEach(row => {
+            value += row.holdingsPrice;
+        });
+        this.profit = value;
+    }
+
+    private setProfitPercentage() {
+        this.profitPercentage = this.profit / this.portfolioValue * 100;
     }
 
     getPercentage(holdingsPrice: number) {

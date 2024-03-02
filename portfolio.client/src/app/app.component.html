@@ -1,12 +1,28 @@
-﻿<div class="container-fluid">
+﻿<div class="container-fluid w-100">
     @if (!isLoading) {
 
-    <div class="row">
+    <div class="row text-start">
         <div class="col">
             <mat-label class="fs-2 text-light">${{ portfolioValue | number: '0.0-2' }}</mat-label>
         </div>
-        <div class="col">
+        <div class="col-auto me-auto">
             <button mat-raised-button color="primary" (click)="openNewTransactionDialog()" i18n>Add transaction</button>
+        </div>
+    </div>
+
+    <div class="row text-start mt-2">
+        <div class="col">
+            <div class="row">
+                <mat-label class="fs-6 text-secondary" i18n>Profit</mat-label>
+            </div>
+            <div class="row">
+                <mat-label class="fs-5 text-light ps-3">+ ${{ profit | number: '0.0-2' }}</mat-label>
+            </div>
+            <div class="row">
+                <mat-label class="fs-6 text-light">
+                    <mat-icon class="v-align">arrow_drop_up</mat-icon> {{ profitPercentage | number: '0.0-2' }}%
+                </mat-label>
+            </div>
         </div>
     </div>
 
