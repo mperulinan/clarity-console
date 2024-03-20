@@ -25,5 +25,7 @@ public partial class Trade
     [Required]
     public decimal Fee { get; set; }
 
+    public string? FeeAsset { get; set; }
+
     public string? Notes { get; set; }
 }

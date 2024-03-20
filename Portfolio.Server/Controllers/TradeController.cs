@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.ContentModel;
 using Portfolio.Server.Models;
 using Portfolio.Server.Models.Others;
 
@@ -45,7 +46,7 @@ namespace Portfolio.Server.Controllers
 
         private decimal GetHoldingsByAsset(string asset)
         {
-            return GetAmountReceivedByAsset(asset) - GetAmountSpentByAsset(asset);
+            return GetAmountReceivedByAsset(asset) - GetAmountSpentByAsset(asset) - GetFeesSpentByAsset(asset);
         }
 
         private decimal GetAmountSpentByAsset(string asset)
@@ -56,6 +57,11 @@ namespace Portfolio.Server.Controllers
         private decimal GetAmountReceivedByAsset(string asset)
         {
             return context.Trades.Where(t => t.ToAssetId == asset).Sum(t => t.AmountReceived);
+        }
+
+        private decimal GetFeesSpentByAsset(string asset)
+        {
+            return context.Trades.Where(t => t.FeeAsset == asset).Sum(t => t.Fee);
         }
 
 
