@@ -28,11 +28,14 @@ public partial class PortfolioContext : DbContext
 
             entity.ToTable("Trade");
 
-            entity.Property(e => e.AmountReceived).HasColumnType("decimal(18, 10)");
-            entity.Property(e => e.AmountSpent).HasColumnType("decimal(18, 10)");
+            entity.Property(e => e.AmountReceived).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.AmountSpent).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.Date).HasColumnType("datetime");
-            entity.Property(e => e.Fee).HasColumnType("decimal(18, 10)");
+            entity.Property(e => e.Fee).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.FeeAsset).HasMaxLength(50);
+            entity.Property(e => e.FeeAssetPriceInEur).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.FromAssetId).HasMaxLength(50);
+            entity.Property(e => e.FromAssetPriceInEur).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.ToAssetId).HasMaxLength(50);
         });
 

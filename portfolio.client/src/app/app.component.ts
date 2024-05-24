@@ -27,6 +27,7 @@ export class AppComponent implements OnInit {
     portfolioValue: number = 0;
     profit: number = 0;
     profitPercentage: number = 0;
+    currencySymbol: string = "$";
 
     // Inteface control
     isLoading: boolean = true;
@@ -60,18 +61,27 @@ export class AppComponent implements OnInit {
             const asset = this.assetsWithHoldings[index];
 
             let coin: Coin | undefined = this.coins.find(c => c.id == asset.assetId);
-            let holdingsPrice: number = asset.holdings * prices[asset.assetId]?.usd
+
+            let price: any = prices[asset.assetId]?.usd;
+            price = price ? price : 0;
+
+            let holdingsPrice: number = asset.holdings * price;
             let newRow: PortfolioRow = {
                 name: coin?.name ?? asset.assetId,
                 symbol: coin?.symbol.toUpperCase() ?? '',
-                price: prices[asset.assetId]?.usd,
+                price: price,
                 holdingsPrice: holdingsPrice,
                 holdingsAmount: asset.holdings,
             };
-            this.portfolioRows.push(newRow);
+
+            if (newRow.holdingsAmount != 0) {
+                this.portfolioRows.push(newRow);
+            }
         }
 
         this.portfolioRows.sort((a, b) => b.holdingsPrice - a.holdingsPrice);
+        console.log("portfolioRows", this.portfolioRows);
+
 
         this.isLoading = false;
     }

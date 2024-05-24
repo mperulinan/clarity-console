@@ -27,4 +27,11 @@ export class ApiService {
             this.http.post<any>(this.baseUrl + this.prefixTrade, newTransaction)
         );
     }
+
+    //Test
+    postPricesInEur() {
+        return lastValueFrom(
+            this.http.post<any>(this.baseUrl + this.prefixTrade + "postPricesInEur", null)
+        );
+    }
 }

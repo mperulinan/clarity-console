@@ -83,4 +83,11 @@ export class CoinGeckoService {
         coins.push(...[eur, usd]);
         return coins;
     }
+
+    //Test
+    getHistory(coinId: string) {
+        return lastValueFrom(
+            this.http.get<any>(this.baseUrl + this.prefixCoins + coinId + "/market_chart/range?vs_currency=eur&from=1687258800&to=1687266000&precision=18")
+        );
+    }
 }

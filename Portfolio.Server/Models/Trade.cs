@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace Portfolio.Server.Models;
 
@@ -10,22 +9,21 @@ public partial class Trade
 
     public DateTime Date { get; set; }
 
-    [Required]
     public string FromAssetId { get; set; } = null!;
 
-    [Required]
     public string ToAssetId { get; set; } = null!;
 
-    [Required]
     public decimal AmountSpent { get; set; }
 
-    [Required]
     public decimal AmountReceived { get; set; }
 
-    [Required]
+    public decimal FromAssetPriceInEur { get; set; }
+
     public decimal Fee { get; set; }
 
     public string? FeeAsset { get; set; }
+
+    public decimal? FeeAssetPriceInEur { get; set; }
 
     public string? Notes { get; set; }
 }

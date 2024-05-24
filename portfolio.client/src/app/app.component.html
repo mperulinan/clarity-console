@@ -3,7 +3,7 @@
 
     <div class="row text-start">
         <div class="col">
-            <mat-label class="fs-2 text-light">${{ portfolioValue | number: '0.0-2' }}</mat-label>
+            <mat-label class="fs-2 text-light">{{ currencySymbol }}{{ portfolioValue | number: '0.0-2' }}</mat-label>
         </div>
         <div class="col-auto me-auto">
             <button mat-raised-button color="primary" (click)="openNewTransactionDialog()" i18n>Add transaction</button>
@@ -16,7 +16,7 @@
                 <mat-label class="fs-6 text-secondary" i18n>Profit</mat-label>
             </div>
             <div class="row">
-                <mat-label class="fs-5 text-light ps-3">+ ${{ profit | number: '0.0-2' }}</mat-label>
+                <mat-label class="fs-5 text-light ps-3">+ {{ currencySymbol }}{{ profit | number: '0.0-2' }}</mat-label>
             </div>
             <div class="row">
                 <mat-label class="fs-6 text-light">
@@ -41,14 +41,14 @@
         <!-- Price Column -->
         <ng-container matColumnDef="price">
             <th mat-header-cell *matHeaderCellDef i18n> Price </th>
-            <td mat-cell *matCellDef="let element" class="fw-bold"> ${{element.price}} </td>
+            <td mat-cell *matCellDef="let element" class="fw-bold"> {{ currencySymbol }}{{element.price}} </td>
         </ng-container>
 
         <!-- Holdings Column -->
         <ng-container matColumnDef="holdings">
             <th mat-header-cell *matHeaderCellDef i18n> Holdings </th>
             <td mat-cell *matCellDef="let element">
-                <span class="fw-bold">${{element.holdingsPrice}}</span>
+                <span class="fw-bold">{{ currencySymbol }}{{element.holdingsPrice}}</span>
                 <br>
                 <span class="fs-7 text-secondary-emphasis">{{element.holdingsAmount}} {{element.symbol}}</span>
             </td>
