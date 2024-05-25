@@ -10,7 +10,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.ContentModel;
 using Portfolio.Server.Models;
-using Portfolio.Server.Models.Others;
 using Portfolio.Server.Models.Requests;
 using RestSharp;
 
