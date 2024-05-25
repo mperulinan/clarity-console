@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from './services/api.service';
-import { AssetWithHoldings } from './models/asset-with-holdings';
 import { Coin, CoinGeckoService } from './services/coin-gecko.service';
 import { MatDialog } from '@angular/material/dialog';
 import { NewTransaction, NewTransactionComponent } from './new-transaction/new-transaction.component';
+import { TradeService } from './services/trade.service';
+import { lastValueFrom } from 'rxjs';
 
 export type PortfolioRow = {
     name: string,
@@ -22,7 +23,6 @@ export class AppComponent implements OnInit {
 
     displayedColumns: string[] = ['assetId', 'price', 'holdings', 'percentage'];
     portfolioRows: PortfolioRow[] = [];
-    assetsWithHoldings: AssetWithHoldings[] = [];
     coins: Coin[] = [];
     portfolioValue: number = 0;
     profit: number = 0;
@@ -36,9 +36,12 @@ export class AppComponent implements OnInit {
         private api: ApiService,
         private coinGecko: CoinGeckoService,
         private dialog: MatDialog,
+        private tradeService: TradeService,
     ) { }
 
     async ngOnInit() {
+        await this.tradeService.loadData();
+
         await this.loadTable();
         this.setPortfolioValue();
         this.setProfit();
@@ -46,32 +49,30 @@ export class AppComponent implements OnInit {
     }
 
     async loadTable() {
-        this.assetsWithHoldings = await this.api.getAssetsWithHoldings();
-        console.log("assetsWithHoldings", this.assetsWithHoldings);
+        const assets: string[] = this.tradeService.assets;
 
-        let assetIds: string[] = this.assetsWithHoldings.map(a => a.assetId);
-        let prices = await this.coinGecko.getPrices(assetIds);
+        let prices = await this.coinGecko.getPrices(assets);
         console.log("prices", prices);
 
         this.coins = await this.coinGecko.getCoins();
         console.log("coins", this.coins);
 
+        for (let index = 0; index < assets.length; index++) {
+            const asset = assets[index];
+            const holdings = this.tradeService.getHoldingsByAsset(asset);
 
-        for (let index = 0; index < this.assetsWithHoldings.length; index++) {
-            const asset = this.assetsWithHoldings[index];
+            let coin: Coin | undefined = this.coins.find(c => c.id == asset);
 
-            let coin: Coin | undefined = this.coins.find(c => c.id == asset.assetId);
-
-            let price: any = prices[asset.assetId]?.usd;
+            let price: any = prices[asset]?.usd;
             price = price ? price : 0;
 
-            let holdingsPrice: number = asset.holdings * price;
+            let holdingsPrice: number = holdings * price;
             let newRow: PortfolioRow = {
-                name: coin?.name ?? asset.assetId,
+                name: coin?.name ?? asset,
                 symbol: coin?.symbol.toUpperCase() ?? '',
                 price: price,
                 holdingsPrice: holdingsPrice,
-                holdingsAmount: asset.holdings,
+                holdingsAmount: holdings,
             };
 
             if (newRow.holdingsAmount != 0) {

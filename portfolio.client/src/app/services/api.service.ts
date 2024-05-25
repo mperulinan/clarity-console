@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
-import { AssetWithHoldings } from '../models/asset-with-holdings';
 import { NewTransaction } from '../new-transaction/new-transaction.component';
+import { Trade } from '../models/trade';
 
 @Injectable({
     providedIn: 'root'
@@ -16,9 +16,9 @@ export class ApiService {
     ) { }
 
     prefixTrade: string = "trade/"
-    getAssetsWithHoldings() {
+    getTrades() {
         return lastValueFrom(
-            this.http.get<AssetWithHoldings[]>(this.baseUrl + this.prefixTrade + "getAssetsWithHoldings")
+            this.http.get<Trade[]>(this.baseUrl + this.prefixTrade)
         );
     }
 

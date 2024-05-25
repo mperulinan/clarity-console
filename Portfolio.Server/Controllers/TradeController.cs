@@ -26,49 +26,6 @@ namespace Portfolio.Server.Controllers
             return [.. context.Trades];
         }
 
-        [HttpGet("getAssetsWithHoldings")]
-        public List<AssetWithHoldings> GetAssetsWithHoldings()
-        {
-            var holdings = new List<AssetWithHoldings>();
-            foreach (var asset in GetAssets())
-            {
-                AssetWithHoldings assetWithHoldings = new()
-                {
-                    AssetId = asset,
-                    Holdings = GetHoldingsByAsset(asset)
-                };
-                holdings.Add(assetWithHoldings);
-            }
-            return holdings;
-        }
-
-        private string[] GetAssets()
-        {
-            string[] fromAssets = [.. context.Trades.Select(t => t.FromAssetId).Distinct()];
-            string[] toAssets = [.. context.Trades.Select(t => t.ToAssetId).Distinct()];
-            return fromAssets.Concat(toAssets).Distinct().ToArray();
-        }
-
-        private decimal GetHoldingsByAsset(string asset)
-        {
-            return GetAmountReceivedByAsset(asset) - GetAmountSpentByAsset(asset) - GetFeesSpentByAsset(asset);
-        }
-
-        private decimal GetAmountSpentByAsset(string asset)
-        {
-            return context.Trades.Where(t => t.FromAssetId == asset).Sum(t => t.AmountSpent);
-        }
-
-        private decimal GetAmountReceivedByAsset(string asset)
-        {
-            return context.Trades.Where(t => t.ToAssetId == asset).Sum(t => t.AmountReceived);
-        }
-
-        private decimal GetFeesSpentByAsset(string asset)
-        {
-            return context.Trades.Where(t => t.FeeAsset == asset).Sum(t => t.Fee);
-        }
-
 
         [HttpPost]
         public ActionResult PostTrade(NewTradeRequest tradeRequest)
