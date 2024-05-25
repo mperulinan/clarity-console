@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
@@ -15,22 +15,17 @@ import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 registerLocaleData(localeEs);
 
-@NgModule({
-    declarations: [
+@NgModule({ declarations: [
         AppComponent,
         NewTransactionComponent
     ],
-    imports: [
-        BrowserModule, HttpClientModule,
+    bootstrap: [AppComponent], imports: [BrowserModule,
         AppRoutingModule,
         MaterialModule,
-        ReactiveFormsModule,
-    ],
-    providers: [
+        ReactiveFormsModule], providers: [
         provideAnimationsAsync(),
         CookieService,
         { provide: LOCALE_ID, useValue: 'es' },
-    ],
-    bootstrap: [AppComponent]
-})
+        provideHttpClient(withInterceptorsFromDi()),
+    ] })
 export class AppModule { }
