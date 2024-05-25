@@ -4,13 +4,13 @@ import { Coin, CoinGeckoService } from './services/coin-gecko.service';
 import { MatDialog } from '@angular/material/dialog';
 import { NewTransaction, NewTransactionComponent } from './new-transaction/new-transaction.component';
 import { TradeService } from './services/trade.service';
-import { lastValueFrom } from 'rxjs';
 
 export type PortfolioRow = {
     name: string,
     symbol: string,
     price: number,
     holdingsPrice: number,
+    profitLoss: number,
     holdingsAmount: number,
 };
 
@@ -21,9 +21,8 @@ export type PortfolioRow = {
 })
 export class AppComponent implements OnInit {
 
-    displayedColumns: string[] = ['assetId', 'price', 'holdings', 'percentage'];
+    displayedColumns: string[] = ['assetId', 'price', 'holdings', 'profitLoss', 'percentage'];
     portfolioRows: PortfolioRow[] = [];
-    coins: Coin[] = [];
     portfolioValue: number = 0;
     profit: number = 0;
     profitPercentage: number = 0;
@@ -41,6 +40,7 @@ export class AppComponent implements OnInit {
 
     async ngOnInit() {
         await this.tradeService.loadData();
+        await this.coinGecko.loadData(this.tradeService.assets);
 
         await this.loadTable();
         this.setPortfolioValue();
@@ -51,19 +51,13 @@ export class AppComponent implements OnInit {
     async loadTable() {
         const assets: string[] = this.tradeService.assets;
 
-        let prices = await this.coinGecko.getPrices(assets);
-        console.log("prices", prices);
-
-        this.coins = await this.coinGecko.getCoins();
-        console.log("coins", this.coins);
-
         for (let index = 0; index < assets.length; index++) {
             const asset = assets[index];
             const holdings = this.tradeService.getHoldingsByAsset(asset);
 
-            let coin: Coin | undefined = this.coins.find(c => c.id == asset);
+            let coin: Coin | undefined = this.coinGecko.coins.find(c => c.id == asset);
 
-            let price: any = prices[asset]?.usd;
+            let price: any = this.coinGecko.prices[asset]?.usd;
             price = price ? price : 0;
 
             let holdingsPrice: number = holdings * price;
@@ -72,12 +66,14 @@ export class AppComponent implements OnInit {
                 symbol: coin?.symbol.toUpperCase() ?? '',
                 price: price,
                 holdingsPrice: holdingsPrice,
+                profitLoss: this.tradeService.getProfitLossInEurosByAsset(asset),
                 holdingsAmount: holdings,
             };
 
-            if (newRow.holdingsAmount != 0) {
-                this.portfolioRows.push(newRow);
-            }
+            this.portfolioRows.push(newRow);
+            // if (newRow.holdingsAmount != 0) {
+            //     this.portfolioRows.push(newRow);
+            // }
         }
 
         this.portfolioRows.sort((a, b) => b.holdingsPrice - a.holdingsPrice);
@@ -90,7 +86,7 @@ export class AppComponent implements OnInit {
     openNewTransactionDialog() {
         let dialogRef = this.dialog.open(NewTransactionComponent, {
             width: '500px',
-            data: { coins: this.coins },
+            data: { coins: this.coinGecko.coins },
         });
 
         dialogRef.afterClosed().subscribe(async (newTransaction: NewTransaction) => {

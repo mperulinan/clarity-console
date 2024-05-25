@@ -25,10 +25,21 @@ export class CoinGeckoService {
     private strEur: string = "eur";
     private strUsd: string = "usd";
 
+    // Data
+    prices: any;
+    coins: Coin[] = [];
+
     constructor(
         private http: HttpClient,
         private erApi: ErApiService,
     ) { }
+
+
+    async loadData(assetIds: string[]) {
+        this.prices = await this.getPrices(assetIds);
+        this.coins = await this.getCoins();
+    }
+
 
     // Simple
     prefixSimple: string = "simple/";
@@ -38,7 +49,7 @@ export class CoinGeckoService {
         );
     }
 
-    async getPrices(assetIds: string[]) {
+    private async getPrices(assetIds: string[]) {
         let eur2usd: number = await this.erApi.getEur2Usd();
         let prices = await this.getPrice(assetIds, [this.strUsd, this.strEur]);
         prices[this.strEur] = {

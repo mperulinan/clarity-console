@@ -55,6 +55,14 @@
         </ng-container>
 
         <!-- Percentage Column -->
+        <ng-container matColumnDef="profitLoss">
+            <th mat-header-cell *matHeaderCellDef i18n> Profit/Loss </th>
+            <td mat-cell *matCellDef="let element" class="fw-bold">
+                €{{ element.profitLoss | number: '0.0-2' }}
+            </td>
+        </ng-container>
+
+        <!-- Percentage Column -->
         <ng-container matColumnDef="percentage">
             <th mat-header-cell *matHeaderCellDef i18n> % Percentage </th>
             <td mat-cell *matCellDef="let element" class="fw-bold">
