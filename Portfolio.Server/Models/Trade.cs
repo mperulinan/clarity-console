@@ -9,6 +9,8 @@ public partial class Trade
 
     public DateTime Date { get; set; }
 
+    public string TransactionType { get; set; } = null!;
+
     public string FromAssetId { get; set; } = null!;
 
     public string ToAssetId { get; set; } = null!;

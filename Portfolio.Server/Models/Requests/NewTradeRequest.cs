@@ -8,6 +8,9 @@ namespace Portfolio.Server.Models.Requests
         public string FromAssetId { get; set; } = null!;
 
         [Required]
+        public string TransactionType { get; set; } = null!;
+
+        [Required]
         public string ToAssetId { get; set; } = null!;
 
         [Required]

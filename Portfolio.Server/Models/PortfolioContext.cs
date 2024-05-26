@@ -37,6 +37,7 @@ public partial class PortfolioContext : DbContext
             entity.Property(e => e.FromAssetId).HasMaxLength(50);
             entity.Property(e => e.FromAssetPriceInEur).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.ToAssetId).HasMaxLength(50);
+            entity.Property(e => e.TransactionType).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);

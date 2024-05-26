@@ -24,8 +24,8 @@ export class AppComponent implements OnInit {
     displayedColumns: string[] = ['assetId', 'price', 'holdings', 'profitLoss', 'percentage'];
     portfolioRows: PortfolioRow[] = [];
     portfolioValue: number = 0;
-    profit: number = 0;
-    profitPercentage: number = 0;
+    profitLoss: number = 0;
+    profitLossPercentage: number = 0;
     currencySymbol: string = "$";
 
     // Inteface control
@@ -44,8 +44,8 @@ export class AppComponent implements OnInit {
 
         await this.loadTable();
         this.setPortfolioValue();
-        this.setProfit();
-        this.setProfitPercentage();
+        this.setProfitLoss();
+        this.setProfitLossPercentage();
     }
 
     async loadTable() {
@@ -112,16 +112,16 @@ export class AppComponent implements OnInit {
         this.portfolioValue = value;
     }
 
-    private setProfit() {
+    private setProfitLoss() {
         let value: number = 0;
         this.portfolioRows.forEach(row => {
-            value += row.holdingsPrice;
+            value += row.profitLoss;
         });
-        this.profit = value;
+        this.profitLoss = value;
     }
 
-    private setProfitPercentage() {
-        this.profitPercentage = this.profit / this.portfolioValue * 100;
+    private setProfitLossPercentage() {
+        this.profitLossPercentage = this.profitLoss / this.portfolioValue * 100;
     }
 
     getPercentage(holdingsPrice: number) {

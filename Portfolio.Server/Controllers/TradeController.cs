@@ -32,6 +32,7 @@ namespace Portfolio.Server.Controllers
             Trade newTrade = new()
             {
                 Date = DateTime.Now.ToUniversalTime(),
+                TransactionType = tradeRequest.TransactionType,
                 FromAssetId = tradeRequest.FromAssetId,
                 ToAssetId = tradeRequest.ToAssetId,
                 AmountSpent = tradeRequest.AmountSpent,
