@@ -11,6 +11,7 @@ export type PortfolioRow = {
     price: number,
     holdingsPrice: number,
     profitLoss: number,
+    profitLossPercentage: number,
     holdingsAmount: number,
 };
 
@@ -61,12 +62,14 @@ export class AppComponent implements OnInit {
             price = price ? price : 0;
 
             let holdingsPrice: number = holdings * price;
+            let profitLoss: number = this.tradeService.getProfitLossInEurosByAsset(asset);
             let newRow: PortfolioRow = {
                 name: coin?.name ?? asset,
                 symbol: coin?.symbol.toUpperCase() ?? '',
                 price: price,
                 holdingsPrice: holdingsPrice,
-                profitLoss: this.tradeService.getProfitLossInEurosByAsset(asset),
+                profitLoss: profitLoss,
+                profitLossPercentage: this.tradeService.getProfitLossPercentageByAsset(asset),
                 holdingsAmount: holdings,
             };
 
@@ -124,7 +127,7 @@ export class AppComponent implements OnInit {
         this.profitLossPercentage = this.profitLoss / this.portfolioValue * 100;
     }
 
-    getPercentage(holdingsPrice: number) {
+    getAllocation(holdingsPrice: number) {
         let percentage: number = holdingsPrice / this.portfolioValue * 100;
         return percentage >= 0 ? percentage : 0;
     }

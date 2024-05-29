@@ -35,6 +35,17 @@ export class TradeService {
         return this.getEurosReceivedForAsset(asset) - this.getEurosSpentForAsset(asset) + this.getEurosOfHoldingsByAsset(asset) - this.getEurosTransferedInByAsset(asset);
     }
 
+    getProfitLossPercentageByAsset(asset: string): number {
+        const eurosSpent = this.getEurosSpentForAsset(asset) + this.getEurosTransferedInByAsset(asset);
+        const profitLoss = this.getProfitLossInEurosByAsset(asset);
+
+        if (eurosSpent === 0) {
+            return profitLoss > 0 ? Infinity : -100;
+        }
+
+        return (profitLoss / eurosSpent) * 100;
+    }
+
     private updateAssets(trades: Trade[]): void {
         const fromAssets: string[] = [...new Set(trades.map(t => t.fromAssetId))];
         const toAssets: string[] = [...new Set(trades.map(t => t.toAssetId))];
