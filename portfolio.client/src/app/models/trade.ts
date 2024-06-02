@@ -6,11 +6,11 @@ export type Trade = {
     transactionType: TransactionType,
     fromAssetId: string,
     toAssetId: string,
-    amountSpent: number,
-    amountReceived: number,
-    fromAssetPriceInEur: number,
-    fee: number,
+    amountSpent: string,
+    amountReceived: string,
+    fromAssetPriceInEur: string,
+    fee: string,
     feeAsset: string | null,
-    feeAssetPriceInEur: number | null,
+    feeAssetPriceInEur: string | null,
     notes: string | null
 };

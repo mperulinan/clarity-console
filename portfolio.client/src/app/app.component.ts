@@ -4,15 +4,17 @@ import { Coin, CoinGeckoService } from './services/coin-gecko.service';
 import { MatDialog } from '@angular/material/dialog';
 import { NewTransaction, NewTransactionComponent } from './new-transaction/new-transaction.component';
 import { TradeService } from './services/trade.service';
+import { Inventory } from './models/inventory';
+import Decimal from 'decimal.js';
 
 export type PortfolioRow = {
     name: string,
     symbol: string,
-    price: number,
-    holdingsPrice: number,
-    profitLoss: number,
-    profitLossPercentage: number,
-    holdingsAmount: number,
+    price: Decimal,
+    holdingsPrice: Decimal,
+    profitLoss: Decimal,
+    profitLossPercentage: Decimal,
+    holdingsAmount: Decimal,
 };
 
 @Component({
@@ -24,9 +26,10 @@ export class AppComponent implements OnInit {
 
     displayedColumns: string[] = ['assetId', 'price', 'holdings', 'profitLoss', 'percentage'];
     portfolioRows: PortfolioRow[] = [];
-    portfolioValue: number = 0;
-    profitLoss: number = 0;
-    profitLossPercentage: number = 0;
+    portfolioValue: Decimal = new Decimal(0);
+    profitLoss: Decimal = new Decimal(0);
+    profitLossPercentage: Decimal = new Decimal(0);
+    profitLoss2023: Decimal = new Decimal(0);
     currencySymbol: string = "$";
 
     // Inteface control
@@ -47,6 +50,7 @@ export class AppComponent implements OnInit {
         this.setPortfolioValue();
         this.setProfitLoss();
         this.setProfitLossPercentage();
+        this.setProfitLoss2023();
     }
 
     async loadTable() {
@@ -61,8 +65,8 @@ export class AppComponent implements OnInit {
             let price: any = this.coinGecko.prices[asset]?.usd;
             price = price ? price : 0;
 
-            let holdingsPrice: number = holdings * price;
-            let profitLoss: number = this.tradeService.getProfitLossInEurosByAsset(asset);
+            let holdingsPrice: Decimal = holdings.mul(price);
+            let profitLoss: Decimal = this.tradeService.getProfitLossInEurosByAsset(asset);
             let newRow: PortfolioRow = {
                 name: coin?.name ?? asset,
                 symbol: coin?.symbol.toUpperCase() ?? '',
@@ -79,7 +83,7 @@ export class AppComponent implements OnInit {
             // }
         }
 
-        this.portfolioRows.sort((a, b) => b.holdingsPrice - a.holdingsPrice);
+        this.portfolioRows.sort((a, b) => b.holdingsPrice.comparedTo(a.holdingsPrice));
         console.log("portfolioRows", this.portfolioRows);
 
 
@@ -106,29 +110,37 @@ export class AppComponent implements OnInit {
     }
 
     private setPortfolioValue() {
-        let value: number = 0;
+        let value: Decimal = new Decimal(0);
         this.portfolioRows.forEach(row => {
-            if (row.holdingsPrice > 0) {
-                value += row.holdingsPrice;
+            if (row.holdingsPrice.gt(0)) {
+                value = value.plus(row.holdingsPrice);
             }
         });
         this.portfolioValue = value;
     }
 
     private setProfitLoss() {
-        let value: number = 0;
+        let value: Decimal = new Decimal(0);
         this.portfolioRows.forEach(row => {
-            value += row.profitLoss;
+            value = value.plus(row.profitLoss);
         });
         this.profitLoss = value;
     }
 
     private setProfitLossPercentage() {
-        this.profitLossPercentage = this.profitLoss / this.portfolioValue * 100;
+        this.profitLossPercentage = this.profitLoss.div(this.portfolioValue).mul(100);
     }
 
-    getAllocation(holdingsPrice: number) {
-        let percentage: number = holdingsPrice / this.portfolioValue * 100;
-        return percentage >= 0 ? percentage : 0;
+    getAllocation(holdingsPrice: Decimal) {
+        let percentage: Decimal = holdingsPrice.div(this.portfolioValue).mul(100);
+        return percentage.gte(0) ? percentage : 0;
+    }
+
+    setProfitLoss2023() {
+        const tradesBefore2023 = this.tradeService.getTradesBeforeYear(2023);
+        const initialInventory: Inventory = this.tradeService.initializeInventory(tradesBefore2023);
+
+        const trades2023 = this.tradeService.getTradesByYear(2023);
+        this.profitLoss2023 = this.tradeService.calculateProfitsLosses(trades2023, initialInventory);
     }
 }
