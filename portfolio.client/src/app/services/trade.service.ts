@@ -192,11 +192,6 @@ export class TradeService {
             const fee = new Decimal(trade.fee);
             const feeAssetPriceInEur = trade.feeAssetPriceInEur ? new Decimal(trade.feeAssetPriceInEur) : null;
 
-            // Gestionar las comisiones
-            if (feeAsset && feeAssetPriceInEur) {
-                totalProfitLoss = totalProfitLoss.minus(fee.mul(feeAssetPriceInEur));
-            }
-
             if (transactionType === TransactionType.TransferIn) {
                 // Añadir la cantidad recibida al FIFO del activo destino (toAssetId)
                 if (!fifoQueue[toAssetId]) {
@@ -204,6 +199,33 @@ export class TradeService {
                 }
                 fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
             } else if (transactionType === TransactionType.Swap) {
+                if (feeAsset && feeAssetPriceInEur) {
+                    totalProfitLoss = totalProfitLoss.minus(fee.mul(feeAssetPriceInEur));
+
+                    // Deducir la comisión del inventario
+                    let remainingFeeToDeduct: Decimal = fee;
+                    if (!fifoQueue[feeAsset]) {
+                        throw new Error(`Not enough ${feeAsset} to cover the fee. Trade ID ${trade.id}`);
+                    }
+
+                    while (remainingFeeToDeduct.gt(0) && fifoQueue[feeAsset].length > 0) {
+                        const firstFeeEntry = fifoQueue[feeAsset][0];
+                        const firstFeeEntryQuantity: Decimal = new Decimal(firstFeeEntry.quantity);
+
+                        if (firstFeeEntryQuantity.lte(remainingFeeToDeduct)) {
+                            remainingFeeToDeduct = remainingFeeToDeduct.minus(firstFeeEntryQuantity);
+                            fifoQueue[feeAsset].shift();
+                        } else {
+                            firstFeeEntry.quantity = firstFeeEntryQuantity.minus(remainingFeeToDeduct);
+                            remainingFeeToDeduct = new Decimal(0);
+                        }
+                    }
+
+                    if (remainingFeeToDeduct.gt(0)) {
+                        throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFeeToDeduct}. Trade ID ${trade.id}`);
+                    }
+                }
+
                 // Procesar la parte de "vender" del swap
                 let remainingQuantityToSell: Decimal = amountSpent;
 
@@ -247,12 +269,10 @@ export class TradeService {
         trades = this.sortTradesByDate(trades);
         for (const trade of trades) {
             const {
-                transactionType, fromAssetId, toAssetId,
+                transactionType, fromAssetId, toAssetId, feeAsset,
             } = trade;
-
-            if (trade.id == 312) {
-                console.log("in");
-            }
+            const fee = new Decimal(trade.fee);
+            const feeAssetPriceInEur = trade.feeAssetPriceInEur ? new Decimal(trade.feeAssetPriceInEur) : null;
 
             if (!fifoQueue[toAssetId]) {
                 fifoQueue[toAssetId] = [];
@@ -260,6 +280,33 @@ export class TradeService {
             fifoQueue[toAssetId].push({ quantity: new Decimal(trade.amountReceived), costInEur: this.getToAssetPriceInEur(trade) });
 
             if (transactionType === TransactionType.Swap) {
+                // Reducir las comisiones
+                if (feeAsset && feeAssetPriceInEur) {
+                    let remainingFeeToDeduct: Decimal = fee;
+
+                    if (!fifoQueue[feeAsset]) {
+                        throw new Error(`Not enough ${feeAsset} to cover the fee. Trade ID ${trade.id}`);
+                    }
+
+                    while (remainingFeeToDeduct.gt(0) && fifoQueue[feeAsset].length > 0) {
+                        const firstFeeEntry = fifoQueue[feeAsset][0];
+                        const firstFeeEntryQuantity: Decimal = new Decimal(firstFeeEntry.quantity);
+
+                        if (firstFeeEntryQuantity.lte(remainingFeeToDeduct)) {
+                            remainingFeeToDeduct = remainingFeeToDeduct.minus(firstFeeEntryQuantity);
+                            fifoQueue[feeAsset].shift();
+                        } else {
+                            firstFeeEntry.quantity = firstFeeEntryQuantity.minus(remainingFeeToDeduct);
+                            remainingFeeToDeduct = new Decimal(0);
+                        }
+                    }
+
+                    if (remainingFeeToDeduct.gt(0)) {
+                        throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFeeToDeduct}. Trade ID ${trade.id}`);
+                    }
+                }
+
+                // Gestionar los activos intercambiados
                 let remainingQuantityToSell: Decimal = new Decimal(trade.amountSpent);
 
                 if (!fifoQueue[fromAssetId]) {
