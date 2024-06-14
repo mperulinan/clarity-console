@@ -9,6 +9,7 @@ import Decimal from 'decimal.js';
 import { ErApiService } from './services/er-api.service';
 
 export type PortfolioRow = {
+    image: string,
     name: string,
     symbol: string,
     price: Decimal,
@@ -73,6 +74,7 @@ export class AppComponent implements OnInit {
             let holdingsPrice: Decimal = holdings.mul(price);
             let profitLoss: Decimal = this.tradeService.getProfitLossInEurosByAsset(asset);
             let newRow: PortfolioRow = {
+                image: coin?.image ?? "",
                 name: coin?.name ?? asset,
                 symbol: coin?.symbol.toUpperCase() ?? '',
                 price: price,

@@ -15,6 +15,7 @@ export type Coin = {
     id: string,
     symbol: string,
     name: string,
+    image: string,
 };
 
 @Injectable({
@@ -38,7 +39,8 @@ export class CoinGeckoService {
 
     async loadData(assetIds: string[]) {
         this.prices = await this.getPrices(assetIds);
-        this.coins = await this.getCoins();
+        this.coins = await this.getCoins(assetIds);
+        console.log("coins", this.coins);
     }
 
 
@@ -64,7 +66,7 @@ export class CoinGeckoService {
         return prices;
     }
 
-    getSupportedVsCurrencies() {
+    private getSupportedVsCurrencies() {
         return lastValueFrom(
             this.http.get<string[]>(this.baseUrl + this.prefixSimple + "supported_vs_currencies")
         );
@@ -79,27 +81,28 @@ export class CoinGeckoService {
         );
     }
 
-    async getCoins() {
-        let coins: Coin[] = await this.getCoinsList();
+    private getCoinsWithMarketData(coinIds: string[]) {
+        return lastValueFrom(
+            this.http.get<Coin[]>(this.baseUrl + this.prefixCoins + `markets?vs_currency=${this.strUsd}&ids=${coinIds.join(",")}`)
+        );
+    }
+
+    private async getCoins(assetIds: string[]) {
+        let coins: Coin[] = await this.getCoinsWithMarketData(assetIds);
         coins = coins.filter(coin => coin.id !== this.strEur && coin.id !== this.strUsd);
         let eur: Coin = {
             id: this.strEur,
             symbol: this.strEur,
-            name: 'Euro'
+            name: 'Euro',
+            image: "",
         };
         let usd: Coin = {
             id: this.strUsd,
             symbol: this.strUsd,
-            name: 'US Dollar'
+            name: 'US Dollar',
+            image: "",
         };
         coins.push(...[eur, usd]);
         return coins;
-    }
-
-    //Test
-    getHistory(coinId: string) {
-        return lastValueFrom(
-            this.http.get<any>(this.baseUrl + this.prefixCoins + coinId + "/market_chart/range?vs_currency=eur&from=1687258800&to=1687266000&precision=18")
-        );
     }
 }
