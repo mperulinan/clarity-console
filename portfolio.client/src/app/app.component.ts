@@ -6,15 +6,17 @@ import { NewTransaction, NewTransactionComponent } from './new-transaction/new-t
 import { TradeService } from './services/trade.service';
 import { Inventory } from './models/inventory';
 import Decimal from 'decimal.js';
+import { ErApiService } from './services/er-api.service';
 
 export type PortfolioRow = {
     name: string,
     symbol: string,
     price: Decimal,
     holdingsPrice: Decimal,
+    holdingsAmount: Decimal,
+    avgBuyPrice: Decimal,
     profitLoss: Decimal,
     profitLossPercentage: Decimal,
-    holdingsAmount: Decimal,
 };
 
 @Component({
@@ -24,13 +26,14 @@ export type PortfolioRow = {
 })
 export class AppComponent implements OnInit {
 
-    displayedColumns: string[] = ['assetId', 'price', 'holdings', 'profitLoss', 'percentage'];
+    displayedColumns: string[] = ['assetId', 'price', 'holdings', 'avgBuyPrice', 'profitLoss', 'percentage'];
     portfolioRows: PortfolioRow[] = [];
     portfolioValue: Decimal = new Decimal(0);
     profitLoss: Decimal = new Decimal(0);
     profitLossPercentage: Decimal = new Decimal(0);
     profitLoss2023: Decimal = new Decimal(0);
     currencySymbol: string = "$";
+    eurToUsd: Decimal = new Decimal(0);
 
     // Inteface control
     isLoading: boolean = true;
@@ -40,6 +43,7 @@ export class AppComponent implements OnInit {
         private coinGecko: CoinGeckoService,
         private dialog: MatDialog,
         private tradeService: TradeService,
+        private erApi: ErApiService,
     ) { }
 
     async ngOnInit() {
@@ -51,6 +55,7 @@ export class AppComponent implements OnInit {
         this.setProfitLoss();
         this.setProfitLossPercentage();
         this.setProfitLoss2023();
+        this.eurToUsd = await this.erApi.getEur2Usd();
     }
 
     async loadTable() {
@@ -72,15 +77,13 @@ export class AppComponent implements OnInit {
                 symbol: coin?.symbol.toUpperCase() ?? '',
                 price: price,
                 holdingsPrice: holdingsPrice,
+                holdingsAmount: holdings,
+                avgBuyPrice: this.tradeService.getAvgBuyPriceByAsset(asset),
                 profitLoss: profitLoss,
                 profitLossPercentage: this.tradeService.getProfitLossPercentageByAsset(asset),
-                holdingsAmount: holdings,
             };
 
             this.portfolioRows.push(newRow);
-            // if (newRow.holdingsAmount != 0) {
-            //     this.portfolioRows.push(newRow);
-            // }
         }
 
         this.portfolioRows.sort((a, b) => b.holdingsPrice.comparedTo(a.holdingsPrice));

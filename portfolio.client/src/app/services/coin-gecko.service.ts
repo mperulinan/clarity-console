@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { ErApiService } from './er-api.service';
+import Decimal from 'decimal.js';
 
 
 export type Price = {
@@ -50,7 +51,7 @@ export class CoinGeckoService {
     }
 
     private async getPrices(assetIds: string[]) {
-        let eur2usd: number = await this.erApi.getEur2Usd();
+        let eur2usd: Decimal = await this.erApi.getEur2Usd();
         let prices = await this.getPrice(assetIds, [this.strUsd, this.strEur]);
         prices[this.strEur] = {
             usd: eur2usd,
@@ -58,7 +59,7 @@ export class CoinGeckoService {
         };
         prices[this.strUsd] = {
             usd: 1,
-            eur: 1 / eur2usd
+            eur: new Decimal(1).div(eur2usd)
         };
         return prices;
     }

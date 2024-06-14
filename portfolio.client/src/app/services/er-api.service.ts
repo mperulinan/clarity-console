@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import Decimal from 'decimal.js';
 import { CookieService } from 'ngx-cookie-service';
 import { lastValueFrom } from 'rxjs';
 
@@ -38,6 +39,6 @@ export class ErApiService {
             this.cookieService.set(this.cookieName, value, 0.1);
         }
 
-        return parseFloat(value);
+        return new Decimal(value);
     }
 }

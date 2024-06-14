@@ -32,13 +32,16 @@ export class TradeService {
     }
 
     getHoldingsByAsset(asset: string): Decimal {
-        if (asset == 'monsta-infinite') {
-            console.log("in");
-        }
         const amountReceived = this.getAmountReceivedByAsset(asset);
         const amountSpent = this.getAmountSpentByAsset(asset);
         const feesSpent = this.getFeesSpentByAsset(asset);
         return amountReceived.minus(amountSpent).minus(feesSpent);
+    }
+
+    getAvgBuyPriceByAsset(asset: string): Decimal {
+        const amountBought = this.getAmountBoughtOfAsset(asset);
+        const cost = this.getEurosSpentForAsset(asset);
+        return cost.div(amountBought);
     }
 
     getProfitLossInEurosByAsset(asset: string): Decimal {
@@ -75,16 +78,16 @@ export class TradeService {
         return this.trades.filter(t => t.feeAsset === asset);
     }
 
-    private getTradesFilteredByTransactionType(trades: Trade[], transactionType: TransactionType) {
-        return trades.filter(t => t.transactionType === transactionType);
-    }
-
     private getSwapsByFromAsset(asset: string) {
         return this.getTradesFilteredByTransactionType(this.getTradesByFromAsset(asset), TransactionType.Swap);
     }
 
     private getSwapsByToAsset(asset: string) {
         return this.getTradesFilteredByTransactionType(this.getTradesByToAsset(asset), TransactionType.Swap);
+    }
+
+    private getTradesFilteredByTransactionType(trades: Trade[], transactionType: TransactionType) {
+        return trades.filter(t => t.transactionType === transactionType);
     }
 
     private getTransfersInByAsset(asset: string) {
@@ -103,8 +106,16 @@ export class TradeService {
         return this.getTradesByFeeAsset(asset).reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.fee)), new Decimal(0));
     }
 
+    private getAmountBoughtOfAsset(asset: string): Decimal {
+        return this.getSwapsByToAsset(asset).reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amountReceived)), new Decimal(0));
+    }
+
     private getEurosSpentInTrade(trade: Trade): Decimal {
-        let euros: Decimal = new Decimal(new Decimal(trade.amountSpent).mul(trade.fromAssetPriceInEur));
+        return new Decimal(new Decimal(trade.amountSpent).mul(trade.fromAssetPriceInEur));
+    }
+
+    private getEurosSpentInTradeWithFees(trade: Trade): Decimal {
+        let euros: Decimal = this.getEurosSpentInTrade(trade);
         if (trade.feeAssetPriceInEur) {
             euros = euros.plus(new Decimal(trade.fee).mul(trade.feeAssetPriceInEur));
         }
@@ -132,10 +143,10 @@ export class TradeService {
 
     // Buys
     private getEurosSpentForAsset(asset: string): Decimal {
-        const trades: Trade[] = this.getSwapsByToAsset(asset);
+        const swaps: Trade[] = this.getSwapsByToAsset(asset);
         let euros: Decimal = new Decimal(0);
-        trades.forEach(trade => {
-            euros = euros.plus(this.getEurosSpentInTrade(trade));
+        swaps.forEach(swap => {
+            euros = euros.plus(this.getEurosSpentInTradeWithFees(swap));
         });
         return euros;
     }
@@ -153,11 +164,11 @@ export class TradeService {
     }
 
     private getEurosOfHoldingsByAsset(asset: string): Decimal {
-        const price: number = this.coinGecko.prices[asset]?.eur;
+        const price: Decimal = this.coinGecko.prices[asset]?.eur;
         if (!price) {
             return new Decimal(0);
         }
-        return this.getHoldingsByAsset(asset).mul(price.toString());
+        return this.getHoldingsByAsset(asset).mul(price);
     }
 
 
