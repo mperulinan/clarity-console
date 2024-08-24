@@ -28,4 +28,6 @@ public partial class Trade
     public decimal? FeeAssetPriceInEur { get; set; }
 
     public string? Notes { get; set; }
+
+    public virtual TransactionType TransactionTypeNavigation { get; set; } = null!;
 }

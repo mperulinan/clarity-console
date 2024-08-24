@@ -27,18 +27,21 @@ namespace Portfolio.Server.Controllers
 
 
         [HttpPost]
-        public ActionResult PostTrade(NewTradeRequest tradeRequest)
+        public ActionResult PostTrade(NewTradeRequest request)
         {
             Trade newTrade = new()
             {
-                Date = DateTime.Now.ToUniversalTime(),
-                TransactionType = tradeRequest.TransactionType,
-                FromAssetId = tradeRequest.FromAssetId,
-                ToAssetId = tradeRequest.ToAssetId,
-                AmountSpent = tradeRequest.AmountSpent,
-                AmountReceived = tradeRequest.AmountReceived,
-                Fee = tradeRequest.Fee,
-                Notes = tradeRequest.Notes,
+                Date = request.Date.ToUniversalTime(),
+                TransactionType = request.TransactionType,
+                FromAssetId = request.FromAssetId,
+                ToAssetId = request.ToAssetId,
+                AmountSpent = request.AmountSpent,
+                AmountReceived = request.AmountReceived,
+                FromAssetPriceInEur = request.FromAssetPriceInEur,
+                Fee = request.Fee,
+                FeeAsset = request.FeeAsset,
+                FeeAssetPriceInEur = request.FeeAssetPriceInEur,
+                Notes = request.Notes,
             };
             context.Trades.Add(newTrade);
 

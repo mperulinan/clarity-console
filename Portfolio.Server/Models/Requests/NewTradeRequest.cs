@@ -5,10 +5,13 @@ namespace Portfolio.Server.Models.Requests
     public class NewTradeRequest
     {
         [Required]
-        public string FromAssetId { get; set; } = null!;
+        public DateTime Date { get; set; }
 
         [Required]
         public string TransactionType { get; set; } = null!;
+
+        [Required]
+        public string FromAssetId { get; set; } = null!;
 
         [Required]
         public string ToAssetId { get; set; } = null!;

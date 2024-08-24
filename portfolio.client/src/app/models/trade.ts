@@ -1,9 +1,7 @@
-import { TransactionType } from "../services/trade.service";
-
 export type Trade = {
     id: number,
     date: Date,
-    transactionType: TransactionType,
+    transactionType: string,
     fromAssetId: string,
     toAssetId: string,
     amountSpent: string,

@@ -3,20 +3,8 @@ import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { ErApiService } from './er-api.service';
 import Decimal from 'decimal.js';
+import { Coin } from '../models/coin';
 
-
-export type Price = {
-    [id: string]: {
-        usd: number,
-        eur: number,
-    }
-};
-export type Coin = {
-    id: string,
-    symbol: string,
-    name: string,
-    image: string,
-};
 
 @Injectable({
     providedIn: 'root'
@@ -81,14 +69,26 @@ export class CoinGeckoService {
         );
     }
 
-    private getCoinsWithMarketData(coinIds: string[]) {
+    private getCoinsWithMarketData(resultsPerPage: number, pageNum: number) {
+        return lastValueFrom(
+            this.http.get<Coin[]>(this.baseUrl + this.prefixCoins + `markets?vs_currency=${this.strUsd}&per_page=${resultsPerPage}&page=${pageNum}`)
+        );
+    }
+
+    private getMyCoinsWithMarketData(coinIds: string[]) {
         return lastValueFrom(
             this.http.get<Coin[]>(this.baseUrl + this.prefixCoins + `markets?vs_currency=${this.strUsd}&ids=${coinIds.join(",")}`)
         );
     }
 
-    private async getCoins(assetIds: string[]) {
-        let coins: Coin[] = await this.getCoinsWithMarketData(assetIds);
+    private async getCoins(coinsIds: string[]) {
+        let coins: Coin[] = await this.getMyCoinsWithMarketData(coinsIds);
+
+        for (let i = 1; i <= 1; i++) {
+            coins = coins.concat(await this.getCoinsWithMarketData(250, i));
+        }
+
+        coins = this.removeDuplicatedCoins(coins);
         coins = coins.filter(coin => coin.id !== this.strEur && coin.id !== this.strUsd);
         let eur: Coin = {
             id: this.strEur,
@@ -104,5 +104,13 @@ export class CoinGeckoService {
         };
         coins.push(...[eur, usd]);
         return coins;
+    }
+
+    private removeDuplicatedCoins(coins: Coin[]): Coin[] {
+        const uniqueCoinsMap = new Map<string, Coin>();
+        coins.forEach((coin) => {
+            uniqueCoinsMap.set(coin.id, coin);
+        });
+        return Array.from(uniqueCoinsMap.values());
     }
 }

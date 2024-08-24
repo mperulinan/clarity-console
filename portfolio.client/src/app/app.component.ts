@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from './services/api.service';
-import { Coin, CoinGeckoService } from './services/coin-gecko.service';
+import { CoinGeckoService } from './services/coin-gecko.service';
 import { MatDialog } from '@angular/material/dialog';
-import { NewTransaction, NewTransactionComponent } from './new-transaction/new-transaction.component';
+import { NewTransactionComponent } from './new-transaction/new-transaction.component';
 import { TradeService } from './services/trade.service';
 import { Inventory } from './models/inventory';
 import Decimal from 'decimal.js';
 import { ErApiService } from './services/er-api.service';
+import { Coin } from './models/coin';
+import { NewTransaction } from './models/new-transaction';
 
 export type PortfolioRow = {
     image: string,
@@ -32,7 +34,7 @@ export class AppComponent implements OnInit {
     portfolioValue: Decimal = new Decimal(0);
     profitLoss: Decimal = new Decimal(0);
     profitLossPercentage: Decimal = new Decimal(0);
-    profitLoss2023: Decimal = new Decimal(0);
+    profitLossYear: Decimal = new Decimal(0);
     currencySymbol: string = "$";
     eurToUsd: Decimal = new Decimal(0);
 
@@ -55,7 +57,7 @@ export class AppComponent implements OnInit {
         this.setPortfolioValue();
         this.setProfitLoss();
         this.setProfitLossPercentage();
-        this.setProfitLoss2023();
+        this.setProfitLossYear(2024);
         this.eurToUsd = await this.erApi.getEur2Usd();
     }
 
@@ -105,11 +107,13 @@ export class AppComponent implements OnInit {
             if (!newTransaction) {
                 return;
             }
+            console.log("newTransaction", newTransaction);
 
             this.api.postTransaction(newTransaction).then(async result => {
                 await this.loadTable();
             }).catch(error => {
-                alert(error);
+                alert("Error. See console.");
+                console.log("error", error);
             });
         });
     }
@@ -141,11 +145,11 @@ export class AppComponent implements OnInit {
         return percentage.gte(0) ? percentage : 0;
     }
 
-    setProfitLoss2023() {
-        const tradesBefore2023 = this.tradeService.getTradesBeforeYear(2023);
-        const initialInventory: Inventory = this.tradeService.initializeInventory(tradesBefore2023);
+    setProfitLossYear(year: number) {
+        const tradesBeforeYear = this.tradeService.getTradesBeforeYear(year);
+        const initialInventory: Inventory = this.tradeService.initializeInventory(tradesBeforeYear);
 
-        const trades2023 = this.tradeService.getTradesByYear(2023);
-        this.profitLoss2023 = this.tradeService.calculateProfitsLosses(trades2023, initialInventory);
+        const tradesYear = this.tradeService.getTradesByYear(year);
+        this.profitLossYear = this.tradeService.calculateProfitsLosses(tradesYear, initialInventory);
     }
 }

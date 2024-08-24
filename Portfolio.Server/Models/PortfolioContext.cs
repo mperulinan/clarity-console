@@ -17,6 +17,8 @@ public partial class PortfolioContext : DbContext
 
     public virtual DbSet<Trade> Trades { get; set; }
 
+    public virtual DbSet<TransactionType> TransactionTypes { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:Portfolio");
 
@@ -38,6 +40,21 @@ public partial class PortfolioContext : DbContext
             entity.Property(e => e.FromAssetPriceInEur).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.ToAssetId).HasMaxLength(50);
             entity.Property(e => e.TransactionType).HasMaxLength(50);
+
+            entity.HasOne(d => d.TransactionTypeNavigation).WithMany(p => p.Trades)
+                .HasForeignKey(d => d.TransactionType)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Trade_TransactionType");
+        });
+
+        modelBuilder.Entity<TransactionType>(entity =>
+        {
+            entity.HasKey(e => e.Code);
+
+            entity.ToTable("TransactionType");
+
+            entity.Property(e => e.Code).HasMaxLength(50);
+            entity.Property(e => e.Name).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);

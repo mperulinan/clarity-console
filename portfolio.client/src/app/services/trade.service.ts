@@ -5,11 +5,6 @@ import { CoinGeckoService } from './coin-gecko.service';
 import { Inventory } from '../models/inventory';
 import Decimal from 'decimal.js';
 
-export enum TransactionType {
-    Swap = "SWAP",
-    TransferIn = "TRANSFER_IN"
-}
-
 @Injectable({
     providedIn: 'root'
 })
@@ -79,19 +74,19 @@ export class TradeService {
     }
 
     private getSwapsByFromAsset(asset: string) {
-        return this.getTradesFilteredByTransactionType(this.getTradesByFromAsset(asset), TransactionType.Swap);
+        return this.getTradesFilteredByTransactionType(this.getTradesByFromAsset(asset), this.api.appSettings.transactionType.swap);
     }
 
     private getSwapsByToAsset(asset: string) {
-        return this.getTradesFilteredByTransactionType(this.getTradesByToAsset(asset), TransactionType.Swap);
+        return this.getTradesFilteredByTransactionType(this.getTradesByToAsset(asset), this.api.appSettings.transactionType.swap);
     }
 
-    private getTradesFilteredByTransactionType(trades: Trade[], transactionType: TransactionType) {
-        return trades.filter(t => t.transactionType === transactionType);
+    private getTradesFilteredByTransactionType(trades: Trade[], transactionTypeCode: string) {
+        return trades.filter(t => t.transactionType === transactionTypeCode);
     }
 
     private getTransfersInByAsset(asset: string) {
-        return this.trades.filter(t => t.toAssetId === asset && t.transactionType === TransactionType.TransferIn);
+        return this.trades.filter(t => t.toAssetId === asset && t.transactionType === this.api.appSettings.transactionType.transferIn);
     }
 
     private getAmountSpentByAsset(asset: string): Decimal {
@@ -193,7 +188,7 @@ export class TradeService {
         trades = this.sortTradesByDate(trades);
         for (const trade of trades) {
             const {
-                transactionType, fromAssetId, toAssetId,
+                transactionType: transactionType, fromAssetId, toAssetId,
                 feeAsset
             } = trade;
             const amountSpent = new Decimal(trade.amountSpent);
@@ -203,13 +198,13 @@ export class TradeService {
             const fee = new Decimal(trade.fee);
             const feeAssetPriceInEur = trade.feeAssetPriceInEur ? new Decimal(trade.feeAssetPriceInEur) : null;
 
-            if (transactionType === TransactionType.TransferIn) {
+            if (transactionType === this.api.appSettings.transactionType.transferIn) {
                 // Añadir la cantidad recibida al FIFO del activo destino (toAssetId)
                 if (!fifoQueue[toAssetId]) {
                     fifoQueue[toAssetId] = [];
                 }
                 fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
-            } else if (transactionType === TransactionType.Swap) {
+            } else if (transactionType === this.api.appSettings.transactionType.swap) {
                 if (feeAsset && feeAssetPriceInEur) {
                     totalProfitLoss = totalProfitLoss.minus(fee.mul(feeAssetPriceInEur));
 
@@ -280,7 +275,7 @@ export class TradeService {
         trades = this.sortTradesByDate(trades);
         for (const trade of trades) {
             const {
-                transactionType, fromAssetId, toAssetId, feeAsset,
+                transactionType: transactionType, fromAssetId, toAssetId, feeAsset,
             } = trade;
             const fee = new Decimal(trade.fee);
             const feeAssetPriceInEur = trade.feeAssetPriceInEur ? new Decimal(trade.feeAssetPriceInEur) : null;
@@ -290,7 +285,7 @@ export class TradeService {
             }
             fifoQueue[toAssetId].push({ quantity: new Decimal(trade.amountReceived), costInEur: this.getToAssetPriceInEur(trade) });
 
-            if (transactionType === TransactionType.Swap) {
+            if (transactionType === this.api.appSettings.transactionType.swap) {
                 // Reducir las comisiones
                 if (feeAsset && feeAssetPriceInEur) {
                     let remainingFeeToDeduct: Decimal = fee;
