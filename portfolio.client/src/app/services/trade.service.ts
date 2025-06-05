@@ -40,7 +40,12 @@ export class TradeService {
     }
 
     getProfitLossInEurosByAsset(asset: string): Decimal {
-        return this.getEurosReceivedForAsset(asset).minus(this.getEurosSpentForAsset(asset)).plus(this.getEurosOfHoldingsByAsset(asset)).minus(this.getEurosTransferedInByAsset(asset));
+        const eurosReceived = this.getEurosReceivedForAsset(asset);
+        const eurosSpent = this.getEurosSpentForAsset(asset);
+        const eurosOfHoldings = this.getEurosOfHoldingsByAsset(asset);
+        const eurosTransferedIn = this.getEurosTransferedInByAsset(asset);
+
+        return eurosReceived.minus(eurosSpent).plus(eurosOfHoldings).minus(eurosTransferedIn);
     }
 
     getProfitLossPercentageByAsset(asset: string): Decimal {
