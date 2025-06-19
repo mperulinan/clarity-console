@@ -5,13 +5,14 @@ import { Trade } from '../models/trade';
 import { TransactionType } from '../models/transaction-type';
 import { NewTransaction } from '../models/new-transaction';
 import { AppSettings } from '../models/app-settings';
+import { environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ApiService {
 
-    private baseUrl: string = "https://localhost:7129/api/";
+    private baseUrl: string = environment.appUrl + "api/";
     public appSettings: AppSettings = {
         transactionType: {
             swap: '',
@@ -33,6 +34,8 @@ export class ApiService {
 
     prefixAppSettings: string = "appSettings/";
     getAppSetting(settingName: string) {
+        console.log('environment.appUrl', environment.appUrl);
+
         return lastValueFrom(
             this.http.get(this.baseUrl + this.prefixAppSettings + settingName, { responseType: 'text' })
         );
