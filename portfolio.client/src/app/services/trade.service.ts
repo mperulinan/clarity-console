@@ -66,6 +66,12 @@ export class TradeService {
         this.assets = allAssets;
     }
 
+    public getTradesByAsset(asset: string): Trade[] {
+        return this.trades.filter(
+            t => t.fromAssetId === asset || t.toAssetId === asset || t.feeAsset === asset
+        );
+    }
+
     private getTradesByFromAsset(asset: string): Trade[] {
         return this.trades.filter(t => t.fromAssetId === asset);
     }

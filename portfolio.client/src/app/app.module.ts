@@ -13,11 +13,15 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { registerLocaleData } from '@angular/common';
 
 import localeEs from '@angular/common/locales/es';
+import { AssetComponent } from './asset/asset.component';
+import { HomeComponent } from './home/home.component';
 registerLocaleData(localeEs);
 
 @NgModule({ declarations: [
         AppComponent,
-        NewTransactionComponent
+        NewTransactionComponent,
+        AssetComponent,
+        HomeComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         AppRoutingModule,
