@@ -56,7 +56,7 @@ export class HomeComponent {
         this.setPortfolioValue();
         this.setProfitLoss();
         this.setProfitLossPercentage();
-        this.setProfitLossYear(2024);
+        this.setProfitLossYear(2023);
         this.eurToUsd = await this.erApi.getEur2Usd();
     }
 
@@ -149,6 +149,6 @@ export class HomeComponent {
         const initialInventory: Inventory = this.tradeService.initializeInventory(tradesBeforeYear);
 
         const tradesYear = this.tradeService.getTradesByYear(year);
-        this.profitLossYear = this.tradeService.calculateProfitsLosses(tradesYear, initialInventory);
+        this.profitLossYear = this.tradeService.calculateProfitsLosses(tradesYear, initialInventory).totalProfitLoss;
     }
 }

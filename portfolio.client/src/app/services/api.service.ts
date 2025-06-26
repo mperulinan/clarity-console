@@ -16,7 +16,8 @@ export class ApiService {
     public appSettings: AppSettings = {
         transactionType: {
             swap: '',
-            transferIn: ''
+            transferIn: '',
+            reward: ''
         }
     };
 
@@ -29,13 +30,12 @@ export class ApiService {
     async loadAppSettings() {
         this.getAppSetting("TransactionType:Swap").then((value) => this.appSettings.transactionType.swap = value).catch((error) => { alert("Error. See console."); console.log(error); });
         this.getAppSetting("TransactionType:TransferIn").then((value) => this.appSettings.transactionType.transferIn = value).catch((error) => { alert("Error. See console."); console.log(error); });
+        this.getAppSetting("TransactionType:Reward").then((value) => this.appSettings.transactionType.reward = value).catch((error) => { alert("Error. See console."); console.log(error); });
     }
 
 
     prefixAppSettings: string = "appSettings/";
     getAppSetting(settingName: string) {
-        console.log('environment.appUrl', environment.appUrl);
-
         return lastValueFrom(
             this.http.get(this.baseUrl + this.prefixAppSettings + settingName, { responseType: 'text' })
         );

@@ -4,6 +4,7 @@ import { ApiService } from './api.service';
 import { CoinGeckoService } from './coin-gecko.service';
 import { Inventory } from '../models/inventory';
 import Decimal from 'decimal.js';
+import { AnnotatedTrade } from '../models/annotated-trade';
 
 @Injectable({
     providedIn: 'root'
@@ -192,16 +193,31 @@ export class TradeService {
         return this.trades.filter(trade => new Date(trade.date).getFullYear() === year);
     }
 
-    calculateProfitsLosses(trades: Trade[], initialInventory: Inventory): Decimal {
+    calculateProfitsLosses(trades: Trade[], initialInventory: Inventory): {
+        totalProfitLoss: Decimal;
+        annotatedTrades: AnnotatedTrade[];
+    } {
         const fifoQueue: Inventory = { ...initialInventory };
         let totalProfitLoss: Decimal = new Decimal(0);
 
-        trades = this.sortTradesByDate(trades);
-        for (const trade of trades) {
+        const disallowedLosses = new Map<number, {
+            trade: AnnotatedTrade;
+            asset: string;
+            date: Date;
+            remainingAmount: Decimal;
+            totalLossAmount: Decimal;
+            disallowedByTradeId?: number;
+        }>();
+
+        const annotatedTrades: AnnotatedTrade[] = this.sortTradesByDate(trades).map(t => ({ ...t }));
+        for (const trade of annotatedTrades) {
             const {
-                transactionType: transactionType, fromAssetId, toAssetId,
+                transactionType,
+                fromAssetId,
+                toAssetId,
                 feeAsset
             } = trade;
+
             const amountSpent = new Decimal(trade.amountSpent);
             const amountReceived = new Decimal(trade.amountReceived);
             const fromAssetPriceInEur = new Decimal(trade.fromAssetPriceInEur);
@@ -209,75 +225,135 @@ export class TradeService {
             const fee = new Decimal(trade.fee);
             const feeAssetPriceInEur = trade.feeAssetPriceInEur ? new Decimal(trade.feeAssetPriceInEur) : null;
 
-            if (transactionType === this.api.appSettings.transactionType.transferIn) {
-                // Añadir la cantidad recibida al FIFO del activo destino (toAssetId)
-                if (!fifoQueue[toAssetId]) {
-                    fifoQueue[toAssetId] = [];
-                }
-                fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
-            } else if (transactionType === this.api.appSettings.transactionType.swap) {
-                if (feeAsset && feeAssetPriceInEur) {
-                    totalProfitLoss = totalProfitLoss.minus(fee.mul(feeAssetPriceInEur));
-
-                    // Deducir la comisión del inventario
-                    let remainingFeeToDeduct: Decimal = fee;
-                    if (!fifoQueue[feeAsset]) {
-                        throw new Error(`Not enough ${feeAsset} to cover the fee. Trade ID ${trade.id}`);
+            switch (transactionType) {
+                case this.api.appSettings.transactionType.transferIn:
+                    // Añadir al inventario sin declarar ganancia.
+                    if (!fifoQueue[toAssetId]) {
+                        fifoQueue[toAssetId] = [];
                     }
+                    fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
+                    break;
 
-                    while (remainingFeeToDeduct.gt(0) && fifoQueue[feeAsset].length > 0) {
-                        const firstFeeEntry = fifoQueue[feeAsset][0];
-                        const firstFeeEntryQuantity: Decimal = new Decimal(firstFeeEntry.quantity);
+                case this.api.appSettings.transactionType.reward:
+                    // Considerar directamente como ganancia.
+                    const rewardGain = amountReceived.mul(toAssetPriceInEur);
+                    trade.profitLoss = rewardGain;
+                    totalProfitLoss = totalProfitLoss.plus(rewardGain);
 
-                        if (firstFeeEntryQuantity.lte(remainingFeeToDeduct)) {
-                            remainingFeeToDeduct = remainingFeeToDeduct.minus(firstFeeEntryQuantity);
-                            fifoQueue[feeAsset].shift();
-                        } else {
-                            firstFeeEntry.quantity = firstFeeEntryQuantity.minus(remainingFeeToDeduct);
-                            remainingFeeToDeduct = new Decimal(0);
+                    // Se añade al inventario como coste 0 para futuras ventas.
+                    if (!fifoQueue[toAssetId]) fifoQueue[toAssetId] = [];
+                    fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
+                    break;
+
+                case this.api.appSettings.transactionType.swap:
+                    // Comisiones.
+                    if (feeAsset && feeAssetPriceInEur) {
+                        totalProfitLoss = totalProfitLoss.minus(fee.mul(feeAssetPriceInEur));
+
+                        // Quitar la comisión del inventario.
+                        let remainingFeeToDeduct = fee;
+                        if (!fifoQueue[feeAsset]) {
+                            throw new Error(`Not enough ${feeAsset} to cover the fee. Trade ID ${trade.id}`);
+                        }
+
+                        while (remainingFeeToDeduct.gt(0) && fifoQueue[feeAsset].length > 0) {
+                            const firstFeeEntry = fifoQueue[feeAsset][0];
+                            const firstFeeEntryQuantity: Decimal = new Decimal(firstFeeEntry.quantity);
+
+                            if (firstFeeEntryQuantity.lte(remainingFeeToDeduct)) {
+                                remainingFeeToDeduct = remainingFeeToDeduct.minus(firstFeeEntryQuantity);
+                                fifoQueue[feeAsset].shift();
+                            } else {
+                                firstFeeEntry.quantity = firstFeeEntryQuantity.minus(remainingFeeToDeduct);
+                                remainingFeeToDeduct = new Decimal(0);
+                            }
+                        }
+
+                        if (remainingFeeToDeduct.gt(0)) {
+                            throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFeeToDeduct}. Trade ID ${trade.id}`);
                         }
                     }
 
-                    if (remainingFeeToDeduct.gt(0)) {
-                        throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFeeToDeduct}. Trade ID ${trade.id}`);
+                    // Venta.
+                    let remainingToSell = amountSpent;
+                    let tradeProfitLoss = new Decimal(0);
+
+                    if (!fifoQueue[fromAssetId] && remainingToSell.gt(0)) {
+                        throw new Error(`Not enough ${fromAssetId} to swap. Trade ID ${trade.id}`);
                     }
-                }
 
-                // Procesar la parte de "vender" del swap
-                let remainingQuantityToSell: Decimal = amountSpent;
+                    while (remainingToSell.gt(0) && fifoQueue[fromAssetId].length > 0) {
+                        const entry = fifoQueue[fromAssetId][0];
+                        const qty = new Decimal(entry.quantity);
+                        const cost = new Decimal(entry.costInEur);
 
-                if (!fifoQueue[fromAssetId] && remainingQuantityToSell.gt(0)) {
-                    throw new Error(`Not enough ${fromAssetId} to swap. Trade ID ${trade.id}`);
-                }
+                        const usedQty = Decimal.min(qty, remainingToSell);
+                        const pl = usedQty.mul(fromAssetPriceInEur.minus(cost));
+                        tradeProfitLoss = tradeProfitLoss.plus(pl);
 
-                while (remainingQuantityToSell.gt(0) && fifoQueue[fromAssetId].length > 0) {
-                    const firstEntry = fifoQueue[fromAssetId][0];
-                    const firstEntryQuantity: Decimal = new Decimal(firstEntry.quantity);
+                        if (pl.lt(0)) {
+                            disallowedLosses.set(trade.id, {
+                                trade,
+                                asset: fromAssetId,
+                                date: new Date(trade.date),
+                                remainingAmount: usedQty,
+                                totalLossAmount: pl,
+                            });
+                        }
 
-                    if (firstEntryQuantity.lte(remainingQuantityToSell)) {
-                        totalProfitLoss = totalProfitLoss.plus(firstEntryQuantity.mul((fromAssetPriceInEur.minus(firstEntry.costInEur))));
-                        remainingQuantityToSell = remainingQuantityToSell.minus(firstEntryQuantity);
-                        fifoQueue[fromAssetId].shift();
-                    } else {
-                        totalProfitLoss = totalProfitLoss.plus(remainingQuantityToSell.mul((fromAssetPriceInEur.minus(firstEntry.costInEur))));
-                        firstEntry.quantity = firstEntryQuantity.minus(remainingQuantityToSell);
-                        remainingQuantityToSell = new Decimal(0);
+                        if (qty.lte(remainingToSell)) {
+                            remainingToSell = remainingToSell.minus(qty);
+                            fifoQueue[fromAssetId].shift();
+                        } else {
+                            entry.quantity = qty.minus(remainingToSell);
+                            remainingToSell = new Decimal(0);
+                        }
                     }
-                }
 
-                if (remainingQuantityToSell.gt(0)) {
-                    throw new Error(`Not enough ${fromAssetId} to swap. Remaining ${remainingQuantityToSell}. Trade ID ${trade.id}`);
-                }
+                    if (remainingToSell.gt(0)) {
+                        throw new Error(`Not enough ${fromAssetId} to swap. Remaining ${remainingToSell}. Trade ID ${trade.id}`);
+                    }
 
-                // Procesar la parte de "comprar" del swap
-                if (!fifoQueue[toAssetId]) {
-                    fifoQueue[toAssetId] = [];
-                }
-                fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
+                    // Recompra (parte de compra del swap).
+                    if (!fifoQueue[toAssetId]) {
+                        fifoQueue[toAssetId] = [];
+                    }
+                    fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
+
+                    // Regla X meses: esta compra invalida pérdidas pasadas.
+                    for (const [lossId, loss] of disallowedLosses.entries()) {
+                        if (
+                            loss.asset === toAssetId &&
+                            !loss.disallowedByTradeId &&
+                            this.isWithinXMonths(loss.date, new Date(trade.date), 2)
+                        ) {
+                            loss.disallowedByTradeId = trade.id;
+                            loss.trade.isLossDisallowed = true;
+                            loss.trade.disallowedByTradeId = trade.id;
+
+                            if (!trade.disallowsPreviousLosses) trade.disallowsPreviousLosses = [];
+                            trade.disallowsPreviousLosses.push(lossId);
+                        }
+                    }
+
+                    // Registrar ganancia/pérdida solo si es válida
+                    if (!trade.isLossDisallowed && !tradeProfitLoss.isZero()) {
+                        trade.profitLoss = tradeProfitLoss;
+                        totalProfitLoss = totalProfitLoss.plus(tradeProfitLoss);
+                    }
+
+                    break;
+
+                default:
+                    console.warn(`Transacción ignorada (tipo desconocido): ${transactionType} en Trade ID ${trade.id}`);
+                    break;
             }
         }
 
-        return totalProfitLoss;
+        return {
+            totalProfitLoss,
+            annotatedTrades,
+        };
     }
 
     initializeInventory(trades: Trade[]): Inventory {
@@ -286,68 +362,97 @@ export class TradeService {
         trades = this.sortTradesByDate(trades);
         for (const trade of trades) {
             const {
-                transactionType: transactionType, fromAssetId, toAssetId, feeAsset,
+                transactionType,
+                fromAssetId,
+                toAssetId,
+                feeAsset,
             } = trade;
+
+            const amountReceived = new Decimal(trade.amountReceived);
+            const amountSpent = new Decimal(trade.amountSpent);
             const fee = new Decimal(trade.fee);
+            const toAssetPriceInEur = this.getToAssetPriceInEur(trade);
             const feeAssetPriceInEur = trade.feeAssetPriceInEur ? new Decimal(trade.feeAssetPriceInEur) : null;
 
-            if (!fifoQueue[toAssetId]) {
-                fifoQueue[toAssetId] = [];
-            }
-            fifoQueue[toAssetId].push({ quantity: new Decimal(trade.amountReceived), costInEur: this.getToAssetPriceInEur(trade) });
-
-            if (transactionType === this.api.appSettings.transactionType.swap) {
-                // Reducir las comisiones
-                if (feeAsset && feeAssetPriceInEur) {
-                    let remainingFeeToDeduct: Decimal = fee;
-
-                    if (!fifoQueue[feeAsset]) {
-                        throw new Error(`Not enough ${feeAsset} to cover the fee. Trade ID ${trade.id}`);
+            switch (transactionType) {
+                case this.api.appSettings.transactionType.transferIn:
+                case this.api.appSettings.transactionType.reward:
+                    if (!fifoQueue[toAssetId]) {
+                        fifoQueue[toAssetId] = [];
                     }
+                    fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
+                    break;
+                case this.api.appSettings.transactionType.swap:
+                    // Parte de compra
+                    if (!fifoQueue[toAssetId]) {
+                        fifoQueue[toAssetId] = [];
+                    }
+                    fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
 
-                    while (remainingFeeToDeduct.gt(0) && fifoQueue[feeAsset].length > 0) {
-                        const firstFeeEntry = fifoQueue[feeAsset][0];
-                        const firstFeeEntryQuantity: Decimal = new Decimal(firstFeeEntry.quantity);
+                    // Quitar comisión
+                    if (feeAsset && feeAssetPriceInEur) {
+                        let remainingFee = fee;
 
-                        if (firstFeeEntryQuantity.lte(remainingFeeToDeduct)) {
-                            remainingFeeToDeduct = remainingFeeToDeduct.minus(firstFeeEntryQuantity);
-                            fifoQueue[feeAsset].shift();
-                        } else {
-                            firstFeeEntry.quantity = firstFeeEntryQuantity.minus(remainingFeeToDeduct);
-                            remainingFeeToDeduct = new Decimal(0);
+                        if (!fifoQueue[feeAsset]) {
+                            throw new Error(`Not enough ${feeAsset} to cover fee. Trade ID ${trade.id}`);
+                        }
+
+                        while (remainingFee.gt(0) && fifoQueue[feeAsset].length > 0) {
+                            const entry = fifoQueue[feeAsset][0];
+                            const qty = new Decimal(entry.quantity);
+
+                            if (qty.lte(remainingFee)) {
+                                remainingFee = remainingFee.minus(qty);
+                                fifoQueue[feeAsset].shift();
+                            } else {
+                                entry.quantity = qty.minus(remainingFee);
+                                remainingFee = new Decimal(0);
+                            }
+                        }
+
+                        if (remainingFee.gt(0)) {
+                            throw new Error(`Not enough ${feeAsset} to cover fee. Remaining fee: ${remainingFee}. Trade ID ${trade.id}`);
                         }
                     }
 
-                    if (remainingFeeToDeduct.gt(0)) {
-                        throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFeeToDeduct}. Trade ID ${trade.id}`);
+                    // Parte de venta (consumo del inventario)
+                    let remainingToSell = amountSpent;
+
+                    if (!fifoQueue[fromAssetId]) {
+                        throw new Error(`Not enough ${fromAssetId} to swap. Trade ID ${trade.id}`);
                     }
-                }
 
-                // Gestionar los activos intercambiados
-                let remainingQuantityToSell: Decimal = new Decimal(trade.amountSpent);
+                    while (remainingToSell.gt(0) && fifoQueue[fromAssetId].length > 0) {
+                        const entry = fifoQueue[fromAssetId][0];
+                        const qty = new Decimal(entry.quantity);
 
-                if (!fifoQueue[fromAssetId]) {
-                    throw new Error(`Not enough ${fromAssetId} to swap. Trade ID ${trade.id}`);
-                }
-
-                while (remainingQuantityToSell.gt(0) && fifoQueue[fromAssetId].length > 0) {
-                    const firstEntry = fifoQueue[fromAssetId][0];
-
-                    if (firstEntry.quantity.lte(remainingQuantityToSell)) {
-                        remainingQuantityToSell = remainingQuantityToSell.minus(firstEntry.quantity);
-                        fifoQueue[fromAssetId].shift();
-                    } else {
-                        firstEntry.quantity = firstEntry.quantity.minus(remainingQuantityToSell);
-                        remainingQuantityToSell = new Decimal(0);
+                        if (qty.lte(remainingToSell)) {
+                            remainingToSell = remainingToSell.minus(qty);
+                            fifoQueue[fromAssetId].shift();
+                        } else {
+                            entry.quantity = qty.minus(remainingToSell);
+                            remainingToSell = new Decimal(0);
+                        }
                     }
-                }
 
-                if (remainingQuantityToSell.gt(0)) {
-                    throw new Error(`Not enough ${fromAssetId} to swap. Remaining ${remainingQuantityToSell}. Trade ID ${trade.id}`);
-                }
+                    if (remainingToSell.gt(0)) {
+                        throw new Error(`Not enough ${fromAssetId} to swap. Remaining: ${remainingToSell}. Trade ID ${trade.id}`);
+                    }
+
+                    break;
+                default:
+                    // Otros tipos aún no implementados.
+                    console.warn(`Tipo de transacción ignorado en inventario: ${transactionType} (Trade ID ${trade.id})`);
+                    break;
             }
         }
 
         return fifoQueue;
+    }
+
+    private isWithinXMonths(from: Date, to: Date, months: number): boolean {
+        const limitDate = new Date(from);
+        limitDate.setMonth(limitDate.getMonth() + months);
+        return to > from && to <= limitDate;
     }
 }

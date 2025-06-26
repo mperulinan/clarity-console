@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AssetComponent } from './asset/asset.component';
+import { TransactionsComponent } from './transactions/transactions.component';
 import { HomeComponent } from './home/home.component';
 
 const routes: Routes = [
     { path: 'home', component: HomeComponent },
-    { path: 'asset/:assetName', component: AssetComponent },
+    { path: 'transactions', component: TransactionsComponent },
     { path: '', redirectTo: 'home', pathMatch: 'full' },
     { path: '**', redirectTo: 'home' }
 ];

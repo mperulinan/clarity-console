@@ -13,23 +13,25 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { registerLocaleData } from '@angular/common';
 
 import localeEs from '@angular/common/locales/es';
-import { AssetComponent } from './asset/asset.component';
+import { TransactionsComponent } from './transactions/transactions.component';
 import { HomeComponent } from './home/home.component';
 registerLocaleData(localeEs);
 
-@NgModule({ declarations: [
+@NgModule({
+    declarations: [
         AppComponent,
         NewTransactionComponent,
-        AssetComponent,
+        TransactionsComponent,
         HomeComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         AppRoutingModule,
         MaterialModule,
         ReactiveFormsModule], providers: [
-        provideAnimationsAsync(),
-        CookieService,
-        { provide: LOCALE_ID, useValue: 'es' },
-        provideHttpClient(withInterceptorsFromDi()),
-    ] })
+            provideAnimationsAsync(),
+            CookieService,
+            { provide: LOCALE_ID, useValue: 'es' },
+            provideHttpClient(withInterceptorsFromDi()),
+        ]
+})
 export class AppModule { }
