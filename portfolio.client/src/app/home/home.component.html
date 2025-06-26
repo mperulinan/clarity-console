@@ -6,8 +6,10 @@
             <mat-label class="fs-2 text-light">{{ currencySymbol }}{{ portfolioValue.toFixed(2) }}</mat-label>
         </div>
         <div class="col">
-            <mat-label class="fs-2 text-light">
-                2024 -> €{{profitLossYear.toFixed(2)}}
+            <mat-label class="text-light">
+                <ng-container *ngFor="let entry of profitLossPerYear | keyvalue">
+                    <div>{{entry.key}} -> €{{entry.value.toFixed(2)}}</div>
+                </ng-container>
             </mat-label>
         </div>
         <div class="col-auto me-auto">

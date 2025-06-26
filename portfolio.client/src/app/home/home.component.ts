@@ -33,7 +33,7 @@ export class HomeComponent {
     portfolioValue: Decimal = new Decimal(0);
     profitLoss: Decimal = new Decimal(0);
     profitLossPercentage: Decimal = new Decimal(0);
-    profitLossYear: Decimal = new Decimal(0);
+    profitLossPerYear: { [key: number]: Decimal } = {};
     currencySymbol: string = "$";
     eurToUsd: Decimal = new Decimal(0);
 
@@ -56,7 +56,7 @@ export class HomeComponent {
         this.setPortfolioValue();
         this.setProfitLoss();
         this.setProfitLossPercentage();
-        this.setProfitLossYear(2023);
+        this.setProfitLossPerYear();
         this.eurToUsd = await this.erApi.getEur2Usd();
     }
 
@@ -144,10 +144,14 @@ export class HomeComponent {
         return percentage.gte(0) ? percentage : 0;
     }
 
-    setProfitLossYear(year: number) {
+    setProfitLossPerYear() {
         const trades = this.tradeService.getTrades();
         const initialInventory: Inventory = this.tradeService.initializeInventory(trades);
         const annotatedTrades = this.tradeService.getAnnotatedTrades(trades, initialInventory);
-        this.profitLossYear = this.tradeService.getProfitLossForYear(annotatedTrades, year);
+
+        const years: number[] = Array.from(new Set(annotatedTrades.map(trade => new Date(trade.date).getFullYear())));
+        years.forEach(year => {
+            this.profitLossPerYear[year] = this.tradeService.getProfitLossForYear(annotatedTrades, year);
+        });
     }
 }
