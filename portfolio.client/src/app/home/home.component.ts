@@ -145,10 +145,9 @@ export class HomeComponent {
     }
 
     setProfitLossYear(year: number) {
-        const tradesBeforeYear = this.tradeService.getTradesBeforeYear(year);
-        const initialInventory: Inventory = this.tradeService.initializeInventory(tradesBeforeYear);
-
-        const tradesYear = this.tradeService.getTradesByYear(year);
-        this.profitLossYear = this.tradeService.calculateProfitsLosses(tradesYear, initialInventory).totalProfitLoss;
+        const trades = this.tradeService.getTrades();
+        const initialInventory: Inventory = this.tradeService.initializeInventory(trades);
+        const annotatedTrades = this.tradeService.getAnnotatedTrades(trades, initialInventory);
+        this.profitLossYear = this.tradeService.getProfitLossForYear(annotatedTrades, year);
     }
 }

@@ -27,6 +27,10 @@ export class TradeService {
         this.updateAssets(trades);
     }
 
+    getTrades(): Trade[] {
+        return this.trades;
+    }
+
     getHoldingsByAsset(asset: string): Decimal {
         const amountReceived = this.getAmountReceivedByAsset(asset);
         const amountSpent = this.getAmountSpentByAsset(asset);
@@ -185,39 +189,27 @@ export class TradeService {
         return trades.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }
 
-    getTradesBeforeYear(year: number): Trade[] {
-        return this.trades.filter(trade => new Date(trade.date).getFullYear() < year);
-    }
+    // getTradesBeforeYear(year: number): Trade[] {
+    //     return this.trades.filter(trade => new Date(trade.date).getFullYear() < year);
+    // }
 
-    getTradesByYear(year: number): Trade[] {
-        return this.trades.filter(trade => new Date(trade.date).getFullYear() === year);
-    }
+    // getTradesByYear(year: number): Trade[] {
+    //     return this.trades.filter(trade => new Date(trade.date).getFullYear() === year);
+    // }
 
-    calculateProfitsLosses(trades: Trade[], initialInventory: Inventory): {
-        totalProfitLoss: Decimal;
-        annotatedTrades: AnnotatedTrade[];
-    } {
+    getAnnotatedTrades(trades: Trade[], initialInventory: Inventory): AnnotatedTrade[] {
+        const annotatedTrades: AnnotatedTrade[] = this.sortTradesByDate(trades).map(t => ({ ...t }));
         const fifoQueue: Inventory = { ...initialInventory };
-        let totalProfitLoss: Decimal = new Decimal(0);
-
-        const disallowedLosses = new Map<number, {
+        const lossCandidates = new Map<number, {
             trade: AnnotatedTrade;
             asset: string;
             date: Date;
-            remainingAmount: Decimal;
             totalLossAmount: Decimal;
             disallowedByTradeId?: number;
         }>();
 
-        const annotatedTrades: AnnotatedTrade[] = this.sortTradesByDate(trades).map(t => ({ ...t }));
         for (const trade of annotatedTrades) {
-            const {
-                transactionType,
-                fromAssetId,
-                toAssetId,
-                feeAsset
-            } = trade;
-
+            const { transactionType, fromAssetId, toAssetId, feeAsset } = trade;
             const amountSpent = new Decimal(trade.amountSpent);
             const amountReceived = new Decimal(trade.amountReceived);
             const fromAssetPriceInEur = new Decimal(trade.fromAssetPriceInEur);
@@ -227,7 +219,6 @@ export class TradeService {
 
             switch (transactionType) {
                 case this.api.appSettings.transactionType.transferIn:
-                    // Añadir al inventario sin declarar ganancia.
                     if (!fifoQueue[toAssetId]) {
                         fifoQueue[toAssetId] = [];
                     }
@@ -235,49 +226,81 @@ export class TradeService {
                     break;
 
                 case this.api.appSettings.transactionType.reward:
-                    // Considerar directamente como ganancia.
-                    const rewardGain = amountReceived.mul(toAssetPriceInEur);
-                    trade.profitLoss = rewardGain;
-                    totalProfitLoss = totalProfitLoss.plus(rewardGain);
+                    // REWARD genera ganancia directa.
+                    let rewardProfit = amountReceived.mul(toAssetPriceInEur);
 
-                    // Se añade al inventario como coste 0 para futuras ventas.
-                    if (!fifoQueue[toAssetId]) fifoQueue[toAssetId] = [];
-                    fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
-                    break;
-
-                case this.api.appSettings.transactionType.swap:
-                    // Comisiones.
+                    // Restar comisión si aplica
                     if (feeAsset && feeAssetPriceInEur) {
-                        totalProfitLoss = totalProfitLoss.minus(fee.mul(feeAssetPriceInEur));
+                        const commissionCost = fee.mul(feeAssetPriceInEur);
+                        rewardProfit = rewardProfit.minus(commissionCost);
 
-                        // Quitar la comisión del inventario.
-                        let remainingFeeToDeduct = fee;
+                        // Quitar comisión del inventario
+                        let remainingFee = fee;
                         if (!fifoQueue[feeAsset]) {
                             throw new Error(`Not enough ${feeAsset} to cover the fee. Trade ID ${trade.id}`);
                         }
 
-                        while (remainingFeeToDeduct.gt(0) && fifoQueue[feeAsset].length > 0) {
-                            const firstFeeEntry = fifoQueue[feeAsset][0];
-                            const firstFeeEntryQuantity: Decimal = new Decimal(firstFeeEntry.quantity);
+                        while (remainingFee.gt(0) && fifoQueue[feeAsset].length > 0) {
+                            const feeEntry = fifoQueue[feeAsset][0];
+                            const qty = new Decimal(feeEntry.quantity);
 
-                            if (firstFeeEntryQuantity.lte(remainingFeeToDeduct)) {
-                                remainingFeeToDeduct = remainingFeeToDeduct.minus(firstFeeEntryQuantity);
+                            if (qty.lte(remainingFee)) {
+                                remainingFee = remainingFee.minus(qty);
                                 fifoQueue[feeAsset].shift();
                             } else {
-                                firstFeeEntry.quantity = firstFeeEntryQuantity.minus(remainingFeeToDeduct);
-                                remainingFeeToDeduct = new Decimal(0);
+                                feeEntry.quantity = qty.minus(remainingFee);
+                                remainingFee = new Decimal(0);
                             }
                         }
 
-                        if (remainingFeeToDeduct.gt(0)) {
-                            throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFeeToDeduct}. Trade ID ${trade.id}`);
+                        if (remainingFee.gt(0)) {
+                            throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFee}. Trade ID ${trade.id}`);
                         }
                     }
 
-                    // Venta.
-                    let remainingToSell = amountSpent;
+                    trade.profitLoss = rewardProfit;
+
+                    // Se añade al inventario con el coste de ese momento en el mercado.
+                    if (!fifoQueue[toAssetId]) {
+                        fifoQueue[toAssetId] = [];
+                    }
+                    fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
+                    break;
+
+                case this.api.appSettings.transactionType.swap:
                     let tradeProfitLoss = new Decimal(0);
 
+                    // Procesar comisión.
+                    if (feeAsset && feeAssetPriceInEur) {
+                        const commissionCost = fee.mul(feeAssetPriceInEur);
+                        tradeProfitLoss = tradeProfitLoss.minus(commissionCost);
+
+                        // Quitar la comisión del inventario.
+                        let remainingFee = fee;
+                        if (!fifoQueue[feeAsset]) {
+                            throw new Error(`Not enough ${feeAsset} to cover the fee. Trade ID ${trade.id}`);
+                        }
+
+                        while (remainingFee.gt(0) && fifoQueue[feeAsset].length > 0) {
+                            const feeEntry = fifoQueue[feeAsset][0];
+                            const qty = new Decimal(feeEntry.quantity);
+
+                            if (qty.lte(remainingFee)) {
+                                remainingFee = remainingFee.minus(qty);
+                                fifoQueue[feeAsset].shift();
+                            } else {
+                                feeEntry.quantity = qty.minus(remainingFee);
+                                remainingFee = new Decimal(0);
+                            }
+                        }
+
+                        if (remainingFee.gt(0)) {
+                            throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFee}. Trade ID ${trade.id}`);
+                        }
+                    }
+
+                    // Venta (parte que genera ganancia/pérdida).
+                    let remainingToSell = amountSpent;
                     if (!fifoQueue[fromAssetId] && remainingToSell.gt(0)) {
                         throw new Error(`Not enough ${fromAssetId} to swap. Trade ID ${trade.id}`);
                     }
@@ -290,16 +313,6 @@ export class TradeService {
                         const usedQty = Decimal.min(qty, remainingToSell);
                         const pl = usedQty.mul(fromAssetPriceInEur.minus(cost));
                         tradeProfitLoss = tradeProfitLoss.plus(pl);
-
-                        if (pl.lt(0)) {
-                            disallowedLosses.set(trade.id, {
-                                trade,
-                                asset: fromAssetId,
-                                date: new Date(trade.date),
-                                remainingAmount: usedQty,
-                                totalLossAmount: pl,
-                            });
-                        }
 
                         if (qty.lte(remainingToSell)) {
                             remainingToSell = remainingToSell.minus(qty);
@@ -314,14 +327,14 @@ export class TradeService {
                         throw new Error(`Not enough ${fromAssetId} to swap. Remaining ${remainingToSell}. Trade ID ${trade.id}`);
                     }
 
-                    // Recompra (parte de compra del swap).
+                    // Añadir al inventario la nueva compra.
                     if (!fifoQueue[toAssetId]) {
                         fifoQueue[toAssetId] = [];
                     }
                     fifoQueue[toAssetId].push({ quantity: amountReceived, costInEur: toAssetPriceInEur });
 
-                    // Regla X meses: esta compra invalida pérdidas pasadas.
-                    for (const [lossId, loss] of disallowedLosses.entries()) {
+                    // Regla fiscal de los X meses: ¿Esta compra invalida pérdidas anteriores?
+                    for (const [lossId, loss] of lossCandidates.entries()) {
                         if (
                             loss.asset === toAssetId &&
                             !loss.disallowedByTradeId &&
@@ -331,17 +344,24 @@ export class TradeService {
                             loss.trade.isLossDisallowed = true;
                             loss.trade.disallowedByTradeId = trade.id;
 
-                            if (!trade.disallowsPreviousLosses) trade.disallowsPreviousLosses = [];
+                            if (!trade.disallowsPreviousLosses) {
+                                trade.disallowsPreviousLosses = [];
+                            }
                             trade.disallowsPreviousLosses.push(lossId);
                         }
                     }
 
-                    // Registrar ganancia/pérdida solo si es válida
-                    if (!trade.isLossDisallowed && !tradeProfitLoss.isZero()) {
-                        trade.profitLoss = tradeProfitLoss;
-                        totalProfitLoss = totalProfitLoss.plus(tradeProfitLoss);
-                    }
+                    trade.profitLoss = tradeProfitLoss;
 
+                    // Registrar la transacción como candidata a pérdida no permitida si procede.
+                    if (tradeProfitLoss.lt(0)) {
+                        lossCandidates.set(trade.id, {
+                            trade,
+                            asset: fromAssetId,
+                            date: new Date(trade.date),
+                            totalLossAmount: tradeProfitLoss,
+                        });
+                    }
                     break;
 
                 default:
@@ -350,10 +370,7 @@ export class TradeService {
             }
         }
 
-        return {
-            totalProfitLoss,
-            annotatedTrades,
-        };
+        return annotatedTrades;
     }
 
     initializeInventory(trades: Trade[]): Inventory {
@@ -454,5 +471,20 @@ export class TradeService {
         const limitDate = new Date(from);
         limitDate.setMonth(limitDate.getMonth() + months);
         return to > from && to <= limitDate;
+    }
+
+    getProfitLossForYear(trades: AnnotatedTrade[], year: number): Decimal {
+        return trades
+            .filter(t => new Date(t.date).getFullYear() === year && t.profitLoss && !t.isLossDisallowed)
+            .reduce((acc, t) => acc.plus(t.profitLoss!), new Decimal(0));
+    }
+
+    getProfitLossForAsset(trades: AnnotatedTrade[], assetId: string): Decimal {
+        return trades
+            .filter(t =>
+                (t.fromAssetId === assetId || t.toAssetId === assetId) &&
+                t.profitLoss && !t.isLossDisallowed
+            )
+            .reduce((acc, t) => acc.plus(t.profitLoss!), new Decimal(0));
     }
 }

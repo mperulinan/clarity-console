@@ -31,7 +31,7 @@
         </ng-container>
 
         <ng-container matColumnDef="fromAssetPriceInEur">
-            <th mat-header-cell *matHeaderCellDef i18n> From Asset Price in EUR </th>
+            <th mat-header-cell *matHeaderCellDef i18n> From Asset Price (€) </th>
             <td mat-cell *matCellDef="let transaction"> {{transaction.fromAssetPriceInEur | number}} </td>
         </ng-container>
 
@@ -41,7 +41,7 @@
         </ng-container>
 
         <ng-container matColumnDef="feeAssetPriceInEur">
-            <th mat-header-cell *matHeaderCellDef i18n> Fee Asset Price in EUR </th>
+            <th mat-header-cell *matHeaderCellDef i18n> Fee Asset Price (€) </th>
             <td mat-cell *matCellDef="let transaction"> {{transaction.feeAssetPriceInEur | number}} </td>
         </ng-container>
 

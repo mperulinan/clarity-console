@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { TradeService } from '../services/trade.service';
-import { ActivatedRoute } from '@angular/router';
 import { AnnotatedTrade } from '../models/annotated-trade';
 import { Inventory } from '../models/inventory';
 
@@ -30,17 +29,13 @@ export class TransactionsComponent implements OnInit {
 
     constructor(
         private tradeService: TradeService,
-        private route: ActivatedRoute
     ) { }
 
     async ngOnInit(): Promise<void> {
-        this.route.paramMap.subscribe(async params => {
-
-        });
         await this.tradeService.loadData();
-        const transacions = this.tradeService.getTradesBeforeYear(2026);
-        const inventory: Inventory = this.tradeService.initializeInventory(transacions);
-        this.transactions = this.tradeService.calculateProfitsLosses(transacions, inventory).annotatedTrades;
+        const transactions = this.tradeService.getTrades();
+        const inventory: Inventory = this.tradeService.initializeInventory(transactions);
+        this.transactions = this.tradeService.getAnnotatedTrades(transactions, inventory);
 
         this.isLoading = false;
     }
