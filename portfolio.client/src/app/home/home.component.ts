@@ -3,7 +3,7 @@ import Decimal from 'decimal.js';
 import { ApiService } from '../services/api.service';
 import { CoinGeckoService } from '../services/coin-gecko.service';
 import { MatDialog } from '@angular/material/dialog';
-import { TradeService } from '../services/trade.service';
+import { TransactionService } from '../services/transaction.service';
 import { ErApiService } from '../services/er-api.service';
 import { NewTransactionComponent } from '../new-transaction/new-transaction.component';
 import { NewTransaction } from '../models/new-transaction';
@@ -44,13 +44,13 @@ export class HomeComponent {
         private api: ApiService,
         private coinGecko: CoinGeckoService,
         private dialog: MatDialog,
-        private tradeService: TradeService,
+        private transactionService: TransactionService,
         private erApi: ErApiService,
     ) { }
 
     async ngOnInit() {
-        await this.tradeService.loadData();
-        await this.coinGecko.loadData(this.tradeService.assets);
+        await this.transactionService.loadData();
+        await this.coinGecko.loadData(this.transactionService.assets);
 
         await this.loadTable();
         this.setPortfolioValue();
@@ -61,11 +61,11 @@ export class HomeComponent {
     }
 
     async loadTable() {
-        const assets: string[] = this.tradeService.assets;
+        const assets: string[] = this.transactionService.assets;
 
         for (let index = 0; index < assets.length; index++) {
             const asset = assets[index];
-            const holdings = this.tradeService.getHoldingsByAsset(asset);
+            const holdings = this.transactionService.getHoldingsByAsset(asset);
 
             let coin: Coin | undefined = this.coinGecko.coins.find(c => c.id == asset);
 
@@ -73,7 +73,7 @@ export class HomeComponent {
             price = price ? price : 0;
 
             let holdingsPrice: Decimal = holdings.mul(price);
-            let profitLoss: Decimal = this.tradeService.getProfitLossInEurosByAsset(asset);
+            let profitLoss: Decimal = this.transactionService.getProfitLossInEurosByAsset(asset);
             let newRow: PortfolioRow = {
                 image: coin?.image ?? "",
                 name: coin?.name ?? asset,
@@ -81,9 +81,9 @@ export class HomeComponent {
                 price: price,
                 holdingsPrice: holdingsPrice,
                 holdingsAmount: holdings,
-                avgBuyPrice: this.tradeService.getAvgBuyPriceByAsset(asset),
+                avgBuyPrice: this.transactionService.getAvgBuyPriceByAsset(asset),
                 profitLoss: profitLoss,
-                profitLossPercentage: this.tradeService.getProfitLossPercentageByAsset(asset),
+                profitLossPercentage: this.transactionService.getProfitLossPercentageByAsset(asset),
             };
 
             this.portfolioRows.push(newRow);
@@ -145,13 +145,13 @@ export class HomeComponent {
     }
 
     setProfitLossPerYear() {
-        const trades = this.tradeService.getTrades();
-        const initialInventory: Inventory = this.tradeService.initializeInventory(trades);
-        const annotatedTrades = this.tradeService.getAnnotatedTrades(trades, initialInventory);
+        const transactions = this.transactionService.getTransactions();
+        const initialInventory: Inventory = this.transactionService.initializeInventory(transactions);
+        const annotatedTransactions = this.transactionService.getAnnotatedTransactions(transactions, initialInventory);
 
-        const years: number[] = Array.from(new Set(annotatedTrades.map(trade => new Date(trade.date).getFullYear())));
+        const years: number[] = Array.from(new Set(annotatedTransactions.map(transaction => new Date(transaction.date).getFullYear())));
         years.forEach(year => {
-            this.profitLossPerYear[year] = this.tradeService.getProfitLossForYear(annotatedTrades, year);
+            this.profitLossPerYear[year] = this.transactionService.getProfitLossForYear(annotatedTransactions, year);
         });
     }
 }

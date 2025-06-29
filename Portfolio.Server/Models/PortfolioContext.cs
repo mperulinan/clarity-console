@@ -15,7 +15,7 @@ public partial class PortfolioContext : DbContext
     {
     }
 
-    public virtual DbSet<Trade> Trades { get; set; }
+    public virtual DbSet<Transaction> Transactions { get; set; }
 
     public virtual DbSet<TransactionType> TransactionTypes { get; set; }
 
@@ -24,11 +24,11 @@ public partial class PortfolioContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Trade>(entity =>
+        modelBuilder.Entity<Transaction>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__YourTabl__3214EC0704F226F8");
 
-            entity.ToTable("Trade");
+            entity.ToTable("Transaction");
 
             entity.Property(e => e.AmountReceived).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.AmountSpent).HasColumnType("decimal(36, 18)");
@@ -41,10 +41,10 @@ public partial class PortfolioContext : DbContext
             entity.Property(e => e.ToAssetId).HasMaxLength(50);
             entity.Property(e => e.TransactionType).HasMaxLength(50);
 
-            entity.HasOne(d => d.TransactionTypeNavigation).WithMany(p => p.Trades)
+            entity.HasOne(d => d.TransactionTypeNavigation).WithMany(p => p.Transactions)
                 .HasForeignKey(d => d.TransactionType)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Trade_TransactionType");
+                .HasConstraintName("FK_Transaction_TransactionType");
         });
 
         modelBuilder.Entity<TransactionType>(entity =>

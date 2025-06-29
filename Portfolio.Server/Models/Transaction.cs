@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Portfolio.Server.Models;
 
-public partial class Trade
+public partial class Transaction
 {
     public int Id { get; set; }
 

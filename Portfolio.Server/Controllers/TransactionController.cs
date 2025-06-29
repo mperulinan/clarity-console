@@ -17,19 +17,19 @@ namespace Portfolio.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TradeController(PortfolioContext context, ILogger<TradeController> logger) : ControllerBase
+    public class TransactionController(PortfolioContext context, ILogger<TransactionController> logger) : ControllerBase
     {
         [HttpGet]
-        public Trade[] Get()
+        public Transaction[] Get()
         {
-            return [.. context.Trades];
+            return [.. context.Transactions];
         }
 
 
         [HttpPost]
-        public ActionResult PostTrade(NewTradeRequest request)
+        public ActionResult PostTransaction(NewTransactionRequest request)
         {
-            Trade newTrade = new()
+            Transaction newTransaction = new()
             {
                 Date = request.Date.ToUniversalTime(),
                 TransactionType = request.TransactionType,
@@ -43,11 +43,11 @@ namespace Portfolio.Server.Controllers
                 FeeAssetPriceInEur = request.FeeAssetPriceInEur,
                 Notes = request.Notes,
             };
-            context.Trades.Add(newTrade);
+            context.Transactions.Add(newTransaction);
 
             context.SaveChanges();
 
-            return CreatedAtAction(nameof(PostTrade), new { id = newTrade.Id }, newTrade);
+            return CreatedAtAction(nameof(PostTransaction), new { id = newTransaction.Id }, newTransaction);
         }
 
 
@@ -56,10 +56,10 @@ namespace Portfolio.Server.Controllers
         {
             try
             {
-                List<Trade> trades = [.. context.Trades.Where(t => t.FeeAsset == "bitcoin")];
-                foreach (var trade in trades)
+                List<Transaction> transactions = [.. context.Transactions.Where(t => t.FeeAsset == "bitcoin")];
+                foreach (var transaction in transactions)
                 {
-                    DateTimeOffset dateTimeOffset = new(trade.Date, TimeSpan.Zero);
+                    DateTimeOffset dateTimeOffset = new(transaction.Date, TimeSpan.Zero);
                     long unixTimeMilliseconds = dateTimeOffset.ToUnixTimeMilliseconds();
 
                     // Binance API parameter configuration
@@ -99,8 +99,8 @@ namespace Portfolio.Server.Controllers
                     }
 
                     decimal highPrice = (decimal)highPriceToken;
-                    //trade.FromAssetPriceInEur = 1/highPrice;      //  From
-                    trade.FeeAssetPriceInEur = highPrice;       //  Fee
+                    //transaction.FromAssetPriceInEur = 1/highPrice;      //  From
+                    transaction.FeeAssetPriceInEur = highPrice;       //  Fee
                     context.SaveChanges();
                 }
             }

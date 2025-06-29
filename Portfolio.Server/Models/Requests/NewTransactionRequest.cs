@@ -2,7 +2,7 @@
 
 namespace Portfolio.Server.Models.Requests
 {
-    public class NewTradeRequest
+    public class NewTransactionRequest
     {
         [Required]
         public DateTime Date { get; set; }

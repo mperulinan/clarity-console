@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
-import { Trade } from '../models/trade';
+import { Transaction } from '../models/transaction';
 import { ApiService } from './api.service';
 import { CoinGeckoService } from './coin-gecko.service';
 import { Inventory } from '../models/inventory';
 import Decimal from 'decimal.js';
-import { AnnotatedTrade } from '../models/annotated-trade';
+import { AnnotatedTransaction } from '../models/annotated-transaction';
 
 @Injectable({
     providedIn: 'root'
 })
-export class TradeService {
+export class TransactionService {
 
-    private trades: Trade[] = [];
+    private transactions: Transaction[] = [];
     assets: string[] = [];
 
     constructor(
@@ -20,15 +20,15 @@ export class TradeService {
     ) { }
 
     async loadData(): Promise<void> {
-        const trades: Trade[] = await this.api.getTrades();
-        console.log("trades", trades);
+        const transactions: Transaction[] = await this.api.getTransactions();
+        console.log("transactions", transactions);
 
-        this.trades = trades;
-        this.updateAssets(trades);
+        this.transactions = transactions;
+        this.updateAssets(transactions);
     }
 
-    getTrades(): Trade[] {
-        return this.trades;
+    getTransactions(): Transaction[] {
+        return this.transactions;
     }
 
     getHoldingsByAsset(asset: string): Decimal {
@@ -64,114 +64,114 @@ export class TradeService {
         return (profitLoss.div(eurosSpent)).mul(100);
     }
 
-    private updateAssets(trades: Trade[]): void {
-        const fromAssets: string[] = [...new Set(trades.map(t => t.fromAssetId))];
-        const toAssets: string[] = [...new Set(trades.map(t => t.toAssetId))];
+    private updateAssets(transactions: Transaction[]): void {
+        const fromAssets: string[] = [...new Set(transactions.map(t => t.fromAssetId))];
+        const toAssets: string[] = [...new Set(transactions.map(t => t.toAssetId))];
         const allAssets: string[] = [...new Set(fromAssets.concat(toAssets))];
         this.assets = allAssets;
     }
 
-    public getTradesByAsset(asset: string): Trade[] {
-        return this.trades.filter(
+    public getTransactionsByAsset(asset: string): Transaction[] {
+        return this.transactions.filter(
             t => t.fromAssetId === asset || t.toAssetId === asset || t.feeAsset === asset
         );
     }
 
-    private getTradesByFromAsset(asset: string): Trade[] {
-        return this.trades.filter(t => t.fromAssetId === asset);
+    private getTransactionsByFromAsset(asset: string): Transaction[] {
+        return this.transactions.filter(t => t.fromAssetId === asset);
     }
 
-    private getTradesByToAsset(asset: string): Trade[] {
-        return this.trades.filter(t => t.toAssetId === asset);
+    private getTransactionsByToAsset(asset: string): Transaction[] {
+        return this.transactions.filter(t => t.toAssetId === asset);
     }
 
-    private getTradesByFeeAsset(asset: string): Trade[] {
-        return this.trades.filter(t => t.feeAsset === asset);
+    private getTransactionsByFeeAsset(asset: string): Transaction[] {
+        return this.transactions.filter(t => t.feeAsset === asset);
     }
 
     private getSwapsByFromAsset(asset: string) {
-        return this.getTradesFilteredByTransactionType(this.getTradesByFromAsset(asset), this.api.appSettings.transactionType.swap);
+        return this.getTransactionsFilteredByTransactionType(this.getTransactionsByFromAsset(asset), this.api.appSettings.transactionType.swap);
     }
 
     private getSwapsByToAsset(asset: string) {
-        return this.getTradesFilteredByTransactionType(this.getTradesByToAsset(asset), this.api.appSettings.transactionType.swap);
+        return this.getTransactionsFilteredByTransactionType(this.getTransactionsByToAsset(asset), this.api.appSettings.transactionType.swap);
     }
 
-    private getTradesFilteredByTransactionType(trades: Trade[], transactionTypeCode: string) {
-        return trades.filter(t => t.transactionType === transactionTypeCode);
+    private getTransactionsFilteredByTransactionType(transactions: Transaction[], transactionTypeCode: string) {
+        return transactions.filter(t => t.transactionType === transactionTypeCode);
     }
 
     private getTransfersInByAsset(asset: string) {
-        return this.trades.filter(t => t.toAssetId === asset && t.transactionType === this.api.appSettings.transactionType.transferIn);
+        return this.transactions.filter(t => t.toAssetId === asset && t.transactionType === this.api.appSettings.transactionType.transferIn);
     }
 
     private getAmountSpentByAsset(asset: string): Decimal {
-        return this.getTradesByFromAsset(asset).reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amountSpent)), new Decimal(0));
+        return this.getTransactionsByFromAsset(asset).reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amountSpent)), new Decimal(0));
     }
 
     private getAmountReceivedByAsset(asset: string): Decimal {
-        return this.getTradesByToAsset(asset).reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amountReceived)), new Decimal(0));
+        return this.getTransactionsByToAsset(asset).reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amountReceived)), new Decimal(0));
     }
 
     private getFeesSpentByAsset(asset: string): Decimal {
-        return this.getTradesByFeeAsset(asset).reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.fee)), new Decimal(0));
+        return this.getTransactionsByFeeAsset(asset).reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.fee)), new Decimal(0));
     }
 
     private getAmountBoughtOfAsset(asset: string): Decimal {
         return this.getSwapsByToAsset(asset).reduce((sum, t) => new Decimal(sum).plus(new Decimal(t.amountReceived)), new Decimal(0));
     }
 
-    private getEurosSpentInTrade(trade: Trade): Decimal {
-        return new Decimal(new Decimal(trade.amountSpent).mul(trade.fromAssetPriceInEur));
+    private getEurosSpentInTransaction(transaction: Transaction): Decimal {
+        return new Decimal(new Decimal(transaction.amountSpent).mul(transaction.fromAssetPriceInEur));
     }
 
-    private getEurosSpentInTradeWithFees(trade: Trade): Decimal {
-        let euros: Decimal = this.getEurosSpentInTrade(trade);
-        if (trade.feeAssetPriceInEur) {
-            euros = euros.plus(new Decimal(trade.fee).mul(trade.feeAssetPriceInEur));
+    private getEurosSpentInTransactionWithFees(transaction: Transaction): Decimal {
+        let euros: Decimal = this.getEurosSpentInTransaction(transaction);
+        if (transaction.feeAssetPriceInEur) {
+            euros = euros.plus(new Decimal(transaction.fee).mul(transaction.feeAssetPriceInEur));
         }
         return euros;
     }
 
-    private getToAssetPriceInEur(trade: Trade): Decimal {
-        if (trade.toAssetId == trade.fromAssetId) {
-            return new Decimal(trade.fromAssetPriceInEur);
+    private getToAssetPriceInEur(transaction: Transaction): Decimal {
+        if (transaction.toAssetId == transaction.fromAssetId) {
+            return new Decimal(transaction.fromAssetPriceInEur);
         }
-        return new Decimal(trade.amountSpent).mul(trade.fromAssetPriceInEur).div(trade.amountReceived);
+        return new Decimal(transaction.amountSpent).mul(transaction.fromAssetPriceInEur).div(transaction.amountReceived);
     }
 
-    private getEurosReceivedInTrade(trade: Trade) {
-        return new Decimal(trade.amountReceived).mul(this.getToAssetPriceInEur(trade));
+    private getEurosReceivedInTransaction(transaction: Transaction) {
+        return new Decimal(transaction.amountReceived).mul(this.getToAssetPriceInEur(transaction));
     }
 
-    private getEurosReceivedInTrades(trades: Trade[]): Decimal {
+    private getEurosReceivedInTransactions(transactions: Transaction[]): Decimal {
         let euros: Decimal = new Decimal(0);
-        trades.forEach(trade => {
-            euros = euros.plus(this.getEurosReceivedInTrade(trade));
+        transactions.forEach(transaction => {
+            euros = euros.plus(this.getEurosReceivedInTransaction(transaction));
         });
         return euros;
     }
 
     // Buys
     private getEurosSpentForAsset(asset: string): Decimal {
-        const swaps: Trade[] = this.getSwapsByToAsset(asset);
+        const swaps: Transaction[] = this.getSwapsByToAsset(asset);
         let euros: Decimal = new Decimal(0);
         swaps.forEach(swap => {
-            euros = euros.plus(this.getEurosSpentInTradeWithFees(swap));
+            euros = euros.plus(this.getEurosSpentInTransactionWithFees(swap));
         });
         return euros;
     }
 
     // Sells
     private getEurosReceivedForAsset(asset: string): Decimal {
-        const trades: Trade[] = this.getSwapsByFromAsset(asset);
-        return this.getEurosReceivedInTrades(trades);
+        const transactions: Transaction[] = this.getSwapsByFromAsset(asset);
+        return this.getEurosReceivedInTransactions(transactions);
     }
 
     // Transfers In
     private getEurosTransferedInByAsset(asset: string) {
-        const transfersIn: Trade[] = this.getTransfersInByAsset(asset);
-        return this.getEurosReceivedInTrades(transfersIn);
+        const transfersIn: Transaction[] = this.getTransfersInByAsset(asset);
+        return this.getEurosReceivedInTransactions(transfersIn);
     }
 
     private getEurosOfHoldingsByAsset(asset: string): Decimal {
@@ -185,37 +185,29 @@ export class TradeService {
 
 
     // FIFO
-    sortTradesByDate(trades: Trade[]): Trade[] {
-        return trades.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    sortTransactionsByDate(transactions: Transaction[]): Transaction[] {
+        return transactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }
 
-    // getTradesBeforeYear(year: number): Trade[] {
-    //     return this.trades.filter(trade => new Date(trade.date).getFullYear() < year);
-    // }
-
-    // getTradesByYear(year: number): Trade[] {
-    //     return this.trades.filter(trade => new Date(trade.date).getFullYear() === year);
-    // }
-
-    getAnnotatedTrades(trades: Trade[], initialInventory: Inventory): AnnotatedTrade[] {
-        const annotatedTrades: AnnotatedTrade[] = this.sortTradesByDate(trades).map(t => ({ ...t }));
+    getAnnotatedTransactions(transactions: Transaction[], initialInventory: Inventory): AnnotatedTransaction[] {
+        const annotatedTransactions: AnnotatedTransaction[] = this.sortTransactionsByDate(transactions).map(t => ({ ...t }));
         const fifoQueue: Inventory = { ...initialInventory };
         const lossCandidates = new Map<number, {
-            trade: AnnotatedTrade;
+            transaction: AnnotatedTransaction;
             asset: string;
             date: Date;
             totalLossAmount: Decimal;
-            disallowedByTradeId?: number;
+            disallowedByTransactionsId?: number;
         }>();
 
-        for (const trade of annotatedTrades) {
-            const { transactionType, fromAssetId, toAssetId, feeAsset } = trade;
-            const amountSpent = new Decimal(trade.amountSpent);
-            const amountReceived = new Decimal(trade.amountReceived);
-            const fromAssetPriceInEur = new Decimal(trade.fromAssetPriceInEur);
-            const toAssetPriceInEur = this.getToAssetPriceInEur(trade);
-            const fee = new Decimal(trade.fee);
-            const feeAssetPriceInEur = trade.feeAssetPriceInEur ? new Decimal(trade.feeAssetPriceInEur) : null;
+        for (const transaction of annotatedTransactions) {
+            const { transactionType, fromAssetId, toAssetId, feeAsset } = transaction;
+            const amountSpent = new Decimal(transaction.amountSpent);
+            const amountReceived = new Decimal(transaction.amountReceived);
+            const fromAssetPriceInEur = new Decimal(transaction.fromAssetPriceInEur);
+            const toAssetPriceInEur = this.getToAssetPriceInEur(transaction);
+            const fee = new Decimal(transaction.fee);
+            const feeAssetPriceInEur = transaction.feeAssetPriceInEur ? new Decimal(transaction.feeAssetPriceInEur) : null;
 
             switch (transactionType) {
                 case this.api.appSettings.transactionType.transferIn:
@@ -237,7 +229,7 @@ export class TradeService {
                         // Quitar comisión del inventario
                         let remainingFee = fee;
                         if (!fifoQueue[feeAsset]) {
-                            throw new Error(`Not enough ${feeAsset} to cover the fee. Trade ID ${trade.id}`);
+                            throw new Error(`Not enough ${feeAsset} to cover the fee. Transaction ID ${transaction.id}`);
                         }
 
                         while (remainingFee.gt(0) && fifoQueue[feeAsset].length > 0) {
@@ -254,11 +246,11 @@ export class TradeService {
                         }
 
                         if (remainingFee.gt(0)) {
-                            throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFee}. Trade ID ${trade.id}`);
+                            throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFee}. Transaction ID ${transaction.id}`);
                         }
                     }
 
-                    trade.profitLoss = rewardProfit;
+                    transaction.profitLoss = rewardProfit;
 
                     // Se añade al inventario con el coste de ese momento en el mercado.
                     if (!fifoQueue[toAssetId]) {
@@ -268,17 +260,17 @@ export class TradeService {
                     break;
 
                 case this.api.appSettings.transactionType.swap:
-                    let tradeProfitLoss = new Decimal(0);
+                    let transactionProfitLoss = new Decimal(0);
 
                     // Procesar comisión.
                     if (feeAsset && feeAssetPriceInEur) {
                         const commissionCost = fee.mul(feeAssetPriceInEur);
-                        tradeProfitLoss = tradeProfitLoss.minus(commissionCost);
+                        transactionProfitLoss = transactionProfitLoss.minus(commissionCost);
 
                         // Quitar la comisión del inventario.
                         let remainingFee = fee;
                         if (!fifoQueue[feeAsset]) {
-                            throw new Error(`Not enough ${feeAsset} to cover the fee. Trade ID ${trade.id}`);
+                            throw new Error(`Not enough ${feeAsset} to cover the fee. Transaction ID ${transaction.id}`);
                         }
 
                         while (remainingFee.gt(0) && fifoQueue[feeAsset].length > 0) {
@@ -295,14 +287,14 @@ export class TradeService {
                         }
 
                         if (remainingFee.gt(0)) {
-                            throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFee}. Trade ID ${trade.id}`);
+                            throw new Error(`Not enough ${feeAsset} to cover the fee. Remaining fee ${remainingFee}. Transaction ID ${transaction.id}`);
                         }
                     }
 
                     // Venta (parte que genera ganancia/pérdida).
                     let remainingToSell = amountSpent;
                     if (!fifoQueue[fromAssetId] && remainingToSell.gt(0)) {
-                        throw new Error(`Not enough ${fromAssetId} to swap. Trade ID ${trade.id}`);
+                        throw new Error(`Not enough ${fromAssetId} to swap. Transaction ID ${transaction.id}`);
                     }
 
                     while (remainingToSell.gt(0) && fifoQueue[fromAssetId].length > 0) {
@@ -312,7 +304,7 @@ export class TradeService {
 
                         const usedQty = Decimal.min(qty, remainingToSell);
                         const pl = usedQty.mul(fromAssetPriceInEur.minus(cost));
-                        tradeProfitLoss = tradeProfitLoss.plus(pl);
+                        transactionProfitLoss = transactionProfitLoss.plus(pl);
 
                         if (qty.lte(remainingToSell)) {
                             remainingToSell = remainingToSell.minus(qty);
@@ -324,7 +316,7 @@ export class TradeService {
                     }
 
                     if (remainingToSell.gt(0)) {
-                        throw new Error(`Not enough ${fromAssetId} to swap. Remaining ${remainingToSell}. Trade ID ${trade.id}`);
+                        throw new Error(`Not enough ${fromAssetId} to swap. Remaining ${remainingToSell}. Transaction ID ${transaction.id}`);
                     }
 
                     // Añadir al inventario la nueva compra.
@@ -337,59 +329,59 @@ export class TradeService {
                     for (const [lossId, loss] of lossCandidates.entries()) {
                         if (
                             loss.asset === toAssetId &&
-                            !loss.disallowedByTradeId &&
-                            this.isWithinXMonths(loss.date, new Date(trade.date), 2)
+                            !loss.disallowedByTransactionsId &&
+                            this.isWithinXMonths(loss.date, new Date(transaction.date), 2)
                         ) {
-                            loss.disallowedByTradeId = trade.id;
-                            loss.trade.isLossDisallowed = true;
-                            loss.trade.disallowedByTradeId = trade.id;
+                            loss.disallowedByTransactionsId = transaction.id;
+                            loss.transaction.isLossDisallowed = true;
+                            loss.transaction.disallowedByTransactionId = transaction.id;
 
-                            if (!trade.disallowsPreviousLosses) {
-                                trade.disallowsPreviousLosses = [];
+                            if (!transaction.disallowsPreviousLosses) {
+                                transaction.disallowsPreviousLosses = [];
                             }
-                            trade.disallowsPreviousLosses.push(lossId);
+                            transaction.disallowsPreviousLosses.push(lossId);
                         }
                     }
 
-                    trade.profitLoss = tradeProfitLoss;
+                    transaction.profitLoss = transactionProfitLoss;
 
                     // Registrar la transacción como candidata a pérdida no permitida si procede.
-                    if (tradeProfitLoss.lt(0)) {
-                        lossCandidates.set(trade.id, {
-                            trade,
+                    if (transactionProfitLoss.lt(0)) {
+                        lossCandidates.set(transaction.id, {
+                            transaction: transaction,
                             asset: fromAssetId,
-                            date: new Date(trade.date),
-                            totalLossAmount: tradeProfitLoss,
+                            date: new Date(transaction.date),
+                            totalLossAmount: transactionProfitLoss,
                         });
                     }
                     break;
 
                 default:
-                    console.warn(`Transacción ignorada (tipo desconocido): ${transactionType} en Trade ID ${trade.id}`);
+                    console.warn(`Transacción ignorada (tipo desconocido): ${transactionType} en Transaction ID ${transaction.id}`);
                     break;
             }
         }
 
-        return annotatedTrades;
+        return annotatedTransactions;
     }
 
-    initializeInventory(trades: Trade[]): Inventory {
+    initializeInventory(transactions: Transaction[]): Inventory {
         const fifoQueue: Inventory = {};
 
-        trades = this.sortTradesByDate(trades);
-        for (const trade of trades) {
+        transactions = this.sortTransactionsByDate(transactions);
+        for (const transaction of transactions) {
             const {
                 transactionType,
                 fromAssetId,
                 toAssetId,
                 feeAsset,
-            } = trade;
+            } = transaction;
 
-            const amountReceived = new Decimal(trade.amountReceived);
-            const amountSpent = new Decimal(trade.amountSpent);
-            const fee = new Decimal(trade.fee);
-            const toAssetPriceInEur = this.getToAssetPriceInEur(trade);
-            const feeAssetPriceInEur = trade.feeAssetPriceInEur ? new Decimal(trade.feeAssetPriceInEur) : null;
+            const amountReceived = new Decimal(transaction.amountReceived);
+            const amountSpent = new Decimal(transaction.amountSpent);
+            const fee = new Decimal(transaction.fee);
+            const toAssetPriceInEur = this.getToAssetPriceInEur(transaction);
+            const feeAssetPriceInEur = transaction.feeAssetPriceInEur ? new Decimal(transaction.feeAssetPriceInEur) : null;
 
             switch (transactionType) {
                 case this.api.appSettings.transactionType.transferIn:
@@ -411,7 +403,7 @@ export class TradeService {
                         let remainingFee = fee;
 
                         if (!fifoQueue[feeAsset]) {
-                            throw new Error(`Not enough ${feeAsset} to cover fee. Trade ID ${trade.id}`);
+                            throw new Error(`Not enough ${feeAsset} to cover fee. Transaction ID ${transaction.id}`);
                         }
 
                         while (remainingFee.gt(0) && fifoQueue[feeAsset].length > 0) {
@@ -428,7 +420,7 @@ export class TradeService {
                         }
 
                         if (remainingFee.gt(0)) {
-                            throw new Error(`Not enough ${feeAsset} to cover fee. Remaining fee: ${remainingFee}. Trade ID ${trade.id}`);
+                            throw new Error(`Not enough ${feeAsset} to cover fee. Remaining fee: ${remainingFee}. Transaction ID ${transaction.id}`);
                         }
                     }
 
@@ -436,7 +428,7 @@ export class TradeService {
                     let remainingToSell = amountSpent;
 
                     if (!fifoQueue[fromAssetId]) {
-                        throw new Error(`Not enough ${fromAssetId} to swap. Trade ID ${trade.id}`);
+                        throw new Error(`Not enough ${fromAssetId} to swap. Transaction ID ${transaction.id}`);
                     }
 
                     while (remainingToSell.gt(0) && fifoQueue[fromAssetId].length > 0) {
@@ -453,13 +445,13 @@ export class TradeService {
                     }
 
                     if (remainingToSell.gt(0)) {
-                        throw new Error(`Not enough ${fromAssetId} to swap. Remaining: ${remainingToSell}. Trade ID ${trade.id}`);
+                        throw new Error(`Not enough ${fromAssetId} to swap. Remaining: ${remainingToSell}. Transaction ID ${transaction.id}`);
                     }
 
                     break;
                 default:
                     // Otros tipos aún no implementados.
-                    console.warn(`Tipo de transacción ignorado en inventario: ${transactionType} (Trade ID ${trade.id})`);
+                    console.warn(`Tipo de transacción ignorado en inventario: ${transactionType} (Transaction ID ${transaction.id})`);
                     break;
             }
         }
@@ -473,14 +465,14 @@ export class TradeService {
         return to > from && to <= limitDate;
     }
 
-    getProfitLossForYear(trades: AnnotatedTrade[], year: number): Decimal {
-        return trades
+    getProfitLossForYear(transactions: AnnotatedTransaction[], year: number): Decimal {
+        return transactions
             .filter(t => new Date(t.date).getFullYear() === year && t.profitLoss && !t.isLossDisallowed)
             .reduce((acc, t) => acc.plus(t.profitLoss!), new Decimal(0));
     }
 
-    getProfitLossForAsset(trades: AnnotatedTrade[], assetId: string): Decimal {
-        return trades
+    getProfitLossForAsset(transactions: AnnotatedTransaction[], assetId: string): Decimal {
+        return transactions
             .filter(t =>
                 (t.fromAssetId === assetId || t.toAssetId === assetId) &&
                 t.profitLoss && !t.isLossDisallowed

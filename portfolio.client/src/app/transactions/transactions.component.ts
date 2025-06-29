@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { TradeService } from '../services/trade.service';
-import { AnnotatedTrade } from '../models/annotated-trade';
+import { TransactionService } from '../services/transaction.service';
+import { AnnotatedTransaction } from '../models/annotated-transaction';
 import { Inventory } from '../models/inventory';
 
 @Component({
@@ -9,7 +9,7 @@ import { Inventory } from '../models/inventory';
     styleUrl: './transactions.component.scss'
 })
 export class TransactionsComponent implements OnInit {
-    transactions: AnnotatedTrade[] = [];
+    transactions: AnnotatedTransaction[] = [];
 
     isLoading: boolean = true;
     transactionColumns: string[] = [
@@ -24,18 +24,18 @@ export class TransactionsComponent implements OnInit {
         // Nuevas columnas fiscales:
         'profitLoss',
         'isLossAllowed',
-        'disallowedByTradeId'
+        'disallowedByTransactionId'
     ];
 
     constructor(
-        private tradeService: TradeService,
+        private transactionService: TransactionService,
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.tradeService.loadData();
-        const transactions = this.tradeService.getTrades();
-        const inventory: Inventory = this.tradeService.initializeInventory(transactions);
-        this.transactions = this.tradeService.getAnnotatedTrades(transactions, inventory);
+        await this.transactionService.loadData();
+        const transactions = this.transactionService.getTransactions();
+        const inventory: Inventory = this.transactionService.initializeInventory(transactions);
+        this.transactions = this.transactionService.getAnnotatedTransactions(transactions, inventory);
 
         this.isLoading = false;
     }

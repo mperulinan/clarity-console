@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
-import { Trade } from '../models/trade';
+import { Transaction } from '../models/transaction';
 import { TransactionType } from '../models/transaction-type';
 import { NewTransaction } from '../models/new-transaction';
 import { AppSettings } from '../models/app-settings';
@@ -42,23 +42,23 @@ export class ApiService {
     }
 
 
-    prefixTrade: string = "trade/";
-    getTrades() {
+    prefixTransaction: string = "transaction/";
+    getTransactions() {
         return lastValueFrom(
-            this.http.get<Trade[]>(this.baseUrl + this.prefixTrade)
+            this.http.get<Transaction[]>(this.baseUrl + this.prefixTransaction)
         );
     }
 
     postTransaction(newTransaction: NewTransaction) {
         return lastValueFrom(
-            this.http.post<any>(this.baseUrl + this.prefixTrade, newTransaction)
+            this.http.post<any>(this.baseUrl + this.prefixTransaction, newTransaction)
         );
     }
 
     //Test
     postPricesInEur() {
         return lastValueFrom(
-            this.http.post<any>(this.baseUrl + this.prefixTrade + "postPricesInEur", null)
+            this.http.post<any>(this.baseUrl + this.prefixTransaction + "postPricesInEur", null)
         );
     }
 

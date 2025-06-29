@@ -9,5 +9,5 @@ public partial class TransactionType
 
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<Trade> Trades { get; set; } = new List<Trade>();
+    public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 }
