@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Portfolio.API/Portfolio.API.csproj" Id="529b5e2f-6c8a-477d-bbf5-81907b6a5492" />
+    <Project Path="src/Portfolio.Application/Portfolio.Application.csproj" />
+    <Project Path="src/Portfolio.Domain/Portfolio.Domain.csproj" />
+    <Project Path="src/Portfolio.Infrastructure/Portfolio.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Portfolio.API.Tests/Portfolio.API.Tests.csproj" />
+    <Project Path="tests/Portfolio.Application.Tests/Portfolio.Application.Tests.csproj" />
+    <Project Path="tests/Portfolio.Domain.Tests/Portfolio.Domain.Tests.csproj" />
+    <Project Path="tests/Portfolio.Infrastructure.Tests/Portfolio.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
