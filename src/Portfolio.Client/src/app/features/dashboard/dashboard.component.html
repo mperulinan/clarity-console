@@ -1,0 +1,146 @@
+<div class="p-6 max-w-7xl mx-auto">
+
+    @if (!isLoading) {
+    <!-- Header Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <mat-card class="bg-gray-800 text-white border-0 shadow-lg">
+            <mat-card-content>
+                <h6 class="text-gray-400 text-sm mb-2">Total Portfolio Value</h6>
+                <h3 class="text-2xl font-bold">{{ totalValue | currency:'USD':'symbol':'1.2-2' }}</h3>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="bg-gray-800 text-white border-0 shadow-lg">
+            <mat-card-content>
+                <h6 class="text-gray-400 text-sm mb-2">Total P/L</h6>
+                <h3 class="text-2xl font-bold" [class.text-green-500]="totalPL >= 0" [class.text-red-500]="totalPL < 0">
+                    {{ totalPL | currency:'USD':'symbol':'1.2-2' }}
+                    <span class="text-base ml-2">({{ totalPLPercentage | number:'1.2-2' }}%)</span>
+                </h3>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="bg-gray-800 text-white border-0 shadow-lg">
+            <mat-card-content>
+                <h6 class="text-gray-400 text-sm mb-2">Actions</h6>
+                <button mat-raised-button color="primary" (click)="openNewTransaction()" class="w-full">
+                    <mat-icon>add</mat-icon> New Transaction
+                </button>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <!-- Holdings Table -->
+    <div>
+        <mat-card class="bg-gray-800 text-white border-0 shadow-lg">
+            <mat-card-header>
+                <mat-card-title class="text-xl">Holdings</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="overflow-x-auto">
+                    <table mat-table [dataSource]="dataSource" class="w-full">
+
+                        <!-- Asset Column -->
+                        <ng-container matColumnDef="assetId">
+                            <th mat-header-cell *matHeaderCellDef class="text-left">Asset</th>
+                            <td mat-cell *matCellDef="let row">
+                                <div class="font-bold">{{ row.symbol }}</div>
+                                <div class="text-sm text-gray-400">{{ row.name }}</div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Price Column -->
+                        <ng-container matColumnDef="price">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">Current Price</th>
+                            <td mat-cell *matCellDef="let row" class="text-right">
+                                {{ row.price | currency:'USD':'symbol':'1.2-6' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Holdings Column -->
+                        <ng-container matColumnDef="holdings">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">Holdings</th>
+                            <td mat-cell *matCellDef="let row" class="text-right">
+                                <div class="font-bold">{{ row.holdingsPrice | currency:'USD':'symbol':'1.2-2' }}</div>
+                                <div class="text-sm text-gray-400">{{ row.holdingsAmount | number:'1.2-8' }} {{
+                                    row.symbol }}</div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Avg Buy Price Column -->
+                        <ng-container matColumnDef="avgBuyPrice">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">Avg Cost</th>
+                            <td mat-cell *matCellDef="let row" class="text-right">
+                                {{ row.avgBuyPrice | currency:'USD':'symbol':'1.2-6' }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Yield Column -->
+                        <ng-container matColumnDef="yield">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">P/L</th>
+                            <td mat-cell *matCellDef="let row" class="text-right"
+                                [class.text-green-500]="row.yield >= 0" [class.text-red-500]="row.yield < 0">
+                                <div class="font-bold">{{ row.yield | currency:'USD':'symbol':'1.2-2' }}</div>
+                                <div class="text-sm">({{ row.yieldPercentage | number:'1.2-2' }}%)</div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Allocation Column -->
+                        <ng-container matColumnDef="percentage">
+                            <th mat-header-cell *matHeaderCellDef class="text-right">Allocation</th>
+                            <td mat-cell *matCellDef="let row" class="text-right">
+                                {{ row.allocation | number:'1.2-2' }}%
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-700"></tr>
+                    </table>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+    } @else {
+    <!-- Skeleton Loading State -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 animate-pulse">
+        <!-- 3 Header Cards -->
+        <div class="bg-gray-800 rounded-lg p-4 h-28">
+            <div class="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
+            <div class="h-8 bg-gray-700 rounded w-3/4"></div>
+        </div>
+        <div class="bg-gray-800 rounded-lg p-4 h-28">
+            <div class="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
+            <div class="h-8 bg-gray-700 rounded w-3/4"></div>
+        </div>
+        <div class="bg-gray-800 rounded-lg p-4 h-28">
+            <div class="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
+            <div class="h-8 bg-gray-700 rounded w-full"></div>
+        </div>
+    </div>
+
+    <!-- Table Skeleton -->
+    <div class="bg-gray-800 rounded-lg p-6 animate-pulse">
+        <div class="h-6 bg-gray-700 rounded w-1/4 mb-6"></div>
+        <div class="space-y-4">
+            <!-- Header constant -->
+            <div class="flex justify-between border-b border-gray-700 pb-2">
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+            </div>
+            <!-- Rows -->
+            @for (item of [1,2,3,4,5]; track $index) {
+            <div class="flex justify-between py-2">
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+            </div>
+            }
+        </div>
+    </div>
+    }
+</div>

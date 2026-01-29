@@ -1,0 +1,72 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
+import { Transaction } from '../models/transaction';
+import { TransactionType } from '../models/transaction-type';
+import { NewTransaction } from '../models/new-transaction';
+import { AppSettings } from '../models/app-settings';
+import { environment } from '../../environments/environment';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class ApiService {
+
+    private baseUrl: string = environment.appUrl + "api/";
+    public appSettings: AppSettings = {
+        transactionType: {
+            swap: '',
+            transferIn: '',
+            reward: ''
+        }
+    };
+
+    constructor(
+        private http: HttpClient,
+    ) {
+        this.loadAppSettings();
+    }
+
+    async loadAppSettings() {
+        this.getAppSetting("TransactionType:Swap").then((value) => this.appSettings.transactionType.swap = value).catch((error) => { alert("Error. See console."); console.log(error); });
+        this.getAppSetting("TransactionType:TransferIn").then((value) => this.appSettings.transactionType.transferIn = value).catch((error) => { alert("Error. See console."); console.log(error); });
+        this.getAppSetting("TransactionType:Reward").then((value) => this.appSettings.transactionType.reward = value).catch((error) => { alert("Error. See console."); console.log(error); });
+    }
+
+
+    prefixAppSettings: string = "appSettings/";
+    getAppSetting(settingName: string) {
+        return lastValueFrom(
+            this.http.get(this.baseUrl + this.prefixAppSettings + settingName, { responseType: 'text' })
+        );
+    }
+
+
+    prefixTransaction: string = "transaction/";
+    getTransactions() {
+        return lastValueFrom(
+            this.http.get<Transaction[]>(this.baseUrl + this.prefixTransaction)
+        );
+    }
+
+    postTransaction(newTransaction: NewTransaction) {
+        return lastValueFrom(
+            this.http.post<any>(this.baseUrl + this.prefixTransaction, newTransaction)
+        );
+    }
+
+    //Test
+    postPricesInEur() {
+        return lastValueFrom(
+            this.http.post<any>(this.baseUrl + this.prefixTransaction + "postPricesInEur", null)
+        );
+    }
+
+
+    prefixTransactionType: string = "transactionType/";
+    getTransactionTypes() {
+        return lastValueFrom(
+            this.http.get<TransactionType[]>(this.baseUrl + this.prefixTransactionType)
+        );
+    }
+}

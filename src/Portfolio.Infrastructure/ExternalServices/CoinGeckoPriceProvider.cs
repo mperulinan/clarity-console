@@ -1,0 +1,79 @@
+using Microsoft.Extensions.Configuration;
+using Portfolio.Domain.Constants;
+using Portfolio.Domain.Enums;
+using Portfolio.Domain.Interfaces;
+using System.Text.Json;
+
+namespace Portfolio.Infrastructure.ExternalServices;
+
+public class CoinGeckoPriceProvider(HttpClient httpClient, IConfiguration configuration) : ICryptoPriceProvider
+{
+    private readonly HttpClient _httpClient = httpClient;
+    private readonly string _baseUrl = configuration["CoinGecko:BaseUrl"] ?? "https://api.coingecko.com/api/v3/";
+    private readonly string? _apiKey = configuration["CoinGecko:ApiKey"];
+
+    public async Task<Dictionary<string, decimal>> GetCurrentPricesAsync(IEnumerable<string> assetIds, FiatCurrency priceCurrency)
+    {
+        var result = new Dictionary<string, decimal>();
+        
+        var cryptoIds = assetIds
+            .Where(id => !string.Equals(id, CurrencyConstants.Usd, StringComparison.OrdinalIgnoreCase) 
+                      && !string.Equals(id, CurrencyConstants.Eur, StringComparison.OrdinalIgnoreCase))
+            .Distinct()
+            .ToList();
+
+        // Populate Fiat Defaults explicitly if requested, but respecting the target currency
+        string strCurrency = priceCurrency switch
+        {
+            FiatCurrency.USD => CurrencyConstants.Usd,
+            FiatCurrency.EUR => CurrencyConstants.Eur,
+            _ => CurrencyConstants.Usd
+        };
+
+        foreach (string? assetId in assetIds)
+        {
+            if (string.Equals(assetId, strCurrency, StringComparison.OrdinalIgnoreCase))
+            {
+                result[assetId] = 1m; // 1 USD = 1 USD, 1 EUR = 1 EUR
+            }
+        }
+
+        if (cryptoIds.Count == 0)
+        {
+            return result;
+        }
+
+        try 
+        {
+            var idsParam = string.Join(",", cryptoIds.Select(id => id.ToLower()));
+            // Use header or query param for key. CoinGecko supports x_cg_demo_api_key in query.
+            string url = $"{_baseUrl}simple/price?ids={idsParam}&vs_currencies={strCurrency}&x_cg_demo_api_key={_apiKey}";
+
+            var response = await _httpClient.GetAsync(url);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                return result;
+            }
+            
+            string json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            
+            foreach (var id in cryptoIds)
+            {
+                var lowerId = id.ToLower();
+                if (doc.RootElement.TryGetProperty(lowerId, out var coinElement) &&
+                    coinElement.TryGetProperty(strCurrency, out var priceElement))
+                {
+                    result[id] = priceElement.GetDecimal();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching CoinGecko prices: {ex.Message}");
+        }
+
+        return result;
+    }
+}
