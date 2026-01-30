@@ -84,10 +84,7 @@ public class InventoryCalculator : IInventoryCalculator
                     rewardProfit -= fee * feeAssetPrice;
                 }
                 
-                if (pTransaction.ProfitLoss == null) 
-                {
-                    pTransaction.ProfitLoss = 0;
-                }
+                pTransaction.ProfitLoss ??= 0;
                 pTransaction.ProfitLoss += rewardProfit;
             }
             else if (type == "transferin")
@@ -97,7 +94,7 @@ public class InventoryCalculator : IInventoryCalculator
                 inflowQty = amountReceived;
                 inflowCost = costPerUnitOfTo;
             }
-            else if (type == "swap" || type == "buy" || type == "sell")
+            else if (type == "swap")
             {
                 if (amountReceived > 0 && !string.IsNullOrEmpty(toAssetId))
                 {
@@ -110,10 +107,7 @@ public class InventoryCalculator : IInventoryCalculator
                 // Deduct Fee Expense
                 if (!string.IsNullOrEmpty(feeAssetId) && feeAssetPrice > 0)
                 {
-                    if (pTransaction.ProfitLoss == null)
-                    {
-                        pTransaction.ProfitLoss = 0;
-                    }
+                    pTransaction.ProfitLoss ??= 0;
                     pTransaction.ProfitLoss -= fee * feeAssetPrice;
                 }
             }
@@ -122,11 +116,13 @@ public class InventoryCalculator : IInventoryCalculator
             {
                 if (inflowAssetStr != CurrencyConstants.Eur && inflowAssetStr != CurrencyConstants.Usd)
                 {
-                    if (!fifoQueue.ContainsKey(inflowAssetStr)) 
+                    if (!fifoQueue.TryGetValue(inflowAssetStr, out List<InventoryEntry>? value)) 
                     {
-                        fifoQueue[inflowAssetStr] = new List<InventoryEntry>();
+                        value = [];
+                        fifoQueue[inflowAssetStr] = value;
                     }
-                    fifoQueue[inflowAssetStr].Add(new InventoryEntry { Quantity = inflowQty, Cost = inflowCost });
+
+                    value.Add(new InventoryEntry { Quantity = inflowQty, Cost = inflowCost });
 
                     CheckWashSale(lossCandidates, inflowAssetStr, transaction.Date, pTransaction);
                 }
@@ -139,9 +135,9 @@ public class InventoryCalculator : IInventoryCalculator
                 ConsumeInventory(fifoQueue, feeAssetId, fee, pTransaction, isFee: true, currency);
             }
 
-            if ((type == "swap" || type == "buy" || type == "sell") && amountSpent > 0 && !string.IsNullOrEmpty(fromAssetId))
+            if (type == "swap" && amountSpent > 0 && !string.IsNullOrEmpty(fromAssetId))
             {
-                 ConsumeInventory(fifoQueue, fromAssetId, amountSpent, pTransaction, isFee: false, currency, lossCandidates: lossCandidates);
+                ConsumeInventory(fifoQueue, fromAssetId, amountSpent, pTransaction, isFee: false, currency, lossCandidates: lossCandidates);
             }
         }
 
@@ -177,7 +173,7 @@ public class InventoryCalculator : IInventoryCalculator
         };
     }
 
-    private void CheckWashSale(List<LossCandidate> lossCandidates, string assetId, DateTime purchaseDate, ProcessedTransaction currentTransaction)
+    private static void CheckWashSale(List<LossCandidate> lossCandidates, string assetId, DateTime purchaseDate, ProcessedTransaction currentTransaction)
     {
         int monthsLimit = 2;
         
@@ -196,13 +192,13 @@ public class InventoryCalculator : IInventoryCalculator
         }
     }
 
-    private bool IsWithinXMonths(DateTime from, DateTime to, int months)
+    private static bool IsWithinXMonths(DateTime from, DateTime to, int months)
     {
         var limitDate = from.AddMonths(months);
         return to > from && to <= limitDate;
     }
 
-    private void ConsumeInventory(
+    private static void ConsumeInventory(
         Dictionary<string, List<InventoryEntry>> queue,
         string assetId,
         decimal amountToConsume,
@@ -213,7 +209,7 @@ public class InventoryCalculator : IInventoryCalculator
     {
         if (assetId == CurrencyConstants.Eur || assetId == CurrencyConstants.Usd) return;
 
-        if (!queue.ContainsKey(assetId) || queue[assetId].Count == 0)
+        if (!queue.TryGetValue(assetId, out List<InventoryEntry>? value) || value.Count == 0)
         {
             return;
         }
@@ -221,9 +217,9 @@ public class InventoryCalculator : IInventoryCalculator
         decimal remaining = amountToConsume;
         decimal totalCostBasis = 0;
 
-        while (remaining > 0 && queue[assetId].Count > 0)
+        while (remaining > 0 && value.Count > 0)
         {
-            var entry = queue[assetId][0];
+            var entry = value[0];
             decimal quantityTaken = (entry.Quantity < remaining) ? entry.Quantity : remaining;
 
             totalCostBasis += quantityTaken * entry.Cost;
@@ -246,10 +242,7 @@ public class InventoryCalculator : IInventoryCalculator
             decimal proceeds = transaction.AmountSpent * fromPrice.Value;
 
             decimal pl = proceeds - totalCostBasis;
-            if (pTransaction.ProfitLoss == null) 
-            {
-                pTransaction.ProfitLoss = 0;
-            }
+            pTransaction.ProfitLoss ??= 0;
             pTransaction.ProfitLoss += pl;
 
             if (pl < 0 && lossCandidates != null)
@@ -266,7 +259,7 @@ public class InventoryCalculator : IInventoryCalculator
         }
     }
 
-    private decimal? GetTransactionPrice(Transaction transaction, FiatCurrency currency)
+    private static decimal? GetTransactionPrice(Transaction transaction, FiatCurrency currency)
     {
         return currency switch
         {
@@ -276,9 +269,9 @@ public class InventoryCalculator : IInventoryCalculator
         };
     }
 
-    private decimal? GetToAssetPrice(Transaction transaction, FiatCurrency currency)
+    private static decimal? GetToAssetPrice(Transaction transaction, FiatCurrency currency)
     {
-        var fromPrice = GetTransactionPrice(transaction, currency);
+        decimal? fromPrice = GetTransactionPrice(transaction, currency);
         if (!fromPrice.HasValue)
         {
             return null;
@@ -297,7 +290,7 @@ public class InventoryCalculator : IInventoryCalculator
         return (transaction.AmountSpent * fromPrice.Value) / transaction.AmountReceived;
     }
 
-    private decimal? GetFeeAssetPrice(Transaction transaction, FiatCurrency currency)
+    private static decimal? GetFeeAssetPrice(Transaction transaction, FiatCurrency currency)
     {
         return currency switch
         {

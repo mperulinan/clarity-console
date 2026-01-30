@@ -50,12 +50,11 @@ public class AssetPriceService(
         return prices;
     }
 
-    private static bool IsFiat(string assetId)
+    private static bool IsFiat(string assetId) => assetId.ToUpperInvariant() switch
     {
-        string id = assetId.ToLowerInvariant();
-        return id.Equals(CurrencyConstants.Usd, StringComparison.InvariantCultureIgnoreCase) || 
-               id.Equals(CurrencyConstants.Eur, StringComparison.InvariantCultureIgnoreCase);
-    }
+        CurrencyConstants.Usd or CurrencyConstants.Eur => true,
+        _ => false
+    };
 
     private async Task<decimal> GetFiatPriceAsync(string fiatAssetId, FiatCurrency baseCurrency)
     {
