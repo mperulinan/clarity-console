@@ -8,7 +8,7 @@ namespace Portfolio.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class TransactionController(IPortfolioService portfolioService, PortfolioContext context, ILogger<TransactionController> logger) : ControllerBase
+public class TransactionController(IPortfolioService portfolioService) : ControllerBase
 {
     [HttpGet]
     public async Task<IEnumerable<Domain.Entities.Transaction>> GetTransactions()

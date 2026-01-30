@@ -14,16 +14,12 @@ public class InventoryCalculator : IInventoryCalculator
         public decimal Cost { get; set; }
     }
 
-    // ... (LossCandidate remains same)
-
-
-
     private class LossCandidate
     {
         public int TransactionId { get; set; }
-        public string AssetId { get; set; }
+        public string AssetId { get; set; } = default!;
         public DateTime Date { get; set; }
-        public ProcessedTransaction ProcessedTransaction { get; set; }
+        public ProcessedTransaction ProcessedTransaction { get; set; } = default!;
     }
 
     public PortfolioReport CalculateInventory(IEnumerable<Transaction> transactions, FiatCurrency currency)
@@ -70,7 +66,7 @@ public class InventoryCalculator : IInventoryCalculator
 
             // === 1. HANDLING INFLOWS (Buy/Swap-in/TransferIn) ===
             bool isInflow = false;
-            string inflowAssetStr = null;
+            string inflowAssetStr = string.Empty;
             decimal inflowQty = 0;
             decimal inflowCost = 0;
 
@@ -162,7 +158,7 @@ public class InventoryCalculator : IInventoryCalculator
                 // Calculate realized P/L for this asset
                 var realizedPL = processedTransactions
                     .Where(t => (t.Transaction.FromAssetId == assetId || t.Transaction.ToAssetId == assetId) && t.ProfitLoss.HasValue && !t.IsLossDisallowed)
-                    .Sum(t => t.ProfitLoss.Value);
+                    .Sum(t => t.ProfitLoss ?? 0m);
 
                 holdings.Add(new AssetHolding
                 {
@@ -213,7 +209,7 @@ public class InventoryCalculator : IInventoryCalculator
         ProcessedTransaction pTransaction,
         bool isFee,
         FiatCurrency currency,
-        List<LossCandidate> lossCandidates = null)
+        List<LossCandidate>? lossCandidates = null)
     {
         if (assetId == CurrencyConstants.Eur || assetId == CurrencyConstants.Usd) return;
 

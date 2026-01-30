@@ -1,108 +1,49 @@
-using System.Text.Json;
+using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
 using Portfolio.Domain.Constants;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 
 namespace Portfolio.Infrastructure.ExternalServices;
 
-public class FrankfurterExchangeRateProvider(HttpClient httpClient) : IExchangeRateProvider
+public class FrankfurterExchangeRateProvider(HttpClient httpClient, IConfiguration configuration) : IExchangeRateProvider
 {
+    private readonly string _baseUrl = (configuration["Frankfurter:BaseUrl"] ?? "https://api.frankfurter.app/").TrimEnd('/') + "/";
 
-    public async Task<decimal> GetExchangeRateAsync(FiatCurrency from, FiatCurrency to)
+    public async Task<decimal> GetExchangeRateAsync(FiatCurrency from, FiatCurrency to) =>
+        await GetRateAsync("latest", MapCurrency(from), MapCurrency(to));
+
+    public async Task<decimal> GetUsdEurRateAsync(DateTime date) =>
+        await GetRateAsync(date.ToString("yyyy-MM-dd"), CurrencyConstants.Usd, CurrencyConstants.Eur);
+
+    public async Task<decimal> GetEurUsdRateAsync(DateTime date) =>
+        await GetRateAsync(date.ToString("yyyy-MM-dd"), CurrencyConstants.Eur, CurrencyConstants.Usd);
+
+    private async Task<decimal> GetRateAsync(string path, string from, string to)
     {
-        if (from == to)
-        {
-            return 1.0m;
-        }
+        if (from == to) return 1.0m;
 
-        var fromStr = from == FiatCurrency.EUR ? CurrencyConstants.Eur : CurrencyConstants.Usd;
-        var toStr = to == FiatCurrency.EUR ? CurrencyConstants.Eur : CurrencyConstants.Usd;
-        
-        // Use "latest" endpoint for current rates
-        var url = $"https://api.frankfurter.app/latest?from={fromStr.ToUpper()}&to={toStr.ToUpper()}";
+        var url = $"{_baseUrl}{path}?from={from.ToUpper()}&to={to.ToUpper()}";
 
         try
         {
-            var response = await httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            var json = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
+            var response = await httpClient.GetFromJsonAsync<FrankfurterResponse>(url);
             
-            if (doc.RootElement.TryGetProperty("rates", out var ratesElement) &&
-                ratesElement.TryGetProperty(toStr.ToUpper(), out var rateElement))
+            if (response?.Rates != null && response.Rates.TryGetValue(to.ToUpper(), out var rate))
             {
-                return rateElement.GetDecimal();
+                return rate;
             }
 
-            throw new Exception($"Rate {toStr} not found in Frankfurter response");
+            throw new InvalidOperationException($"{to} rate not found in Frankfurter response.");
         }
         catch (Exception ex)
         {
-            throw new Exception($"Failed to fetch latest exchange rate ({fromStr}->{toStr}): {ex.Message}", ex);
+            throw new InvalidOperationException($"Failed to fetch exchange rate {from}->{to} for {path}: {ex.Message}", ex);
         }
     }
 
-    public async Task<decimal> GetUsdEurRateAsync(DateTime date)
-    {
-        // Frankfurter API format: https://api.frankfurter.app/YYYY-MM-DD?from=USD&to=EUR
-        var dateStr = date.ToString("yyyy-MM-dd");
-        // Using ToUpper() on constants to match API expectations
-        var from = CurrencyConstants.Usd.ToUpper();
-        var to = CurrencyConstants.Eur.ToUpper();
-        var url = $"https://api.frankfurter.app/{dateStr}?from={from}&to={to}";
+    private static string MapCurrency(FiatCurrency currency) =>
+        currency == FiatCurrency.EUR ? CurrencyConstants.Eur : CurrencyConstants.Usd;
 
-        try
-        {
-            var response = await httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            var json = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            
-            // Expected JSON: { "rates": { "EUR": 0.92 } }
-            if (doc.RootElement.TryGetProperty("rates", out var ratesElement) &&
-                ratesElement.TryGetProperty(to, out var eurRateElement))
-            {
-                return eurRateElement.GetDecimal();
-            }
-
-            throw new Exception("EUR rate not found in Frankfurter response");
-        }
-        catch (Exception ex)
-        {
-            // Fallback or rethrow? For now rethrow as it's critical for the calculation
-            throw new Exception($"Failed to fetch exchange rate for {dateStr}: {ex.Message}", ex);
-        }
-    }
-
-    public async Task<decimal> GetEurUsdRateAsync(DateTime date)
-    {
-        // Frankfurter API format: https://api.frankfurter.app/YYYY-MM-DD?from=EUR&to=USD
-        var dateStr = date.ToString("yyyy-MM-dd");
-        var from = CurrencyConstants.Eur.ToUpper();
-        var to = CurrencyConstants.Usd.ToUpper();
-        var url = $"https://api.frankfurter.app/{dateStr}?from={from}&to={to}";
-
-        try
-        {
-            var response = await httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            var json = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            
-            if (doc.RootElement.TryGetProperty("rates", out var ratesElement) &&
-                ratesElement.TryGetProperty(to, out var usdRateElement))
-            {
-                return usdRateElement.GetDecimal();
-            }
-
-            throw new Exception("USD rate not found in Frankfurter response");
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Failed to fetch exchange rate (EUR->USD) for {dateStr}: {ex.Message}", ex);
-        }
-    }
+    private record FrankfurterResponse(decimal Amount, string Base, string Date, Dictionary<string, decimal> Rates);
 }
