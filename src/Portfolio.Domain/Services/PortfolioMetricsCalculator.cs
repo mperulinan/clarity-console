@@ -1,4 +1,4 @@
-using Portfolio.Domain.Services;
+using Portfolio.Domain.Interfaces;
 using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Domain.Services;

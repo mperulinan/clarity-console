@@ -6,8 +6,8 @@ namespace Portfolio.Application.Interfaces;
 
 public interface IPortfolioService
 {
-    Task<PortfolioReport> GetPortfolioAsync();
-    Task<PortfolioMetrics> GetPortfolioDashboardAsync();
+    Task<PortfolioReport> GetPortfolioReportAsync();
+    Task<PortfolioMetrics> GetPortfolioMetricsAsync();
     Task AddTransactionAsync(NewTransactionRequest request);
     Task CalculateExchangeRatesAsync(); // New method for lazy calculation
 }

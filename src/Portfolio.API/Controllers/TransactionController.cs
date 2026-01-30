@@ -13,7 +13,7 @@ public class TransactionController(IPortfolioService portfolioService, Portfolio
     [HttpGet]
     public async Task<IEnumerable<Domain.Entities.Transaction>> GetTransactions()
     {
-        var report = await portfolioService.GetPortfolioAsync();
+        var report = await portfolioService.GetPortfolioReportAsync();
         return report.Transactions.Select(t => t.Transaction);
     }
 

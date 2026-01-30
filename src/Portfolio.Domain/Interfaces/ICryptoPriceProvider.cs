@@ -4,5 +4,5 @@ namespace Portfolio.Domain.Interfaces;
 
 public interface ICryptoPriceProvider
 {
-    Task<Dictionary<string, decimal>> GetCurrentPricesAsync(IEnumerable<string> assetIds, FiatCurrency priceCurrency);
+    Task<Dictionary<string, decimal>> GetCurrentCryptoPricesAsync(IEnumerable<string> assetIds, FiatCurrency priceCurrency);
 }

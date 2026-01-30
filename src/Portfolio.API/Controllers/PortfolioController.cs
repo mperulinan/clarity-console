@@ -11,14 +11,14 @@ public class PortfolioController(IPortfolioService portfolioService) : Controlle
     [HttpGet("dashboard")]
     public async Task<ActionResult<PortfolioMetrics>> GetDashboard()
     {
-        var metrics = await portfolioService.GetPortfolioDashboardAsync();
+        var metrics = await portfolioService.GetPortfolioMetricsAsync();
         return Ok(metrics);
     }
 
     [HttpGet("tax-report")]
     public async Task<ActionResult<PortfolioReport>> GetTaxReport()
     {
-        var report = await portfolioService.GetPortfolioAsync();
+        var report = await portfolioService.GetPortfolioReportAsync();
         return Ok(report);
     }
 }

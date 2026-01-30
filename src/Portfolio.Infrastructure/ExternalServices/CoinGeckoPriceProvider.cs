@@ -12,7 +12,7 @@ public class CoinGeckoPriceProvider(HttpClient httpClient, IConfiguration config
     private readonly string _baseUrl = configuration["CoinGecko:BaseUrl"] ?? "https://api.coingecko.com/api/v3/";
     private readonly string? _apiKey = configuration["CoinGecko:ApiKey"];
 
-    public async Task<Dictionary<string, decimal>> GetCurrentPricesAsync(IEnumerable<string> assetIds, FiatCurrency priceCurrency)
+    public async Task<Dictionary<string, decimal>> GetCurrentCryptoPricesAsync(IEnumerable<string> assetIds, FiatCurrency priceCurrency)
     {
         var result = new Dictionary<string, decimal>();
         
@@ -30,14 +30,6 @@ public class CoinGeckoPriceProvider(HttpClient httpClient, IConfiguration config
             _ => CurrencyConstants.Usd
         };
 
-        foreach (string? assetId in assetIds)
-        {
-            if (string.Equals(assetId, strCurrency, StringComparison.OrdinalIgnoreCase))
-            {
-                result[assetId] = 1m; // 1 USD = 1 USD, 1 EUR = 1 EUR
-            }
-        }
-
         if (cryptoIds.Count == 0)
         {
             return result;
@@ -46,7 +38,6 @@ public class CoinGeckoPriceProvider(HttpClient httpClient, IConfiguration config
         try 
         {
             var idsParam = string.Join(",", cryptoIds.Select(id => id.ToLower()));
-            // Use header or query param for key. CoinGecko supports x_cg_demo_api_key in query.
             string url = $"{_baseUrl}simple/price?ids={idsParam}&vs_currencies={strCurrency}&x_cg_demo_api_key={_apiKey}";
 
             var response = await _httpClient.GetAsync(url);

@@ -32,6 +32,7 @@ builder.Services.AddScoped<IInventoryCalculator, InventoryCalculator>();
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddScoped<IExchangeRateProvider, FrankfurterExchangeRateProvider>();
 builder.Services.AddScoped<ICryptoPriceProvider, CoinGeckoPriceProvider>();
+builder.Services.AddScoped<IAssetPriceService, AssetPriceService>();
 builder.Services.AddScoped<IPortfolioMetricsCalculator, PortfolioMetricsCalculator>();
 builder.Services.AddHttpClient();
 

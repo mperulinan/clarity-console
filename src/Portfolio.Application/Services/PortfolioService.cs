@@ -3,7 +3,6 @@ using Portfolio.Application.DTOs;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Interfaces;
 using Portfolio.Domain.ValueObjects;
-using Portfolio.Domain.Services;
 using Portfolio.Domain.Enums;
 
 namespace Portfolio.Application.Services;
@@ -12,10 +11,10 @@ public class PortfolioService(
     ITransactionRepository transactionRepository, 
     IInventoryCalculator inventoryCalculator,
     IExchangeRateProvider exchangeRateProvider,
-    ICryptoPriceProvider priceProvider,
+    IAssetPriceService assetPriceService,
     IPortfolioMetricsCalculator portfolioMetricsCalculator) : IPortfolioService
 {
-    public async Task<PortfolioMetrics> GetPortfolioDashboardAsync()
+    public async Task<PortfolioMetrics> GetPortfolioMetricsAsync()
     {
         // 1. Calculate inventory in USD (explicit)
         var transactions = await transactionRepository.GetAllAsync();
@@ -24,8 +23,8 @@ public class PortfolioService(
             FiatCurrency.USD); // Explicitly USD
         
         // 2. Get current USD prices
-        var assetIds = report.Holdings.Select(h => h.AssetId).ToList();
-        var pricesUsd = await priceProvider.GetCurrentPricesAsync(assetIds, FiatCurrency.USD);
+        var assetIds = report.Holdings.Select(h => h.AssetId).Distinct().ToList();
+        var pricesUsd = await assetPriceService.GetCurrentPricesAsync(assetIds, FiatCurrency.USD);
         
         // 3. Calculate metrics
         var metrics = portfolioMetricsCalculator.CalculateMetrics(
@@ -36,7 +35,7 @@ public class PortfolioService(
     }
     
     // Kept for backward compatibility / Tax Report, but explicitly EUR
-    public async Task<PortfolioReport> GetPortfolioAsync() 
+    public async Task<PortfolioReport> GetPortfolioReportAsync() 
     {
         var transactions = await transactionRepository.GetAllAsync();
         return inventoryCalculator.CalculateInventory(transactions, FiatCurrency.EUR);

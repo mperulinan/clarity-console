@@ -1,6 +1,6 @@
 using Portfolio.Domain.ValueObjects;
 
-namespace Portfolio.Domain.Services;
+namespace Portfolio.Domain.Interfaces;
 
 public interface IPortfolioMetricsCalculator
 {
