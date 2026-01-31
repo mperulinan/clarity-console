@@ -50,7 +50,7 @@ public class AssetPriceService(
         return prices;
     }
 
-    private static bool IsFiat(string assetId) => assetId.ToUpperInvariant() switch
+    private static bool IsFiat(string assetId) => assetId.ToLowerInvariant() switch
     {
         CurrencyConstants.Usd or CurrencyConstants.Eur => true,
         _ => false
