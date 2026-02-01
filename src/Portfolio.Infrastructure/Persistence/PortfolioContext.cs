@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Domain.Entities;
+using Portfolio.Domain.Enums;
 using System;
 using System.Collections.Generic;
 
@@ -52,7 +53,11 @@ public partial class PortfolioContext : DbContext
             // Map TransactionTypeCode property to the "TransactionType" column
             entity.Property(e => e.TransactionTypeCode)
                 .HasColumnName("TransactionType")
-                .HasMaxLength(50);
+                .HasMaxLength(50)
+                .HasConversion(
+                    v => v.Value, // To DB: "REWARD"
+                    v => TransactionTypeEnum.FromValue(v) // From DB: TransactionTypeEnum.Reward
+                );
 
             entity.HasOne(d => d.TransactionType).WithMany() // Assuming TransactionType doesn't need a collection of Transactions back for now, or use .WithMany("Transactions") if it exists
                 .HasForeignKey(d => d.TransactionTypeCode)
@@ -68,6 +73,13 @@ public partial class PortfolioContext : DbContext
 
             entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.Name).HasMaxLength(50);
+
+            entity.HasData(
+                TransactionTypeEnum.List.Select(e => new {
+                    Code = e.Value,
+                    e.Name
+                })
+            );
         });
 
         OnModelCreatingPartial(modelBuilder);

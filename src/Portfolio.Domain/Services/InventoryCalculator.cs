@@ -33,7 +33,7 @@ public class InventoryCalculator : IInventoryCalculator
         foreach (var pTransaction in processedTransactions)
         {
             var transaction = pTransaction.Transaction;
-            string type = transaction.TransactionTypeCode?.ToLowerInvariant() ?? "";
+            string type = transaction.TransactionTypeCode;
             string fromAssetId = transaction.FromAssetId;
             string toAssetId = transaction.ToAssetId;
             string? feeAssetId = transaction.FeeAsset;
@@ -70,7 +70,7 @@ public class InventoryCalculator : IInventoryCalculator
             decimal inflowQty = 0;
             decimal inflowCost = 0;
 
-            if (type == "reward")
+            if (type == TransactionTypeEnum.Reward)
             {
                 isInflow = true;
                 inflowAssetStr = toAssetId;
@@ -87,14 +87,14 @@ public class InventoryCalculator : IInventoryCalculator
                 pTransaction.ProfitLoss ??= 0;
                 pTransaction.ProfitLoss += rewardProfit;
             }
-            else if (type == "transfer_in")
+            else if (type == TransactionTypeEnum.TransferIn)
             {
                 isInflow = true;
                 inflowAssetStr = toAssetId;
                 inflowQty = amountReceived;
                 inflowCost = costPerUnitOfTo;
             }
-            else if (type == "swap")
+            else if (type == TransactionTypeEnum.Swap)
             {
                 if (amountReceived > 0 && !string.IsNullOrWhiteSpace(toAssetId))
                 {
@@ -132,7 +132,7 @@ public class InventoryCalculator : IInventoryCalculator
                 ConsumeInventory(fifoQueue, feeAssetId, fee, pTransaction, isFee: true, currency);
             }
 
-            if (type == "swap" && amountSpent > 0 && !string.IsNullOrWhiteSpace(fromAssetId))
+            if (type == TransactionTypeEnum.Swap && amountSpent > 0 && !string.IsNullOrWhiteSpace(fromAssetId))
             {
                 ConsumeInventory(fifoQueue, fromAssetId, amountSpent, pTransaction, isFee: false, currency, lossCandidates: lossCandidates);
             }

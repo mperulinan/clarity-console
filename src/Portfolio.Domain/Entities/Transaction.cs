@@ -1,3 +1,4 @@
+using Portfolio.Domain.Enums;
 using System;
 
 namespace Portfolio.Domain.Entities;
@@ -6,7 +7,8 @@ public class Transaction
 {
     public int Id { get; private set; }
     public DateTime Date { get; private set; }
-    public string TransactionTypeCode { get; private set; } = null!;
+    public TransactionTypeEnum TransactionTypeCode { get; private set; } = null!;
+    public TransactionType TransactionType { get; private set; } = null!;
     public string FromAssetId { get; private set; } = null!;
     public string ToAssetId { get; private set; } = null!;
     public decimal AmountSpent { get; private set; }
@@ -18,17 +20,14 @@ public class Transaction
     public decimal? FeeAssetPriceInUsd { get; private set; }
     public decimal? FeeAssetPriceInEur { get; private set; }
     public decimal? UsdEurExchangeRate { get; private set; }
-    public string? Notes { get; private set; }
+    public string? Notes { get; private set; }    
 
-    // Navigation property (no virtual)
-    public TransactionType TransactionType { get; private set; } = null!;
-
-    // Constructor for EF Core
+    // Constructor for EF Core.
     private Transaction() { }
 
     public Transaction(
         DateTime date,
-        string transactionTypeCode,
+        TransactionTypeEnum transactionTypeCode,
         string fromAssetId,
         string toAssetId,
         decimal amountSpent,
@@ -57,15 +56,7 @@ public class Transaction
         UsdEurExchangeRate = usdEurExchangeRate;
         Notes = notes;
     }
-    
-    // Method to set navigation property if needed manually, though usually EF handles this.
-    public void SetTransactionType(TransactionType type)
-    {
-        TransactionType = type ?? throw new ArgumentNullException(nameof(type));
-        TransactionTypeCode = type.Code;
-    }
 
-    // Method to update exchange rates
     public void UpdateExchangeRates(decimal usdEurRate)
     {
         if (!FromAssetPriceInEur.HasValue)
