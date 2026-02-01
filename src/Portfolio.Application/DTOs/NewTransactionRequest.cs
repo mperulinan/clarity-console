@@ -1,9 +1,11 @@
+using Portfolio.Domain.Enums;
+
 namespace Portfolio.Application.DTOs;
 
 public class NewTransactionRequest
 {
     public DateTime Date { get; set; }
-    public string TransactionTypeCode { get; set; } = null!;
+    public TransactionTypeEnum TransactionTypeCode { get; set; } = null!;
     public string FromAssetId { get; set; } = null!;
     public string ToAssetId { get; set; } = null!;
     public decimal AmountSpent { get; set; }

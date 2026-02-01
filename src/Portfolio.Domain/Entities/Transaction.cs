@@ -1,5 +1,6 @@
 using Portfolio.Domain.Enums;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portfolio.Domain.Entities;
 
@@ -7,7 +8,16 @@ public class Transaction
 {
     public int Id { get; private set; }
     public DateTime Date { get; private set; }
-    public TransactionTypeEnum TransactionTypeCode { get; private set; } = null!;
+    public string TransactionTypeCode { get; private set; } = null!;
+
+    // Helper property for SmartEnum
+    [NotMapped]
+    public TransactionTypeEnum Type
+    { 
+        get => TransactionTypeEnum.FromValue(TransactionTypeCode); 
+        private set => TransactionTypeCode = value.Value; 
+    }
+
     public TransactionType TransactionType { get; private set; } = null!;
     public string FromAssetId { get; private set; } = null!;
     public string ToAssetId { get; private set; } = null!;
@@ -42,7 +52,7 @@ public class Transaction
         string? notes)
     {
         Date = date;
-        TransactionTypeCode = transactionTypeCode ?? throw new ArgumentNullException(nameof(transactionTypeCode));
+        TransactionTypeCode = transactionTypeCode?.Value ?? throw new ArgumentNullException(nameof(transactionTypeCode));
         FromAssetId = fromAssetId ?? throw new ArgumentNullException(nameof(fromAssetId));
         ToAssetId = toAssetId ?? throw new ArgumentNullException(nameof(toAssetId));
         AmountSpent = amountSpent;

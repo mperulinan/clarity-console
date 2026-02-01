@@ -53,14 +53,12 @@ public partial class PortfolioContext : DbContext
             // Map TransactionTypeCode property to the "TransactionType" column
             entity.Property(e => e.TransactionTypeCode)
                 .HasColumnName("TransactionType")
-                .HasMaxLength(50)
-                .HasConversion(
-                    v => v.Value, // To DB: "REWARD"
-                    v => TransactionTypeEnum.FromValue(v) // From DB: TransactionTypeEnum.Reward
-                );
+                .HasMaxLength(50);
 
-            entity.HasOne(d => d.TransactionType).WithMany() // Assuming TransactionType doesn't need a collection of Transactions back for now, or use .WithMany("Transactions") if it exists
+            entity.HasOne(d => d.TransactionType)
+                .WithMany() // Assuming TransactionType doesn't need a collection of Transactions back for now, or use .WithMany("Transactions") if it exists
                 .HasForeignKey(d => d.TransactionTypeCode)
+                .HasPrincipalKey(tt => tt.Code) // The String PK in the lookup table
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Transaction_TransactionType");
         });
