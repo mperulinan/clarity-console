@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Configuration;
-using Portfolio.Domain.Constants;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 using System.Text.Json;
@@ -17,18 +16,12 @@ public class CoinGeckoPriceProvider(HttpClient httpClient, IConfiguration config
         var result = new Dictionary<string, decimal>();
         
         var cryptoIds = assetIds
-            .Where(id => !string.Equals(id, CurrencyConstants.Usd, StringComparison.OrdinalIgnoreCase) 
-                      && !string.Equals(id, CurrencyConstants.Eur, StringComparison.OrdinalIgnoreCase))
+            .Where(id => !string.Equals(id, FiatCurrency.USD.Value, StringComparison.OrdinalIgnoreCase) 
+                      && !string.Equals(id, FiatCurrency.EUR.Value, StringComparison.OrdinalIgnoreCase))
             .Distinct()
             .ToList();
 
-        // Populate Fiat Defaults explicitly if requested, but respecting the target currency
-        string strCurrency = priceCurrency switch
-        {
-            FiatCurrency.USD => CurrencyConstants.Usd,
-            FiatCurrency.EUR => CurrencyConstants.Eur,
-            _ => CurrencyConstants.Usd
-        };
+        string strCurrency = priceCurrency.Value;
 
         if (cryptoIds.Count == 0)
         {

@@ -1,4 +1,3 @@
-using Portfolio.Domain.Constants;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
@@ -204,6 +203,8 @@ public class InventoryCalculator : IInventoryCalculator
         FiatCurrency currency,
         List<LossCandidate>? lossCandidates = null)
     {
+        if (FiatCurrency.TryFromValue(assetId.ToLowerInvariant(), out _)) return;
+
         if (!queue.TryGetValue(assetId, out List<InventoryEntry>? value) || value.Count == 0)
         {
             return;
@@ -256,12 +257,17 @@ public class InventoryCalculator : IInventoryCalculator
 
     private static decimal? GetFromAssetPrice(Transaction transaction, FiatCurrency currency)
     {
-        return currency switch
+        if (currency == FiatCurrency.USD)
         {
-            FiatCurrency.USD => transaction.FromAssetPriceInUsd,
-            FiatCurrency.EUR => transaction.FromAssetPriceInEur,
-            _ => throw new ArgumentException($"Unsupported currency: {currency}")
-        };
+            return transaction.FromAssetPriceInUsd;
+        }
+
+        if (currency == FiatCurrency.EUR)
+        {
+            return transaction.FromAssetPriceInEur;
+        }
+
+        throw new ArgumentException($"Unsupported currency: {currency}");
     }
 
     private static decimal? GetToAssetPrice(Transaction transaction, FiatCurrency currency)
@@ -287,11 +293,8 @@ public class InventoryCalculator : IInventoryCalculator
 
     private static decimal? GetFeeAssetPrice(Transaction transaction, FiatCurrency currency)
     {
-        return currency switch
-        {
-            FiatCurrency.USD => transaction.FeeAssetPriceInUsd,
-            FiatCurrency.EUR => transaction.FeeAssetPriceInEur,
-            _ => throw new ArgumentException($"Unsupported currency: {currency}")
-        };
+        if (currency == FiatCurrency.USD) return transaction.FeeAssetPriceInUsd;
+        if (currency == FiatCurrency.EUR) return transaction.FeeAssetPriceInEur;
+        throw new ArgumentException($"Unsupported currency: {currency}");
     }
 }

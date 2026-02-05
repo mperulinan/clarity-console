@@ -1,6 +1,5 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
-using Portfolio.Domain.Constants;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 
@@ -11,13 +10,13 @@ public class FrankfurterExchangeRateProvider(HttpClient httpClient, IConfigurati
     private readonly string _baseUrl = (configuration["Frankfurter:BaseUrl"] ?? "https://api.frankfurter.app/").TrimEnd('/') + "/";
 
     public async Task<decimal> GetExchangeRateAsync(FiatCurrency from, FiatCurrency to) =>
-        await GetRateAsync("latest", MapCurrency(from), MapCurrency(to));
+        await GetRateAsync("latest", from.Value, to.Value);
 
     public async Task<decimal> GetUsdEurRateAsync(DateTime date) =>
-        await GetRateAsync(date.ToString("yyyy-MM-dd"), CurrencyConstants.Usd, CurrencyConstants.Eur);
+        await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.USD.Value, FiatCurrency.EUR.Value);
 
     public async Task<decimal> GetEurUsdRateAsync(DateTime date) =>
-        await GetRateAsync(date.ToString("yyyy-MM-dd"), CurrencyConstants.Eur, CurrencyConstants.Usd);
+        await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.EUR.Value, FiatCurrency.USD.Value);
 
     private async Task<decimal> GetRateAsync(string path, string from, string to)
     {
@@ -41,9 +40,6 @@ public class FrankfurterExchangeRateProvider(HttpClient httpClient, IConfigurati
             throw new InvalidOperationException($"Failed to fetch exchange rate {from}->{to} for {path}: {ex.Message}", ex);
         }
     }
-
-    private static string MapCurrency(FiatCurrency currency) =>
-        currency == FiatCurrency.EUR ? CurrencyConstants.Eur : CurrencyConstants.Usd;
 
     private record FrankfurterResponse(decimal Amount, string Base, string Date, Dictionary<string, decimal> Rates);
 }

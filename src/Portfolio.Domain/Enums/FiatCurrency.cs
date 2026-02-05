@@ -1,7 +1,13 @@
+using Ardalis.SmartEnum;
+
 namespace Portfolio.Domain.Enums;
 
-public enum FiatCurrency
+public class FiatCurrency : SmartEnum<FiatCurrency, string>
 {
-    USD,
-    EUR
+    public static readonly FiatCurrency USD = new("USD", "usd");
+    public static readonly FiatCurrency EUR = new("EUR", "eur");
+
+    private FiatCurrency(string name, string value) : base(name, value)
+    {
+    }
 }

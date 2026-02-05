@@ -1,5 +1,4 @@
 using Portfolio.Domain.Enums;
-using Portfolio.Domain.Constants;
 using Portfolio.Domain.Interfaces;
 
 namespace Portfolio.Domain.Services;
@@ -50,11 +49,8 @@ public class AssetPriceService(
         return prices;
     }
 
-    private static bool IsFiat(string assetId) => assetId.ToLowerInvariant() switch
-    {
-        CurrencyConstants.Usd or CurrencyConstants.Eur => true,
-        _ => false
-    };
+    private static bool IsFiat(string assetId) => 
+        FiatCurrency.TryFromValue(assetId.ToLowerInvariant(), out _);
 
     private async Task<decimal> GetFiatPriceAsync(string fiatAssetId, FiatCurrency baseCurrency)
     {
@@ -74,11 +70,11 @@ public class AssetPriceService(
 
     private static FiatCurrency ParseCurrency(string assetId)
     {
-        return assetId.ToLowerInvariant() switch
+        if (FiatCurrency.TryFromValue(assetId.ToLowerInvariant(), out var currency))
         {
-            CurrencyConstants.Usd => FiatCurrency.USD,
-            CurrencyConstants.Eur => FiatCurrency.EUR,
-            _ => throw new ArgumentException($"Unknown fiat currency: {assetId}")
-        };
+            return currency;
+        }
+        
+        throw new ArgumentException($"Unknown fiat currency: {assetId}");
     }
 }
