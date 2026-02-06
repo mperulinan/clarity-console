@@ -16,7 +16,7 @@ public class AssetPriceService(
         // 1. Classify Assets
         foreach (string id in assetIds)
         {
-            if (IsFiat(id))
+            if (FiatCurrency.IsFiat(id))
             {
                 fiatIds.Add(id);
             }
@@ -49,32 +49,13 @@ public class AssetPriceService(
         return prices;
     }
 
-    private static bool IsFiat(string assetId) => 
-        FiatCurrency.TryFromValue(assetId.ToLowerInvariant(), out _);
-
     private async Task<decimal> GetFiatPriceAsync(string fiatAssetId, FiatCurrency baseCurrency)
     {
-        // Parse Asset ID to Enum
-        var assetCurrency = ParseCurrency(fiatAssetId);
-
-        // Case 1: Same Currency (e.g. Price of USD in USD)
+        FiatCurrency assetCurrency = FiatCurrency.Parse(fiatAssetId);
         if (assetCurrency == baseCurrency)
         {
             return 1.0m;
         }
-
-        // Case 2: Different Currency (e.g. Price of EUR in USD)
-        // Rate: EUR -> USD
         return await exchangeRateProvider.GetExchangeRateAsync(assetCurrency, baseCurrency);
-    }
-
-    private static FiatCurrency ParseCurrency(string assetId)
-    {
-        if (FiatCurrency.TryFromValue(assetId.ToLowerInvariant(), out var currency))
-        {
-            return currency;
-        }
-        
-        throw new ArgumentException($"Unknown fiat currency: {assetId}");
     }
 }

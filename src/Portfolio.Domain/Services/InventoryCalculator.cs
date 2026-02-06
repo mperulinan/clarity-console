@@ -36,15 +36,15 @@ public class InventoryCalculator : IInventoryCalculator
             string fromAssetId = transaction.FromAssetId;
             string toAssetId = transaction.ToAssetId;
             string? feeAssetId = transaction.FeeAsset;
-            
+
             decimal amountReceived = transaction.AmountReceived;
             decimal amountSpent = transaction.AmountSpent;
             decimal fee = transaction.Fee;
-            
+
             decimal costPerUnitOfTo = 0;
             if (amountReceived > 0)
             {
-                decimal? fromAssetPrice = GetFromAssetPrice(transaction, currency);
+                decimal? fromAssetPrice = transaction.GetFromAssetValue(currency);
                 if (fromAssetPrice.HasValue)
                 {
                     decimal totalValue = amountSpent * fromAssetPrice.Value;
@@ -52,8 +52,8 @@ public class InventoryCalculator : IInventoryCalculator
                 }
             }
 
-            decimal? toAssetPrice = GetToAssetPrice(transaction, currency);
-            
+            decimal? toAssetPrice = transaction.GetToAssetValue(currency);
+
             // Skip cost calculation if price hasn't been calculated yet
             if (!toAssetPrice.HasValue)
             {
@@ -61,7 +61,7 @@ public class InventoryCalculator : IInventoryCalculator
             }
 
             decimal costBasis = transaction.AmountReceived * toAssetPrice.Value;
-            decimal feeAssetPrice = GetFeeAssetPrice(transaction, currency) ?? 0;
+            decimal feeAssetPrice = transaction.GetFeeAssetValue(currency) ?? 0;
 
             // === 1. HANDLING INFLOWS (Buy/Swap-in/TransferIn) ===
             bool isInflow = false;
@@ -82,7 +82,7 @@ public class InventoryCalculator : IInventoryCalculator
                 {
                     rewardProfit -= fee * feeAssetPrice;
                 }
-                
+
                 pTransaction.ProfitLoss ??= 0;
                 pTransaction.ProfitLoss += rewardProfit;
             }
@@ -102,7 +102,7 @@ public class InventoryCalculator : IInventoryCalculator
                     inflowQty = amountReceived;
                     inflowCost = costPerUnitOfTo;
                 }
-                
+
                 // Deduct Fee Expense
                 if (!string.IsNullOrWhiteSpace(feeAssetId) && feeAssetPrice > 0)
                 {
@@ -146,7 +146,7 @@ public class InventoryCalculator : IInventoryCalculator
             {
                 decimal totalCost = entries.Sum(e => e.Quantity * e.Cost);
                 decimal avgCost = totalCost / quantity;
-                
+
                 // Calculate realized P/L for this asset
                 decimal realizedPL = processedTransactions
                     .Where(t => (t.Transaction.FromAssetId == assetId || t.Transaction.ToAssetId == assetId) && t.ProfitLoss.HasValue && !t.IsLossDisallowed)
@@ -172,7 +172,7 @@ public class InventoryCalculator : IInventoryCalculator
     private static void CheckWashSale(List<LossCandidate> lossCandidates, string assetId, DateTime purchaseDate, ProcessedTransaction currentTransaction)
     {
         int monthsLimit = 2;
-        
+
         foreach (var candidate in lossCandidates)
         {
             if (candidate.AssetId == assetId && !candidate.ProcessedTransaction.IsLossDisallowed)
@@ -181,7 +181,7 @@ public class InventoryCalculator : IInventoryCalculator
                 {
                     candidate.ProcessedTransaction.IsLossDisallowed = true;
                     candidate.ProcessedTransaction.DisallowedByTransactionId = currentTransaction.Transaction.Id;
-                    
+
                     currentTransaction.DisallowsPreviousLosses.Add(candidate.TransactionId);
                 }
             }
@@ -203,7 +203,7 @@ public class InventoryCalculator : IInventoryCalculator
         FiatCurrency currency,
         List<LossCandidate>? lossCandidates = null)
     {
-        if (FiatCurrency.TryFromValue(assetId.ToLowerInvariant(), out _)) return;
+        if (FiatCurrency.IsFiat(assetId)) return;
 
         if (!queue.TryGetValue(assetId, out List<InventoryEntry>? value) || value.Count == 0)
         {
@@ -231,10 +231,10 @@ public class InventoryCalculator : IInventoryCalculator
         if (!isFee)
         {
             var transaction = pTransaction.Transaction;
-            var fromPrice = GetFromAssetPrice(transaction, currency);
-            
-            if (!fromPrice.HasValue) return; 
-            
+            var fromPrice = transaction.GetFromAssetValue(currency);
+
+            if (!fromPrice.HasValue) return;
+
             decimal proceeds = transaction.AmountSpent * fromPrice.Value;
 
             decimal pl = proceeds - totalCostBasis;
@@ -253,48 +253,5 @@ public class InventoryCalculator : IInventoryCalculator
             }
 
         }
-    }
-
-    private static decimal? GetFromAssetPrice(Transaction transaction, FiatCurrency currency)
-    {
-        if (currency == FiatCurrency.USD)
-        {
-            return transaction.FromAssetPriceInUsd;
-        }
-
-        if (currency == FiatCurrency.EUR)
-        {
-            return transaction.FromAssetPriceInEur;
-        }
-
-        throw new ArgumentException($"Unsupported currency: {currency}");
-    }
-
-    private static decimal? GetToAssetPrice(Transaction transaction, FiatCurrency currency)
-    {
-        decimal? fromPrice = GetFromAssetPrice(transaction, currency);
-        if (!fromPrice.HasValue)
-        {
-            return null;
-        }
-        
-        if (transaction.ToAssetId == transaction.FromAssetId)
-        {
-            return fromPrice.Value;
-        }
-        
-        if (transaction.AmountReceived == 0)
-        {
-            return null;
-        }
-        
-        return transaction.AmountSpent * fromPrice.Value / transaction.AmountReceived;
-    }
-
-    private static decimal? GetFeeAssetPrice(Transaction transaction, FiatCurrency currency)
-    {
-        if (currency == FiatCurrency.USD) return transaction.FeeAssetPriceInUsd;
-        if (currency == FiatCurrency.EUR) return transaction.FeeAssetPriceInEur;
-        throw new ArgumentException($"Unsupported currency: {currency}");
     }
 }

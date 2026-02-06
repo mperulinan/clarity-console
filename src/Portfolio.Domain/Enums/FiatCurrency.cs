@@ -10,4 +10,17 @@ public class FiatCurrency : SmartEnum<FiatCurrency, string>
     private FiatCurrency(string name, string value) : base(name, value)
     {
     }
+    
+    public static bool IsFiat(string code) => 
+        TryFromValue(code.ToLowerInvariant(), out _);
+
+    public static FiatCurrency Parse(string code)
+    {
+        if (TryFromValue(code.ToLowerInvariant(), out var currency))
+        {
+            return currency;
+        }
+
+        throw new ArgumentException($"Unknown fiat currency: {code}");
+    }
 }
