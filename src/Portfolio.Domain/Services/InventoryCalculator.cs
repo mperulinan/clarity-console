@@ -41,90 +41,74 @@ public class InventoryCalculator : IInventoryCalculator
             decimal amountSpent = transaction.AmountSpent;
             decimal fee = transaction.Fee;
 
-            decimal costPerUnitOfTo = 0;
-            if (amountReceived > 0)
-            {
-                decimal? fromAssetPrice = transaction.GetFromAssetValue(currency);
-                if (fromAssetPrice.HasValue)
-                {
-                    decimal totalValue = amountSpent * fromAssetPrice.Value;
-                    costPerUnitOfTo = totalValue / amountReceived;
-                }
-            }
-
             decimal? toAssetPrice = transaction.GetToAssetValue(currency);
 
-            // Skip cost calculation if price hasn't been calculated yet
             if (!toAssetPrice.HasValue)
             {
                 continue;
             }
 
-            decimal costBasis = transaction.AmountReceived * toAssetPrice.Value;
             decimal feeAssetPrice = transaction.GetFeeAssetValue(currency) ?? 0;
 
-            // === 1. HANDLING INFLOWS (Buy/Swap-in/TransferIn) ===
+            // === 1. HANDLING INFLOWS (Swap-in/TransferIn/Reward) ===
             bool isInflow = false;
             string inflowAssetStr = string.Empty;
             decimal inflowQty = 0;
             decimal inflowCost = 0;
 
-            if (type == TransactionTypeEnum.Reward)
+            // 1. Calculate General Inflow (Common for Swap, TransferIn, Reward)
+            if (amountReceived > 0 && !string.IsNullOrWhiteSpace(toAssetId))
             {
                 isInflow = true;
                 inflowAssetStr = toAssetId;
                 inflowQty = amountReceived;
-                inflowCost = costPerUnitOfTo;
-
-                // Reward genera ganancia directa
-                var rewardProfit = amountReceived * toAssetPrice.Value;
-                if (!string.IsNullOrWhiteSpace(feeAssetId) && feeAssetPrice > 0)
-                {
-                    rewardProfit -= fee * feeAssetPrice;
-                }
-
-                pTransaction.ProfitLoss ??= 0;
-                pTransaction.ProfitLoss += rewardProfit;
+                inflowCost = transaction.GetToAssetValue(currency) ?? 0;
             }
-            else if (type == TransactionTypeEnum.TransferIn)
-            {
-                isInflow = true;
-                inflowAssetStr = toAssetId;
-                inflowQty = amountReceived;
-                inflowCost = costPerUnitOfTo;
-            }
-            else if (type == TransactionTypeEnum.Swap)
-            {
-                if (amountReceived > 0 && !string.IsNullOrWhiteSpace(toAssetId))
-                {
-                    isInflow = true;
-                    inflowAssetStr = toAssetId;
-                    inflowQty = amountReceived;
-                    inflowCost = costPerUnitOfTo;
-                }
 
-                // Deduct Fee Expense
-                if (!string.IsNullOrWhiteSpace(feeAssetId) && feeAssetPrice > 0)
-                {
-                    pTransaction.ProfitLoss ??= 0;
-                    pTransaction.ProfitLoss -= fee * feeAssetPrice;
-                }
+            switch (transaction.Type.Name)
+            {
+                case nameof(TransactionTypeEnum.Reward):
+                    if (isInflow)
+                    {
+                        // Override Cost Basis: Market Price (Income)
+                        inflowCost = toAssetPrice.Value;
+
+                        // Reward generates direct profit
+                        var rewardProfit = amountReceived * toAssetPrice.Value;
+                        if (!string.IsNullOrWhiteSpace(feeAssetId) && feeAssetPrice > 0)
+                        {
+                            rewardProfit -= fee * feeAssetPrice;
+                        }
+
+                        pTransaction.ProfitLoss ??= 0;
+                        pTransaction.ProfitLoss += rewardProfit;
+                    }
+                    break;
+
+                case nameof(TransactionTypeEnum.Swap):
+                    // Deduct Fee Expense
+                    if (!string.IsNullOrWhiteSpace(feeAssetId) && feeAssetPrice > 0)
+                    {
+                        pTransaction.ProfitLoss ??= 0;
+                        pTransaction.ProfitLoss -= fee * feeAssetPrice;
+                    }
+                    break;
             }
 
             if (isInflow && !string.IsNullOrWhiteSpace(inflowAssetStr))
             {
-                if (!fifoQueue.TryGetValue(inflowAssetStr, out List<InventoryEntry>? value))
+                if (!fifoQueue.TryGetValue(inflowAssetStr, out List<InventoryEntry>? inventoryEntries))
                 {
-                    value = [];
-                    fifoQueue[inflowAssetStr] = value;
+                    inventoryEntries = [];
+                    fifoQueue[inflowAssetStr] = inventoryEntries;
                 }
 
-                value.Add(new InventoryEntry { Quantity = inflowQty, Cost = inflowCost });
+                inventoryEntries.Add(new InventoryEntry { Quantity = inflowQty, Cost = inflowCost });
 
                 CheckWashSale(lossCandidates, inflowAssetStr, transaction.Date, pTransaction);
             }
 
-            // === 2. HANDLING OUTFLOWS (Sell/Swap-out/Fee) ===
+            // === 2. HANDLING OUTFLOWS (Swap-out/Fee) ===
 
             if (!string.IsNullOrWhiteSpace(feeAssetId) && fee > 0)
             {
