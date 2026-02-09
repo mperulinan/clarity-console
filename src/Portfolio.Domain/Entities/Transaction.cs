@@ -82,16 +82,16 @@ public class Transaction
         UsdEurExchangeRate = usdEurRate;
     }
 
-    public decimal? GetFromAssetValue(FiatCurrency currency)
+    public decimal? GetFromAssetPrice(FiatCurrency currency)
     {
         if (currency == FiatCurrency.USD) return FromAssetPriceInUsd;
         if (currency == FiatCurrency.EUR) return FromAssetPriceInEur;
         throw new ArgumentException($"Unsupported currency: {currency.Name}");
     }
 
-    public decimal? GetToAssetValue(FiatCurrency currency)
+    public decimal? GetToAssetPrice(FiatCurrency currency)
     {
-        decimal? fromPrice = GetFromAssetValue(currency);
+        decimal? fromPrice = GetFromAssetPrice(currency);
         if (!fromPrice.HasValue) return null;
 
         if (ToAssetId == FromAssetId) return fromPrice;
@@ -100,7 +100,7 @@ public class Transaction
         return AmountSpent * fromPrice / AmountReceived;
     }
 
-    public decimal? GetFeeAssetValue(FiatCurrency currency)
+    public decimal? GetFeeAssetPrice(FiatCurrency currency)
     {
         if (currency == FiatCurrency.USD) return FeeAssetPriceInUsd;
         if (currency == FiatCurrency.EUR) return FeeAssetPriceInEur;
