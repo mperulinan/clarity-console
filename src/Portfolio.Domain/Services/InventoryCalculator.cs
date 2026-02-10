@@ -163,11 +163,6 @@ public class InventoryCalculator : IInventoryCalculator
         FiatCurrency currency,
         Dictionary<string, List<LossCandidate>>? lossCandidates = null)
     {
-        if (FiatCurrency.IsFiat(assetId))
-        {
-            return 0;
-        }
-
         if (!queue.TryGetValue(assetId, out var inventory) || inventory.Count == 0)
         {
             return 0;
