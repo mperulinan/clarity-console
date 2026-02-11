@@ -116,6 +116,35 @@ public class InventoryCalculatorTests
     }
 
     [Fact]
+    public void CalculateInventory_WashSale_ShouldNotDisallowLoss_WhenBuyOccursAfterWindow()
+    {
+        var btc = "BTC";
+        var usd = "USD";
+        var transactions = new List<Transaction>
+        {
+            // Buy 1 BTC @ 30k
+            new(new DateTime(2023, 1, 1), TransactionTypeEnum.Swap, usd, btc, 30000m, 1m, 1m, null, 0, null, null, null, null, null),
+            
+            // Sell 1 BTC @ 20k (Loss 10k)
+            new(new DateTime(2023, 1, 15), TransactionTypeEnum.Swap, btc, usd, 1m, 20000m, 20000m, null, 0, null, null, null, null, null),
+            
+            // Buy 1 BTC @ 22k AFTER 2 months
+            new(new DateTime(2023, 3, 20), TransactionTypeEnum.Swap, usd, btc, 22000m, 1m, 1m, null, 0, null, null, null, null, null)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
+        var reportTransactions = report.Transactions.ToList();
+
+        // Verify Loss is ALLOWED
+        var sellTx = reportTransactions[1];
+        Assert.False(sellTx.IsLossDisallowed);
+        Assert.Equal(-10000m, sellTx.ProfitLoss);
+                
+        // Ensure no disallowance link
+        Assert.Empty(reportTransactions[2].DisallowsPreviousLosses);
+    }
+
+    [Fact]
     public void CalculateInventory_Fee_ShouldReduceInventory_WhenFeePaidInAsset()
     {
         // Scenario: Buy 10 ETH. Then Swap 5 ETH for USD @ $10k, paying 0.1 ETH fee.
