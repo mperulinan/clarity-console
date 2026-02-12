@@ -145,6 +145,55 @@ public class InventoryCalculatorTests
     }
 
     [Fact]
+    public void CalculateInventory_ShouldFlagError_WhenBuyingWithInsufficientFunds()
+    {
+        // Scenario: Attempt to Buy 1 BTC with USD, but we have 0 USD.
+        var btc = "BTC";
+        var usd = "USD";
+        var transactions = new List<Transaction>
+        {
+            // Buy 1 BTC @ $10,000 using USD we don't have.
+            new(new DateTime(2023, 1, 1), TransactionTypeEnum.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
+        var buyTx = report.Transactions.First();
+
+        // Expect Error to be set on the BUY transaction for USD
+        Assert.NotNull(buyTx.Error);
+        Assert.Contains("Insufficient inventory for USD", buyTx.Error);
+    }
+
+    [Fact]
+    public void CalculateInventory_ShouldFlagError_WhenSellingMoreThanOwned()
+    {
+        // Scenario: Seed USD. Buy 1 BTC. Sell 2 BTC.        
+        var btc = "BTC";
+        var usd = "USD";
+        var transactions = new List<Transaction>
+        {
+            // 1. Seed 10k USD (Transfer In)
+            new(new DateTime(2023, 1, 1), TransactionTypeEnum.TransferIn, usd, usd, 0, 10000m, 1m, 1m, 0, null, null, null, null, null),
+
+            // 2. Buy 1 BTC @ $10,000. Consumes all 10k USD.
+            new(new DateTime(2023, 1, 2), TransactionTypeEnum.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null),
+            
+            // 3. Sell 2 BTC @ $20,000 each.
+            new(new DateTime(2023, 1, 3), TransactionTypeEnum.Swap, btc, usd, 2m, 40000m, 20000m, null, 0, null, null, null, null, null)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
+        var sellTx = report.Transactions.Last();
+
+        // Expect Error to be set on the SELL transaction
+        Assert.NotNull(sellTx.Error);
+        Assert.Contains("Insufficient inventory for BTC", sellTx.Error);
+
+        // Ensure the BUY transaction did NOT have an error for USD
+        Assert.Null(report.Transactions.ElementAt(1).Error);
+    }
+
+    [Fact]
     public void CalculateInventory_Fee_ShouldReduceInventory_WhenFeePaidInAsset()
     {
         // Scenario: Buy 10 ETH. Then Swap 5 ETH for USD @ $10k, paying 0.1 ETH fee.

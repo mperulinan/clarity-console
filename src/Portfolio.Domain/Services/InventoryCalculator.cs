@@ -165,6 +165,7 @@ public class InventoryCalculator : IInventoryCalculator
     {
         if (!queue.TryGetValue(assetId, out var inventory) || inventory.Count == 0)
         {
+            pTransaction.Error = $"Insufficient inventory for {assetId}. Needed {amountToConsume}.";
             return 0;
         }
 
@@ -184,6 +185,11 @@ public class InventoryCalculator : IInventoryCalculator
             {
                 inventory.Dequeue();
             }
+        }
+        
+        if (remaining > 0)
+        {
+             pTransaction.Error = $"Insufficient inventory for {assetId}. Missing {remaining}, used {amountToConsume - remaining}.";
         }
 
         var tx = pTransaction.Transaction;

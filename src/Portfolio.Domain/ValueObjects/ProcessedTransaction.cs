@@ -10,6 +10,7 @@ public class ProcessedTransaction
     public bool IsLossDisallowed { get; set; }
     public int? DisallowedByTransactionId { get; set; }
     public List<int> DisallowsPreviousLosses { get; private set; } = [];
+    public string? Error { get; set; }
 
     // Constructor to ensure consistency
     public ProcessedTransaction(Transaction transaction)
