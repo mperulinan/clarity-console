@@ -227,4 +227,34 @@ public class InventoryCalculatorTests
         var holding = report.Holdings.Single(h => h.AssetId == eth);
         Assert.Equal(4.9m, holding.Quantity);
     }
+    
+    [Fact]
+    public void CalculateInventory_ShouldTrackCostBasisOfSold()
+    {
+        // Scenario: Buy 1 BTC @ 10k. Sell 0.5 BTC @ 15k.
+        var btc = "BTC";
+        var usd = "USD";
+        var transactions = new List<Transaction>
+        {
+            // Buy 1 BTC @ 10k
+            new(new DateTime(2023, 1, 1), TransactionTypeEnum.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null),
+            
+            // Sell 0.5 BTC @ 15k (Proceeds 7.5k)
+            new(new DateTime(2023, 1, 2), TransactionTypeEnum.Swap, btc, usd, 0.5m, 7500m, 15000m, null, 0, null, null, null, null, null)
+        };
+        
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
+        var holding = report.Holdings.Single(h => h.AssetId == btc);
+        
+        // Sold 0.5 BTC. Cost basis was 10k * 0.5 = 5k.
+        Assert.Equal(5000m, holding.CostBasisOfSold);
+        
+        // Remaining 0.5 BTC. Cost basis is 5k.
+        // Total Invested implicit check = CostBasisOfSold + (Quantity * AvgCost) = 5k + 5k = 10k.
+        Assert.Equal(10000m, holding.AvgCost);
+        Assert.Equal(0.5m, holding.Quantity);
+        
+        // Realized PL = 7.5k - 5k = 2.5k.
+        Assert.Equal(2500m, holding.RealizedPL);
+    }
 }
