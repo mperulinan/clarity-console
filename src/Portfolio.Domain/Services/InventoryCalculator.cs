@@ -32,7 +32,8 @@ public class InventoryCalculator : IInventoryCalculator
 
         Dictionary<string, Queue<InventoryEntry>> fifoQueue = [];
         Dictionary<string, List<LossCandidate>> lossCandidates = [];
-        Dictionary<string, decimal> realizedProfitTracker = [];
+        Dictionary<string, decimal> realizedPLTracker = [];
+        Dictionary<string, decimal> costBasisSoldTracker = [];
 
         foreach (var pt in processedTransactions)
         {
@@ -48,7 +49,7 @@ public class InventoryCalculator : IInventoryCalculator
                     decimal rewardProfit = (tx.AmountReceived * toAssetPrice) - (tx.Fee * feeAssetPrice);
                     pt.ProfitLoss = rewardProfit;
 
-                    UpdateProfitTracker(realizedProfitTracker, tx.ToAssetId, rewardProfit);
+                    UpdateTracker(realizedPLTracker, tx.ToAssetId, rewardProfit);
                 }
 
                 if (!fifoQueue.TryGetValue(tx.ToAssetId, out var inventory))
@@ -65,18 +66,18 @@ public class InventoryCalculator : IInventoryCalculator
             // --- HANDLING OUTFLOWS (Swap-out/Fee) ---
             if (tx.Fee > 0 && !string.IsNullOrWhiteSpace(tx.FeeAsset))
             {
-                decimal feePL = ConsumeInventory(fifoQueue, tx.FeeAsset, tx.Fee, pt, isFee: true, currency);
-                UpdateProfitTracker(realizedProfitTracker, tx.FeeAsset, feePL);
+                decimal feePL = ConsumeInventory(fifoQueue, tx.FeeAsset, tx.Fee, pt, isFee: true, currency, costBasisSoldTracker);
+                UpdateTracker(realizedPLTracker, tx.FeeAsset, feePL);
             }
 
             if (tx.Type == TransactionTypeEnum.Swap && tx.AmountSpent > 0 && !string.IsNullOrWhiteSpace(tx.FromAssetId))
             {
-                decimal swapPL = ConsumeInventory(fifoQueue, tx.FromAssetId, tx.AmountSpent, pt, isFee: false, currency, lossCandidates);
-                UpdateProfitTracker(realizedProfitTracker, tx.FromAssetId, swapPL);
+                decimal swapPL = ConsumeInventory(fifoQueue, tx.FromAssetId, tx.AmountSpent, pt, isFee: false, currency, costBasisSoldTracker, lossCandidates);
+                UpdateTracker(realizedPLTracker, tx.FromAssetId, swapPL);
             }
         }
 
-        List<AssetHolding> holdings = GenerateAssetHoldings(fifoQueue, realizedProfitTracker);
+        List<AssetHolding> holdings = GenerateAssetHoldings(fifoQueue, realizedPLTracker, costBasisSoldTracker);
 
         return new PortfolioReport
         {
@@ -85,7 +86,7 @@ public class InventoryCalculator : IInventoryCalculator
         };
     }
 
-    private static void UpdateProfitTracker(Dictionary<string, decimal> tracker, string assetId, decimal profitChange)
+    private static void UpdateTracker(Dictionary<string, decimal> tracker, string assetId, decimal amount)
     {
         if (string.IsNullOrWhiteSpace(assetId)) return;
 
@@ -94,12 +95,13 @@ public class InventoryCalculator : IInventoryCalculator
             tracker[assetId] = 0;
         }
 
-        tracker[assetId] += profitChange;
+        tracker[assetId] += amount;
     }
 
     private static List<AssetHolding> GenerateAssetHoldings(
         Dictionary<string, Queue<InventoryEntry>> fifoQueue,
-        Dictionary<string, decimal> realizedProfitTracker)
+        Dictionary<string, decimal> realizedPLTracker,
+        Dictionary<string, decimal> costBasisSoldTracker)
     {
         List<AssetHolding> holdings = [];
 
@@ -113,14 +115,16 @@ public class InventoryCalculator : IInventoryCalculator
             decimal totalRemainingCost = entries.Sum(e => e.Quantity * e.Price);
             decimal avgCost = totalRemainingCost / totalQuantity;
 
-            realizedProfitTracker.TryGetValue(assetId, out decimal realizedPL);
+            realizedPLTracker.TryGetValue(assetId, out decimal realizedPL);
+            costBasisSoldTracker.TryGetValue(assetId, out decimal costBasisSold);
 
             holdings.Add(new AssetHolding
             {
                 AssetId = assetId,
                 Quantity = totalQuantity,
                 AvgCost = avgCost,
-                RealizedProfitLoss = realizedPL
+                CostBasisOfSold = costBasisSold,
+                RealizedPL = realizedPL
             });
         }
 
@@ -161,6 +165,7 @@ public class InventoryCalculator : IInventoryCalculator
         ProcessedTransaction pTransaction,
         bool isFee,
         FiatCurrency currency,
+        Dictionary<string, decimal> costBasisSoldTracker,
         Dictionary<string, List<LossCandidate>>? lossCandidates = null)
     {
         if (!queue.TryGetValue(assetId, out var inventory) || inventory.Count == 0)
@@ -200,6 +205,9 @@ public class InventoryCalculator : IInventoryCalculator
         }
 
         decimal proceeds = amountToConsume * exitPrice.Value;
+        
+        UpdateTracker(costBasisSoldTracker, assetId, totalCostBasis);
+
         decimal pl = proceeds - totalCostBasis;
 
         pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;

@@ -21,38 +21,46 @@ public class PortfolioMetricsCalculator : IPortfolioMetricsCalculator
             TotalUnrealizedProfitLossUsd = totals.TotalUnrealized,
             TotalRealizedProfitLossUsd = totals.TotalRealized,
             TotalProfitLossUsd = totals.TotalPL,
-            TotalProfitLossPercentage = totals.PLPercentage
+            TotalProfitLossPercentage = totals.TotalReturn
         };
     }
     
-    private List<EnrichedAssetHolding> EnrichHoldings(
+    private static List<EnrichedAssetHolding> EnrichHoldings(
         List<AssetHolding> holdings, 
         Dictionary<string, decimal> pricesUsd)
     {
-        return holdings.Select(h => 
+        return [.. holdings.Select(h => 
         {
             decimal currentPrice = pricesUsd.GetValueOrDefault(h.AssetId.ToLower(), 0);
             decimal currentValue = h.Quantity * currentPrice;
-            decimal totalCost = h.Quantity * h.AvgCost; // AvgCost already in USD based on inventory calculation
-            decimal unrealizedPL = currentValue - totalCost;
-            decimal totalPL = unrealizedPL + h.RealizedProfitLoss; // Already in USD
-            decimal yieldPct = totalCost > 0 ? (totalPL / totalCost) * 100 : 0;
+            decimal totalCostBasis = h.Quantity * h.AvgCost;
+            decimal openPL = currentValue - totalCostBasis;
+            decimal openReturn = h.AvgCost > 0 ? ((currentPrice / h.AvgCost) - 1) * 100 : 0;
+            
+            decimal realizedReturn = h.CostBasisOfSold > 0 ? h.RealizedPL / h.CostBasisOfSold * 100 : 0;
+            
+            decimal totalPL = openPL + h.RealizedPL;
+            decimal totalInvested = totalCostBasis + h.CostBasisOfSold;
+            decimal totalReturn = totalInvested > 0 ? totalPL / totalInvested * 100 : 0;
             
             return new EnrichedAssetHolding
             {
                 AssetId = h.AssetId,
                 Quantity = h.Quantity,
-                CurrentPriceUsd = currentPrice,
-                CurrentValueUsd = currentValue,
-                AvgCostUsd = h.AvgCost,
-                TotalCostBasisUsd = totalCost,
-                UnrealizedProfitLossUsd = unrealizedPL,
-                RealizedProfitLossUsd = h.RealizedProfitLoss,
-                TotalProfitLossUsd = totalPL,
-                YieldPercentage = yieldPct,
+                CurrentPrice = currentPrice,
+                CurrentValue = currentValue,
+                AvgCost = h.AvgCost,
+                TotalCostBasis = totalCostBasis,
+                CostBasisOfSold = h.CostBasisOfSold,
+                OpenPL = openPL,
+                OpenReturn = openReturn,
+                RealizedPL = h.RealizedPL,
+                RealizedReturn = realizedReturn,
+                TotalPL = totalPL,
+                TotalReturn = totalReturn,
                 AllocationPercentage = 0
             };
-        }).ToList();
+        })];
     }
     
     private record PortfolioTotals(
@@ -61,27 +69,31 @@ public class PortfolioMetricsCalculator : IPortfolioMetricsCalculator
         decimal TotalUnrealized,
         decimal TotalRealized,
         decimal TotalPL,
-        decimal PLPercentage);
+        decimal TotalReturn);
     
-    private PortfolioTotals CalculateTotals(List<EnrichedAssetHolding> holdings)
+    private static PortfolioTotals CalculateTotals(List<EnrichedAssetHolding> holdings)
     {
-        decimal totalValue = holdings.Sum(h => h.CurrentValueUsd);
-        decimal totalCost = holdings.Sum(h => h.TotalCostBasisUsd);
-        decimal totalUnrealized = holdings.Sum(h => h.UnrealizedProfitLossUsd);
-        decimal totalRealized = holdings.Sum(h => h.RealizedProfitLossUsd);
+        decimal totalValue = holdings.Sum(h => h.CurrentValue);
+        decimal totalCost = holdings.Sum(h => h.TotalCostBasis);
+        decimal totalUnrealized = holdings.Sum(h => h.OpenPL);
+        decimal totalRealized = holdings.Sum(h => h.RealizedPL);
         decimal totalPL = totalUnrealized + totalRealized;
-        decimal plPct = totalCost > 0 ? (totalPL / totalCost) * 100 : 0;
+
+        decimal totalCostBasisOfSold = holdings.Sum(h => h.CostBasisOfSold);
+        decimal totalInvested = totalCost + totalCostBasisOfSold;
         
-        return new PortfolioTotals(totalValue, totalCost, totalUnrealized, totalRealized, totalPL, plPct);
+        decimal totalReturn = totalInvested > 0 ? totalPL / totalInvested * 100 : 0;
+        
+        return new PortfolioTotals(totalValue, totalCost, totalUnrealized, totalRealized, totalPL, totalReturn);
     }
     
-    private void ApplyAllocations(List<EnrichedAssetHolding> holdings, decimal totalValue)
+    private static void ApplyAllocations(List<EnrichedAssetHolding> holdings, decimal totalValue)
     {
         if (totalValue > 0)
         {
             foreach (var holding in holdings)
             {
-                holding.AllocationPercentage = (holding.CurrentValueUsd / totalValue) * 100;
+                holding.AllocationPercentage = holding.CurrentValue / totalValue * 100;
             }
         }
     }
