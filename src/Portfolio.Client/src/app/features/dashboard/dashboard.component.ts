@@ -1,9 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 
 import { PortfolioService } from '../../services/portfolio.service';
@@ -15,28 +14,33 @@ interface DashboardRow {
     name: string;
     symbol: string;
     image: string;
+    imageError: boolean;
     price: number;
     holdingsPrice: number;
     holdingsAmount: number;
     avgBuyPrice: number;
-    yield: number; // P/L
+    unrealizedPL: number;
+    realizedPL: number;
+    totalPL: number;
     yieldPercentage: number;
     allocation: number;
+    totalCostBasis: number;
 }
 
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule],
+    imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DecimalPipe],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
-    displayedColumns: string[] = ['assetId', 'price', 'holdings', 'avgBuyPrice', 'yield', 'percentage'];
     dataSource: DashboardRow[] = [];
 
     totalValue = 0;
     totalCost = 0;
+    totalUnrealizedPL = 0;
+    totalRealizedPL = 0;
     totalPL = 0;
     totalPLPercentage = 0;
 
@@ -48,7 +52,7 @@ export class DashboardComponent implements OnInit {
         private cdr: ChangeDetectorRef
     ) { }
 
-    async ngOnInit() {
+    ngOnInit() {
         this.loadData();
     }
 
@@ -60,29 +64,34 @@ export class DashboardComponent implements OnInit {
             }))
             .subscribe({
                 next: (metrics: PortfolioMetrics) => {
-                    console.log('Metrics received:', metrics);
-
                     if (metrics && metrics.holdings) {
-                        this.dataSource = metrics.holdings.map(h => ({
-                            assetId: h.assetId,
-                            name: h.assetId ? h.assetId.toUpperCase() : 'UNKNOWN',
-                            symbol: h.assetId ? h.assetId.toUpperCase() : '???',
-                            image: '',
-                            price: h.currentPriceUsd,
-                            holdingsPrice: h.currentValueUsd,
-                            holdingsAmount: h.quantity,
-                            avgBuyPrice: h.avgCostUsd,
-                            yield: h.totalProfitLossUsd,
-                            yieldPercentage: h.yieldPercentage,
-                            allocation: h.allocationPercentage
-                        })).sort((a, b) => b.holdingsPrice - a.holdingsPrice);
+                        this.dataSource = metrics.holdings
+                            .map(h => ({
+                                assetId: h.assetId,
+                                name: this.formatName(h.assetId),
+                                symbol: h.assetId ? h.assetId.toUpperCase() : '???',
+                                image: this.getAssetImageUrl(h.assetId),
+                                imageError: false,
+                                price: h.currentPriceUsd,
+                                holdingsPrice: h.currentValueUsd,
+                                holdingsAmount: h.quantity,
+                                avgBuyPrice: h.avgCostUsd,
+                                unrealizedPL: h.unrealizedProfitLossUsd,
+                                realizedPL: h.realizedProfitLossUsd,
+                                totalPL: h.totalProfitLossUsd,
+                                yieldPercentage: h.yieldPercentage,
+                                allocation: h.allocationPercentage,
+                                totalCostBasis: h.totalCostBasisUsd,
+                            }))
+                            .sort((a, b) => b.holdingsPrice - a.holdingsPrice);
 
                         this.totalValue = metrics.totalPortfolioValueUsd;
                         this.totalCost = metrics.totalCostBasisUsd;
+                        this.totalUnrealizedPL = metrics.totalUnrealizedProfitLossUsd;
+                        this.totalRealizedPL = metrics.totalRealizedProfitLossUsd;
                         this.totalPL = metrics.totalProfitLossUsd;
                         this.totalPLPercentage = metrics.totalProfitLossPercentage;
                     } else {
-                        console.warn('Metrics or holdings missing/empty', metrics);
                         this.dataSource = [];
                     }
                 },
@@ -90,6 +99,31 @@ export class DashboardComponent implements OnInit {
                     console.error('Error loading dashboard data:', err);
                 }
             });
+    }
+
+    // CoinGecko's standard coin image endpoint, keyed by coin ID
+    getAssetImageUrl(assetId: string): string {
+        if (!assetId) return '';
+        return `https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png`.replace(
+            'bitcoin', assetId.toLowerCase()
+        );
+    }
+
+    onImageError(row: DashboardRow): void {
+        row.imageError = true;
+    }
+
+    formatName(assetId: string): string {
+        if (!assetId) return 'Unknown';
+        return assetId.charAt(0).toUpperCase() + assetId.slice(1);
+    }
+
+    getInitials(symbol: string): string {
+        return (symbol ?? '??').slice(0, 2).toUpperCase();
+    }
+
+    isPositive(value: number): boolean {
+        return value >= 0;
     }
 
     openNewTransaction() {

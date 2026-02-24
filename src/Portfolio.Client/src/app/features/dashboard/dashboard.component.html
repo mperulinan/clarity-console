@@ -1,146 +1,215 @@
-<div class="p-6 max-w-7xl mx-auto">
+<div class="dashboard">
 
-    @if (!isLoading) {
-    <!-- Header Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <mat-card class="bg-gray-800 text-white border-0 shadow-lg">
-            <mat-card-content>
-                <h6 class="text-gray-400 text-sm mb-2">Total Portfolio Value</h6>
-                <h3 class="text-2xl font-bold">{{ totalValue | currency:'USD':'symbol':'1.2-2' }}</h3>
-            </mat-card-content>
-        </mat-card>
-
-        <mat-card class="bg-gray-800 text-white border-0 shadow-lg">
-            <mat-card-content>
-                <h6 class="text-gray-400 text-sm mb-2">Total P/L</h6>
-                <h3 class="text-2xl font-bold" [class.text-green-500]="totalPL >= 0" [class.text-red-500]="totalPL < 0">
-                    {{ totalPL | currency:'USD':'symbol':'1.2-2' }}
-                    <span class="text-base ml-2">({{ totalPLPercentage | number:'1.2-2' }}%)</span>
-                </h3>
-            </mat-card-content>
-        </mat-card>
-
-        <mat-card class="bg-gray-800 text-white border-0 shadow-lg">
-            <mat-card-content>
-                <h6 class="text-gray-400 text-sm mb-2">Actions</h6>
-                <button mat-raised-button color="primary" (click)="openNewTransaction()" class="w-full">
-                    <mat-icon>add</mat-icon> New Transaction
-                </button>
-            </mat-card-content>
-        </mat-card>
-    </div>
-
-    <!-- Holdings Table -->
-    <div>
-        <mat-card class="bg-gray-800 text-white border-0 shadow-lg">
-            <mat-card-header>
-                <mat-card-title class="text-xl">Holdings</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="overflow-x-auto">
-                    <table mat-table [dataSource]="dataSource" class="w-full">
-
-                        <!-- Asset Column -->
-                        <ng-container matColumnDef="assetId">
-                            <th mat-header-cell *matHeaderCellDef class="text-left">Asset</th>
-                            <td mat-cell *matCellDef="let row">
-                                <div class="font-bold">{{ row.symbol }}</div>
-                                <div class="text-sm text-gray-400">{{ row.name }}</div>
-                            </td>
-                        </ng-container>
-
-                        <!-- Price Column -->
-                        <ng-container matColumnDef="price">
-                            <th mat-header-cell *matHeaderCellDef class="text-right">Current Price</th>
-                            <td mat-cell *matCellDef="let row" class="text-right">
-                                {{ row.price | currency:'USD':'symbol':'1.2-6' }}
-                            </td>
-                        </ng-container>
-
-                        <!-- Holdings Column -->
-                        <ng-container matColumnDef="holdings">
-                            <th mat-header-cell *matHeaderCellDef class="text-right">Holdings</th>
-                            <td mat-cell *matCellDef="let row" class="text-right">
-                                <div class="font-bold">{{ row.holdingsPrice | currency:'USD':'symbol':'1.2-2' }}</div>
-                                <div class="text-sm text-gray-400">{{ row.holdingsAmount | number:'1.2-8' }} {{
-                                    row.symbol }}</div>
-                            </td>
-                        </ng-container>
-
-                        <!-- Avg Buy Price Column -->
-                        <ng-container matColumnDef="avgBuyPrice">
-                            <th mat-header-cell *matHeaderCellDef class="text-right">Avg Cost</th>
-                            <td mat-cell *matCellDef="let row" class="text-right">
-                                {{ row.avgBuyPrice | currency:'USD':'symbol':'1.2-6' }}
-                            </td>
-                        </ng-container>
-
-                        <!-- Yield Column -->
-                        <ng-container matColumnDef="yield">
-                            <th mat-header-cell *matHeaderCellDef class="text-right">P/L</th>
-                            <td mat-cell *matCellDef="let row" class="text-right"
-                                [class.text-green-500]="row.yield >= 0" [class.text-red-500]="row.yield < 0">
-                                <div class="font-bold">{{ row.yield | currency:'USD':'symbol':'1.2-2' }}</div>
-                                <div class="text-sm">({{ row.yieldPercentage | number:'1.2-2' }}%)</div>
-                            </td>
-                        </ng-container>
-
-                        <!-- Allocation Column -->
-                        <ng-container matColumnDef="percentage">
-                            <th mat-header-cell *matHeaderCellDef class="text-right">Allocation</th>
-                            <td mat-cell *matCellDef="let row" class="text-right">
-                                {{ row.allocation | number:'1.2-2' }}%
-                            </td>
-                        </ng-container>
-
-                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-700"></tr>
-                    </table>
-                </div>
-            </mat-card-content>
-        </mat-card>
-    </div>
-    } @else {
-    <!-- Skeleton Loading State -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 animate-pulse">
-        <!-- 3 Header Cards -->
-        <div class="bg-gray-800 rounded-lg p-4 h-28">
-            <div class="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
-            <div class="h-8 bg-gray-700 rounded w-3/4"></div>
-        </div>
-        <div class="bg-gray-800 rounded-lg p-4 h-28">
-            <div class="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
-            <div class="h-8 bg-gray-700 rounded w-3/4"></div>
-        </div>
-        <div class="bg-gray-800 rounded-lg p-4 h-28">
-            <div class="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
-            <div class="h-8 bg-gray-700 rounded w-full"></div>
-        </div>
-    </div>
-
-    <!-- Table Skeleton -->
-    <div class="bg-gray-800 rounded-lg p-6 animate-pulse">
-        <div class="h-6 bg-gray-700 rounded w-1/4 mb-6"></div>
-        <div class="space-y-4">
-            <!-- Header constant -->
-            <div class="flex justify-between border-b border-gray-700 pb-2">
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+    @if (isLoading) {
+    <!-- ── SKELETON ───────────────────────────────────────────── -->
+    <div class="skeleton-wrap">
+        <div class="skeleton-hero">
+            <div class="skel-card">
+                <div class="skel-line w40"></div>
+                <div class="skel-line w70 tall"></div>
             </div>
-            <!-- Rows -->
-            @for (item of [1,2,3,4,5]; track $index) {
-            <div class="flex justify-between py-2">
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
-                <div class="h-4 bg-gray-700 rounded w-1/6"></div>
+            <div class="skel-card glow">
+                <div class="skel-line w50"></div>
+                <div class="skel-line w80 tall"></div>
+                <div class="skel-line w30"></div>
+            </div>
+            <div class="skel-card">
+                <div class="skel-line w40"></div>
+                <div class="skel-line w60 tall"></div>
+            </div>
+        </div>
+        <div class="skel-table">
+            <div class="skel-table-header">
+                @for (col of [1,2,3,4,5,6,7]; track $index) {
+                <div class="skel-line w80"></div>
+                }
+            </div>
+            @for (row of [1,2,3,4,5,6]; track $index) {
+            <div class="skel-row">
+                <div class="skel-coin">
+                    <div class="skel-circle"></div>
+                    <div>
+                        <div class="skel-line w60"></div>
+                        <div class="skel-line w40 sm"></div>
+                    </div>
+                </div>
+                @for (col of [1,2,3,4,5,6]; track $index) {
+                <div class="skel-line w70"></div>
+                }
             </div>
             }
         </div>
     </div>
     }
-</div>
+
+    @if (!isLoading) {
+
+    <!-- ── HERO STATS ─────────────────────────────────────────── -->
+    <div class="hero-stats">
+
+        <!-- Total Portfolio Value -->
+        <div class="hero-card value-card">
+            <div class="hero-label">
+                <span class="hero-dot dot-blue"></span>
+                Portfolio Value
+            </div>
+            <div class="hero-amount">{{ totalValue | currency:'USD':'symbol':'1.2-2' }}</div>
+            <div class="hero-sub">Cost Basis: {{ totalCost | currency:'USD':'symbol':'1.2-2' }}</div>
+        </div>
+
+        <!-- Open P/L — THE STAR ★ -->
+        <div class="hero-card openpl-card" [class.pl-pos]="totalUnrealizedPL >= 0"
+            [class.pl-neg]="totalUnrealizedPL < 0">
+            <div class="hero-label">
+                <span class="hero-dot" [class.dot-green]="totalUnrealizedPL >= 0"
+                    [class.dot-red]="totalUnrealizedPL < 0"></span>
+                Open P/L <span class="label-tag">UNREALIZED</span>
+            </div>
+            <div class="hero-amount openpl-amount" [class.positive]="totalUnrealizedPL >= 0"
+                [class.negative]="totalUnrealizedPL < 0">
+                {{ totalUnrealizedPL >= 0 ? '+' : '' }}{{ totalUnrealizedPL | currency:'USD':'symbol':'1.2-2' }}
+            </div>
+            <div class="hero-badge" [class.badge-green]="totalUnrealizedPL >= 0"
+                [class.badge-red]="totalUnrealizedPL < 0">
+                <mat-icon class="badge-icon">{{ totalUnrealizedPL >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
+                {{ totalPLPercentage >= 0 ? '+' : '' }}{{ totalPLPercentage | number:'1.2-2' }}% all time
+            </div>
+        </div>
+
+        <!-- Realized P/L -->
+        <div class="hero-card realized-card">
+            <div class="hero-label">
+                <span class="hero-dot dot-purple"></span>
+                Realized P/L <span class="label-tag tag-purple">LOCKED IN</span>
+            </div>
+            <div class="hero-amount" [class.positive]="totalRealizedPL >= 0" [class.negative]="totalRealizedPL < 0">
+                {{ totalRealizedPL >= 0 ? '+' : '' }}{{ totalRealizedPL | currency:'USD':'symbol':'1.2-2' }}
+            </div>
+            <div class="hero-sub">
+                Total P/L: <span [class.positive]="totalPL >= 0" [class.negative]="totalPL < 0">
+                    {{ totalPL >= 0 ? '+' : '' }}{{ totalPL | currency:'USD':'symbol':'1.2-2' }}
+                </span>
+            </div>
+        </div>
+
+    </div><!-- /hero-stats -->
+
+    <!-- ── ADD TRANSACTION ────────────────────────────────────── -->
+    <div class="toolbar">
+        <p class="holdings-title">Holdings <span class="holdings-count">{{ dataSource.length }}</span></p>
+        <button class="add-btn" (click)="openNewTransaction()">
+            <mat-icon>add</mat-icon>
+            New Transaction
+        </button>
+    </div>
+
+    <!-- ── HOLDINGS TABLE ─────────────────────────────────────── -->
+    <div class="table-wrap">
+        <table class="holdings-table">
+            <thead>
+                <tr>
+                    <th class="col-asset">Asset</th>
+                    <th class="col-num">Price</th>
+                    <th class="col-num">Holdings</th>
+                    <th class="col-num">Avg Cost</th>
+                    <th class="col-num col-openpl">Open P/L</th>
+                    <th class="col-num">Realized P/L</th>
+                    <th class="col-alloc">Allocation</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (row of dataSource; track row.assetId) {
+                <tr class="holdings-row">
+
+                    <!-- Asset -->
+                    <td class="col-asset">
+                        <div class="asset-cell">
+                            <div class="asset-icon-wrap">
+                                @if (!row.imageError) {
+                                <img class="asset-icon" [src]="row.image" [alt]="row.symbol"
+                                    (error)="onImageError(row)" />
+                                } @else {
+                                <div class="asset-icon-fallback">{{ getInitials(row.symbol) }}</div>
+                                }
+                            </div>
+                            <div class="asset-info">
+                                <span class="asset-symbol">{{ row.symbol }}</span>
+                                <span class="asset-name">{{ row.name }}</span>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Price -->
+                    <td class="col-num">
+                        <span class="cell-primary">{{ row.price | currency:'USD':'symbol':'1.2-6' }}</span>
+                    </td>
+
+                    <!-- Holdings -->
+                    <td class="col-num">
+                        <span class="cell-primary">{{ row.holdingsPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+                        <span class="cell-secondary">{{ row.holdingsAmount | number:'1.4-8' }} {{ row.symbol }}</span>
+                    </td>
+
+                    <!-- Avg Cost -->
+                    <td class="col-num">
+                        <span class="cell-primary">{{ row.avgBuyPrice | currency:'USD':'symbol':'1.2-6' }}</span>
+                    </td>
+
+                    <!-- Open P/L — highlighted column -->
+                    <td class="col-num col-openpl">
+                        <div class="pl-cell" [class.positive]="row.unrealizedPL >= 0"
+                            [class.negative]="row.unrealizedPL < 0">
+                            <span class="pl-amount">
+                                {{ row.unrealizedPL >= 0 ? '+' : '' }}{{ row.unrealizedPL |
+                                currency:'USD':'symbol':'1.2-2' }}
+                            </span>
+                            <span class="pl-pct">
+                                <mat-icon class="pl-icon">{{ row.unrealizedPL >= 0 ? 'arrow_drop_up' : 'arrow_drop_down'
+                                    }}</mat-icon>
+                                {{ row.yieldPercentage | number:'1.2-2' }}%
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Realized P/L -->
+                    <td class="col-num">
+                        <div class="pl-cell" [class.positive]="row.realizedPL >= 0"
+                            [class.negative]="row.realizedPL < 0">
+                            <span class="pl-amount">
+                                {{ row.realizedPL >= 0 ? '+' : '' }}{{ row.realizedPL | currency:'USD':'symbol':'1.2-2'
+                                }}
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Allocation -->
+                    <td class="col-alloc">
+                        <div class="alloc-cell">
+                            <div class="alloc-bar-wrap">
+                                <div class="alloc-bar-fill" [style.width.%]="row.allocation"
+                                    [class.fill-dominant]="row.allocation >= 40"
+                                    [class.fill-medium]="row.allocation >= 15 && row.allocation < 40"></div>
+                            </div>
+                            <span class="alloc-label">{{ row.allocation | number:'1.1-1' }}%</span>
+                        </div>
+                    </td>
+
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <mat-icon>account_balance_wallet</mat-icon>
+                        <p>No holdings found. Add your first transaction!</p>
+                        <button class="add-btn" (click)="openNewTransaction()">
+                            <mat-icon>add</mat-icon> New Transaction
+                        </button>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div><!-- /table-wrap -->
+
+    } <!-- /!isLoading -->
+
+</div><!-- /dashboard -->
