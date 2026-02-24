@@ -14,7 +14,6 @@ interface DashboardRow {
     name: string;
     symbol: string;
     image: string;
-    imageError: boolean;
     price: number;
     holdingsPrice: number;
     holdingsAmount: number;
@@ -70,7 +69,7 @@ export class DashboardComponent implements OnInit {
                                 assetId: h.assetId,
                                 name: this.formatName(h.assetId),
                                 symbol: h.assetId ? h.assetId.toUpperCase() : '???',
-                                image: this.getAssetImageUrl(h.assetId),
+                                image: h.imageUrl ?? '',
                                 imageError: false,
                                 price: h.currentPriceUsd,
                                 holdingsPrice: h.currentValueUsd,
@@ -99,18 +98,6 @@ export class DashboardComponent implements OnInit {
                     console.error('Error loading dashboard data:', err);
                 }
             });
-    }
-
-    // CoinGecko's standard coin image endpoint, keyed by coin ID
-    getAssetImageUrl(assetId: string): string {
-        if (!assetId) return '';
-        return `https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png`.replace(
-            'bitcoin', assetId.toLowerCase()
-        );
-    }
-
-    onImageError(row: DashboardRow): void {
-        row.imageError = true;
     }
 
     formatName(assetId: string): string {

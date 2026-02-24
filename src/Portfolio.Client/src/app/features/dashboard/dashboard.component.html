@@ -125,12 +125,7 @@
                     <td class="col-asset">
                         <div class="asset-cell">
                             <div class="asset-icon-wrap">
-                                @if (!row.imageError) {
-                                <img class="asset-icon" [src]="row.image" [alt]="row.symbol"
-                                    (error)="onImageError(row)" />
-                                } @else {
                                 <div class="asset-icon-fallback">{{ getInitials(row.symbol) }}</div>
-                                }
                             </div>
                             <div class="asset-info">
                                 <span class="asset-symbol">{{ row.symbol }}</span>

@@ -1,5 +1,6 @@
 export interface EnrichedAssetHolding {
     assetId: string;
+    imageUrl?: string;
     quantity: number;
     currentPriceUsd: number;
     currentValueUsd: number;
