@@ -12,7 +12,8 @@ public class PortfolioService(
     IInventoryCalculator inventoryCalculator,
     IExchangeRateProvider exchangeRateProvider,
     IAssetPriceService assetPriceService,
-    IPortfolioMetricsCalculator portfolioMetricsCalculator) : IPortfolioService
+    IPortfolioMetricsCalculator portfolioMetricsCalculator,
+    IAssetMetadataProvider assetMetadataProvider) : IPortfolioService
 {
     public async Task<PortfolioMetrics> GetPortfolioMetricsAsync()
     {
@@ -30,6 +31,16 @@ public class PortfolioService(
         var metrics = portfolioMetricsCalculator.CalculateMetrics(
             [.. report.Holdings], 
             pricesUsd);
+
+        // 4. Enrich holdings with image URLs (best-effort, never fails the request)
+        var imageUrls = await assetMetadataProvider.GetAssetImageUrlsAsync(assetIds);
+        foreach (var holding in metrics.Holdings)
+        {
+            if (imageUrls.TryGetValue(holding.AssetId, out var url))
+            {
+                holding.ImageUrl = url;
+            }
+        }
         
         return metrics;
     }
