@@ -1,15 +1,16 @@
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
+using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Domain.Services;
 
-public class AssetPriceService(
-    ICryptoPriceProvider cryptoPriceProvider,
-    IExchangeRateProvider exchangeRateProvider) : IAssetPriceService
+public class AssetMarketDataService(
+    ICryptoMarketDataProvider cryptoMarketDataProvider,
+    IExchangeRateProvider exchangeRateProvider) : IAssetMarketDataService
 {
-    public async Task<Dictionary<string, decimal>> GetCurrentPricesAsync(IEnumerable<string> assetIds, FiatCurrency baseCurrency)
+    public async Task<Dictionary<string, AssetMarketData>> GetMarketDataAsync(IEnumerable<string> assetIds, FiatCurrency baseCurrency)
     {
-        Dictionary<string, decimal> prices = [];
+        Dictionary<string, AssetMarketData> marketData = [];
         List<string> cryptoIds = [];
         List<string> fiatIds = [];
 
@@ -26,27 +27,27 @@ public class AssetPriceService(
             }
         }
 
-        // 2. Resolve Crypto Prices
+        // 2. Resolve Crypto Market Data (Price + Image)
         if (cryptoIds.Count > 0)
         {
-            var cryptoPrices = await cryptoPriceProvider.GetCurrentCryptoPricesAsync(cryptoIds, baseCurrency);
-            foreach (var kvp in cryptoPrices)
+            var cryptoData = await cryptoMarketDataProvider.GetCryptoMarketDataAsync(cryptoIds, baseCurrency);
+            foreach (var kvp in cryptoData)
             {
-                prices[kvp.Key] = kvp.Value;
+                marketData[kvp.Key] = kvp.Value;
             }
         }
 
-        // 3. Resolve Fiat Prices
+        // 3. Resolve Fiat Prices (Images are generally null or handled locally later)
         if (fiatIds.Count > 0)
         {
             foreach (var fiatId in fiatIds)
             {
                 var price = await GetFiatPriceAsync(fiatId, baseCurrency);
-                prices[fiatId] = price;
+                marketData[fiatId] = new AssetMarketData(price);
             }
         }
 
-        return prices;
+        return marketData;
     }
 
     private async Task<decimal> GetFiatPriceAsync(string fiatAssetId, FiatCurrency baseCurrency)

@@ -13,7 +13,7 @@ public class PortfolioServiceTests
 {
     private readonly ITransactionRepository _mockRepo;
     private readonly IExchangeRateProvider _mockRates;
-    private readonly IAssetPriceService _mockPrices;
+    private readonly IAssetMarketDataService _mockMarketData;
     private readonly IPortfolioMetricsCalculator _mockMetrics;
     private readonly InventoryCalculator _inventoryCalculator;
     private readonly PortfolioService _service;
@@ -22,7 +22,7 @@ public class PortfolioServiceTests
     {
         _mockRepo = Substitute.For<ITransactionRepository>();
         _mockRates = Substitute.For<IExchangeRateProvider>();
-        _mockPrices = Substitute.For<IAssetPriceService>();
+        _mockMarketData = Substitute.For<IAssetMarketDataService>();
         _mockMetrics = Substitute.For<IPortfolioMetricsCalculator>();
         _inventoryCalculator = new InventoryCalculator();
 
@@ -30,7 +30,7 @@ public class PortfolioServiceTests
             _mockRepo,
             _inventoryCalculator,
             _mockRates,
-            _mockPrices,
+            _mockMarketData,
             _mockMetrics
         );
     }
@@ -84,8 +84,8 @@ public class PortfolioServiceTests
         Transaction tx = new(DateTime.UtcNow, TransactionTypeEnum.Swap, "USD", "BTC", 10000, 1, 1, null, 0, null, null, null, null, null);
         _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
         
-        _mockPrices.GetCurrentPricesAsync(Arg.Any<List<string>>(), FiatCurrency.USD)
-            .Returns(Task.FromResult(new Dictionary<string, decimal> { { "BTC", 30000m } }));
+        _mockMarketData.GetMarketDataAsync(Arg.Any<List<string>>(), FiatCurrency.USD)
+            .Returns(Task.FromResult(new Dictionary<string, AssetMarketData> { { "BTC", new AssetMarketData(30000m) } }));
             
         _mockMetrics.CalculateMetrics(Arg.Any<List<AssetHolding>>(), Arg.Any<Dictionary<string, decimal>>())
             .Returns(new PortfolioMetrics());

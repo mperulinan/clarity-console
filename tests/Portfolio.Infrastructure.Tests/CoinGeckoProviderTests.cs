@@ -9,7 +9,6 @@ namespace Portfolio.Infrastructure.Tests;
 
 public class CoinGeckoProviderTests
 {
-    // Simple fake Handler to avoid NSubstitute complexity with protected methods
     public class FakeHttpMessageHandler : HttpMessageHandler
     {
         public Func<HttpRequestMessage, HttpResponseMessage> Check { get; set; } = _ => new HttpResponseMessage(HttpStatusCode.OK);
@@ -29,75 +28,13 @@ public class CoinGeckoProviderTests
             })
             .Build();
 
-    // ── GetCurrentCryptoPricesAsync ──────────────────────────────────────────
-
     [Fact]
-    public async Task GetCurrentCryptoPricesAsync_ShouldParseApiResponseCorrectly()
-    {
-        FakeHttpMessageHandler fakeHandler = new()
-        {
-            Check = req =>
-            {
-                var json = "{\"bitcoin\":{\"usd\":50000},\"ethereum\":{\"usd\":3000}}";
-                return new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent(json)
-                };
-            }
-        };
-
-        HttpClient httpClient = new(fakeHandler);
-        CoinGeckoProvider provider = new(httpClient, BuildConfig());
-
-        var prices = await provider.GetCurrentCryptoPricesAsync(["bitcoin", "ethereum"], FiatCurrency.USD);
-
-        Assert.Equal(50000m, prices["bitcoin"]);
-        Assert.Equal(3000m, prices["ethereum"]);
-    }
-
-    [Fact]
-    public async Task GetCurrentCryptoPricesAsync_ShouldReturnEmpty_WhenApiFails()
-    {
-        FakeHttpMessageHandler fakeHandler = new()
-        {
-            Check = req => new HttpResponseMessage(HttpStatusCode.BadRequest)
-        };
-
-        HttpClient httpClient = new(fakeHandler);
-        CoinGeckoProvider provider = new(httpClient, BuildConfig());
-
-        var prices = await provider.GetCurrentCryptoPricesAsync(["bitcoin"], FiatCurrency.USD);
-
-        Assert.Empty(prices);
-    }
-
-    [Fact]
-    public async Task GetCurrentCryptoPricesAsync_ShouldIgnoreFiatCurrencies()
-    {
-        bool apiWasCalled = false;
-        FakeHttpMessageHandler fakeHandler = new()
-        {
-            Check = req => { apiWasCalled = true; return new HttpResponseMessage(HttpStatusCode.OK); }
-        };
-
-        HttpClient httpClient = new(fakeHandler);
-        CoinGeckoProvider provider = new(httpClient, BuildConfig());
-
-        var prices = await provider.GetCurrentCryptoPricesAsync(["usd", "eur"], FiatCurrency.USD);
-
-        Assert.False(apiWasCalled, "API should not be called for fiat-only asset lists.");
-        Assert.Empty(prices);
-    }
-
-    // ── GetAssetImageUrlsAsync ───────────────────────────────────────────────
-
-    [Fact]
-    public async Task GetAssetImageUrlsAsync_ShouldReturnImageUrls_WhenApiSucceeds()
+    public async Task GetCryptoMarketDataAsync_ShouldParsePriceAndImageCorrectly()
     {
         const string marketsJson = """
             [
-              { "id": "bitcoin",  "image": "https://coin-images.coingecko.com/coins/images/1/large/bitcoin.png" },
-              { "id": "ethereum", "image": "https://coin-images.coingecko.com/coins/images/279/large/ethereum.png" }
+              { "id": "bitcoin",  "current_price": 70000, "image": "https://bitcoin.png" },
+              { "id": "ethereum", "current_price": 3000, "image": "https://ethereum.png" }
             ]
             """;
 
@@ -112,14 +49,18 @@ public class CoinGeckoProviderTests
         HttpClient httpClient = new(fakeHandler);
         CoinGeckoProvider provider = new(httpClient, BuildConfig());
 
-        var images = await provider.GetAssetImageUrlsAsync(["bitcoin", "ethereum"]);
+        // Domain layer guarantees we only pass cryptos here
+        var data = await provider.GetCryptoMarketDataAsync(["bitcoin", "ethereum"], FiatCurrency.USD);
 
-        Assert.Equal("https://coin-images.coingecko.com/coins/images/1/large/bitcoin.png", images["bitcoin"]);
-        Assert.Equal("https://coin-images.coingecko.com/coins/images/279/large/ethereum.png", images["ethereum"]);
+        Assert.Equal(70000m, data["bitcoin"].Price);
+        Assert.Equal("https://bitcoin.png", data["bitcoin"].ImageUrl);
+        
+        Assert.Equal(3000m, data["ethereum"].Price);
+        Assert.Equal("https://ethereum.png", data["ethereum"].ImageUrl);
     }
 
     [Fact]
-    public async Task GetAssetImageUrlsAsync_ShouldReturnEmpty_WhenApiFails()
+    public async Task GetCryptoMarketDataAsync_ShouldReturnEmpty_WhenApiFails()
     {
         FakeHttpMessageHandler fakeHandler = new()
         {
@@ -129,26 +70,8 @@ public class CoinGeckoProviderTests
         HttpClient httpClient = new(fakeHandler);
         CoinGeckoProvider provider = new(httpClient, BuildConfig());
 
-        var images = await provider.GetAssetImageUrlsAsync(["bitcoin"]);
+        var data = await provider.GetCryptoMarketDataAsync(["bitcoin"], FiatCurrency.USD);
 
-        Assert.Empty(images);
-    }
-
-    [Fact]
-    public async Task GetAssetImageUrlsAsync_ShouldIgnoreFiatCurrencies()
-    {
-        bool apiWasCalled = false;
-        FakeHttpMessageHandler fakeHandler = new()
-        {
-            Check = req => { apiWasCalled = true; return new HttpResponseMessage(HttpStatusCode.OK); }
-        };
-
-        HttpClient httpClient = new(fakeHandler);
-        CoinGeckoProvider provider = new(httpClient, BuildConfig());
-
-        var images = await provider.GetAssetImageUrlsAsync(["usd", "eur"]);
-
-        Assert.False(apiWasCalled, "API should not be called for fiat-only asset lists.");
-        Assert.Empty(images);
+        Assert.Empty(data);
     }
 }

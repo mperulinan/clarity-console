@@ -31,9 +31,8 @@ builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IInventoryCalculator, InventoryCalculator>();
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddScoped<IExchangeRateProvider, FrankfurterExchangeRateProvider>();
-builder.Services.AddScoped<ICryptoPriceProvider, CoinGeckoProvider>();
-builder.Services.AddScoped<IAssetMetadataProvider, CoinGeckoProvider>();
-builder.Services.AddScoped<IAssetPriceService, AssetPriceService>();
+builder.Services.AddScoped<ICryptoMarketDataProvider, CoinGeckoProvider>();
+builder.Services.AddScoped<IAssetMarketDataService, AssetMarketDataService>();
 builder.Services.AddScoped<IPortfolioMetricsCalculator, PortfolioMetricsCalculator>();
 builder.Services.AddHttpClient();
 

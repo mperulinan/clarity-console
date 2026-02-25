@@ -70,7 +70,6 @@ export class DashboardComponent implements OnInit {
                                 name: this.formatName(h.assetId),
                                 symbol: h.assetId ? h.assetId.toUpperCase() : '???',
                                 image: h.imageUrl ?? '',
-                                imageError: false,
                                 price: h.currentPriceUsd,
                                 holdingsPrice: h.currentValueUsd,
                                 holdingsAmount: h.quantity,
@@ -107,10 +106,6 @@ export class DashboardComponent implements OnInit {
 
     getInitials(symbol: string): string {
         return (symbol ?? '??').slice(0, 2).toUpperCase();
-    }
-
-    isPositive(value: number): boolean {
-        return value >= 0;
     }
 
     openNewTransaction() {

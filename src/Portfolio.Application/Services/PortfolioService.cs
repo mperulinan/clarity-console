@@ -11,9 +11,8 @@ public class PortfolioService(
     ITransactionRepository transactionRepository, 
     IInventoryCalculator inventoryCalculator,
     IExchangeRateProvider exchangeRateProvider,
-    IAssetPriceService assetPriceService,
-    IPortfolioMetricsCalculator portfolioMetricsCalculator,
-    IAssetMetadataProvider assetMetadataProvider) : IPortfolioService
+    IAssetMarketDataService assetMarketDataService,
+    IPortfolioMetricsCalculator portfolioMetricsCalculator) : IPortfolioService
 {
     public async Task<PortfolioMetrics> GetPortfolioMetricsAsync()
     {
@@ -23,22 +22,24 @@ public class PortfolioService(
             transactions, 
             FiatCurrency.USD); // Explicitly USD
         
-        // 2. Get current USD prices
+        // 2. Get current USD market data
         var assetIds = report.Holdings.Select(h => h.AssetId).Distinct().ToList();
-        var pricesUsd = await assetPriceService.GetCurrentPricesAsync(assetIds, FiatCurrency.USD);
+        var marketDataUsd = await assetMarketDataService.GetMarketDataAsync(assetIds, FiatCurrency.USD);
         
+        // Extract just prices for the metrics calculator
+        var pricesUsd = marketDataUsd.ToDictionary(k => k.Key, v => v.Value.Price);
+
         // 3. Calculate metrics
         var metrics = portfolioMetricsCalculator.CalculateMetrics(
             [.. report.Holdings], 
             pricesUsd);
 
-        // 4. Enrich holdings with image URLs (best-effort, never fails the request)
-        var imageUrls = await assetMetadataProvider.GetAssetImageUrlsAsync(assetIds);
+        // 4. Enrich holdings with image URLs (from the same market data)
         foreach (var holding in metrics.Holdings)
         {
-            if (imageUrls.TryGetValue(holding.AssetId, out var url))
+            if (marketDataUsd.TryGetValue(holding.AssetId, out var data) && data.ImageUrl != null)
             {
-                holding.ImageUrl = url;
+                holding.ImageUrl = data.ImageUrl;
             }
         }
         
