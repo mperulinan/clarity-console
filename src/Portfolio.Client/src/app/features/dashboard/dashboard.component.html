@@ -197,11 +197,10 @@
                 } @empty {
                 <tr>
                     <td colspan="7" class="empty-state">
-                        <mat-icon>account_balance_wallet</mat-icon>
-                        <p>No holdings found. Add your first transaction!</p>
-                        <button class="add-btn" (click)="openNewTransaction()">
-                            <mat-icon>add</mat-icon> New Transaction
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <mat-icon>account_balance_wallet</mat-icon>
+                            <p>No holdings found. Add your first transaction!</p>
+                        </div>
                     </td>
                 </tr>
                 }
