@@ -1,9 +1,10 @@
-using Portfolio.Application.Interfaces;
 using Portfolio.Application.DTOs;
+using Portfolio.Application.Interfaces;
 using Portfolio.Domain.Entities;
-using Portfolio.Domain.Interfaces;
-using Portfolio.Domain.ValueObjects;
 using Portfolio.Domain.Enums;
+using Portfolio.Domain.Interfaces;
+using Portfolio.Domain.Services;
+using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Application.Services;
 
@@ -16,36 +17,44 @@ public class PortfolioService(
 {
     public async Task<PortfolioMetrics> GetPortfolioMetricsAsync()
     {
-        // 1. Calculate inventory in USD (explicit)
+        // 1. Calculate inventory in USD (explicit).
         var transactions = await transactionRepository.GetAllAsync();
-        var report = inventoryCalculator.CalculateInventory(
-            transactions, 
-            FiatCurrency.USD); // Explicitly USD
-        
-        // 2. Get current USD market data
-        var assetIds = report.Holdings.Select(h => h.AssetId).Distinct().ToList();
-        var marketDataUsd = await assetMarketDataService.GetMarketDataAsync(assetIds, FiatCurrency.USD);
-        
-        // Extract just prices for the metrics calculator
-        var pricesUsd = marketDataUsd.ToDictionary(k => k.Key, v => v.Value.Price);
-
-        // 3. Calculate metrics
-        var metrics = portfolioMetricsCalculator.CalculateMetrics(
-            [.. report.Holdings], 
-            pricesUsd);
-
-        // 4. Enrich holdings with image URLs (from the same market data)
-        foreach (var holding in metrics.Holdings)
+        if (!transactions.Any())
         {
-            if (marketDataUsd.TryGetValue(holding.AssetId, out var data) && data.ImageUrl != null)
+            return new();
+        }
+
+        var report = inventoryCalculator.CalculateInventory(transactions, FiatCurrency.USD);
+
+        // 2. Get current USD market data.
+        var assetIds = report.Holdings.Select(h => h.Id).Distinct().ToList();
+        var marketData = await assetMarketDataService.GetMarketDataAsync(assetIds, FiatCurrency.USD);
+
+        // Extract just prices for the metrics calculator.
+        var priceMap = marketData.ToDictionary(x => x.Key, x => x.Value.Price);
+
+        // 3. Calculate metrics.
+        var metrics = portfolioMetricsCalculator.CalculateMetrics([.. report.Holdings], priceMap);
+
+        // 4. Enrich holdings with image URLs (from the same market data).
+        EnrichHoldingsMetadata(metrics.Holdings, marketData);
+
+        return metrics;
+    }
+
+    private static void EnrichHoldingsMetadata(IEnumerable<EnrichedAssetHolding> holdings, Dictionary<string, AssetMarketData> marketData)
+    {
+        foreach (var holding in holdings)
+        {
+            if (marketData.TryGetValue(holding.Id, out AssetMarketData? data))
             {
+                holding.Symbol = data.Symbol;
+                holding.Name = data.Name;
                 holding.ImageUrl = data.ImageUrl;
             }
         }
-        
-        return metrics;
     }
-    
+
     // Kept for backward compatibility / Tax Report, but explicitly EUR
     public async Task<PortfolioReport> GetPortfolioReportAsync() 
     {

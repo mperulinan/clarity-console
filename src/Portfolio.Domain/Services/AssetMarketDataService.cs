@@ -27,7 +27,7 @@ public class AssetMarketDataService(
             }
         }
 
-        // 2. Resolve Crypto Market Data (Price + Image)
+        // 2. Resolve Crypto Market Data
         if (cryptoIds.Count > 0)
         {
             var cryptoData = await cryptoMarketDataProvider.GetCryptoMarketDataAsync(cryptoIds, baseCurrency);
@@ -43,7 +43,7 @@ public class AssetMarketDataService(
             foreach (var fiatId in fiatIds)
             {
                 var price = await GetFiatPriceAsync(fiatId, baseCurrency);
-                marketData[fiatId] = new AssetMarketData(price);
+                marketData[fiatId] = new AssetMarketData(fiatId, fiatId, price);
             }
         }
 

@@ -93,7 +93,7 @@ public class PortfolioServiceTests
         await _service.GetPortfolioMetricsAsync();
 
         _mockMetrics.Received(1).CalculateMetrics(
-            Arg.Is<List<AssetHolding>>(h => h.Count == 1 && h.First().AssetId == "BTC"), 
+            Arg.Is<List<AssetHolding>>(h => h.Count == 1 && h.First().Id == "BTC"), 
             Arg.Any<Dictionary<string, decimal>>());
     }
 }

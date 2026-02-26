@@ -1,13 +1,9 @@
 namespace Portfolio.Domain.ValueObjects;
 
-public class AssetMarketData
+public class AssetMarketData(string symbol, string name, decimal price, string? imageUrl = null)
 {
-    public decimal Price { get; }
-    public string? ImageUrl { get; }
-
-    public AssetMarketData(decimal price, string? imageUrl = null)
-    {
-        Price = price;
-        ImageUrl = imageUrl;
-    }
+    public string Symbol { get; } = symbol;
+    public string Name { get; } = name;
+    public decimal Price { get; } = price;
+    public string? ImageUrl { get; } = imageUrl;
 }

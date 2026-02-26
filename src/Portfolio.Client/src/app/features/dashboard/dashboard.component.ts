@@ -64,11 +64,12 @@ export class DashboardComponent implements OnInit {
             .subscribe({
                 next: (metrics: PortfolioMetrics) => {
                     if (metrics && metrics.holdings) {
+                        console.log(metrics);
                         this.dataSource = metrics.holdings
                             .map(h => ({
-                                assetId: h.assetId,
-                                name: this.formatName(h.assetId),
-                                symbol: h.assetId ? h.assetId.toUpperCase() : '???',
+                                assetId: h.id,
+                                name: h.name,
+                                symbol: h.symbol.toUpperCase(),
                                 image: h.imageUrl ?? '',
                                 price: h.currentPrice,
                                 holdingsPrice: h.currentValue,
@@ -97,11 +98,6 @@ export class DashboardComponent implements OnInit {
                     console.error('Error loading dashboard data:', err);
                 }
             });
-    }
-
-    formatName(assetId: string): string {
-        if (!assetId) return 'Unknown';
-        return assetId.charAt(0).toUpperCase() + assetId.slice(1);
     }
 
     getInitials(symbol: string): string {

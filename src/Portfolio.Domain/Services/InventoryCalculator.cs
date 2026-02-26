@@ -120,7 +120,7 @@ public class InventoryCalculator : IInventoryCalculator
 
             holdings.Add(new AssetHolding
             {
-                AssetId = assetId,
+                Id = assetId,
                 Quantity = totalQuantity,
                 AvgCost = avgCost,
                 CostBasisOfSold = costBasisSold,

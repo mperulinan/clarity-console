@@ -44,12 +44,12 @@ public class InventoryCalculatorTests
         Assert.Equal(25000m, sellTx.ProfitLoss);
         
         // Remaining inventory: 0.5 BTC @ $20,000 basis = $10,000 total value
-        AssetHolding holdingBtc = report.Holdings.Single(h => h.AssetId == btc);
+        AssetHolding holdingBtc = report.Holdings.Single(h => h.Id == btc);
         Assert.Equal(0.5m, holdingBtc.Quantity);
         Assert.Equal(20000m, holdingBtc.AvgCost);
 
         // Remaining cash inventory: 30,000 - 10,000 - 20,000 + 45,000 = 45,000.
-        AssetHolding holdingUsd = report.Holdings.Single(h => h.AssetId == usd);
+        AssetHolding holdingUsd = report.Holdings.Single(h => h.Id == usd);
         Assert.Equal(45000m, holdingUsd.Quantity);
     }
 
@@ -224,7 +224,7 @@ public class InventoryCalculatorTests
         // Spent for fee: 0.1.
         // Remaining: 4.9.
         
-        var holding = report.Holdings.Single(h => h.AssetId == eth);
+        var holding = report.Holdings.Single(h => h.Id == eth);
         Assert.Equal(4.9m, holding.Quantity);
     }
     
@@ -244,7 +244,7 @@ public class InventoryCalculatorTests
         };
         
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
-        var holding = report.Holdings.Single(h => h.AssetId == btc);
+        var holding = report.Holdings.Single(h => h.Id == btc);
         
         // Sold 0.5 BTC. Cost basis was 10k * 0.5 = 5k.
         Assert.Equal(5000m, holding.CostBasisOfSold);

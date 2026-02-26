@@ -31,7 +31,7 @@ public class PortfolioMetricsCalculator : IPortfolioMetricsCalculator
     {
         return [.. holdings.Select(h => 
         {
-            decimal currentPrice = pricesUsd.GetValueOrDefault(h.AssetId.ToLower(), 0);
+            decimal currentPrice = pricesUsd.GetValueOrDefault(h.Id.ToLower(), 0);
             decimal currentValue = h.Quantity * currentPrice;
             decimal totalCostBasis = h.Quantity * h.AvgCost;
             decimal openPL = currentValue - totalCostBasis;
@@ -45,7 +45,7 @@ public class PortfolioMetricsCalculator : IPortfolioMetricsCalculator
             
             return new EnrichedAssetHolding
             {
-                AssetId = h.AssetId,
+                Id = h.Id,
                 Quantity = h.Quantity,
                 CurrentPrice = currentPrice,
                 CurrentValue = currentValue,
