@@ -4,12 +4,13 @@ import { Observable } from 'rxjs';
 import { PortfolioMetrics } from '../models/portfolio-metrics';
 import { PortfolioReport } from '../models/portfolio-report';
 import { NewTransactionRequest } from '../models/new-transaction-request';
+import { environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PortfolioService {
-    private apiUrl = 'http://localhost:5284/api';
+    private apiUrl = environment.apiUrl;
 
     constructor(private http: HttpClient) { }
 

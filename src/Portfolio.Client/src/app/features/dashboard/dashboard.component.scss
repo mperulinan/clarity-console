@@ -30,6 +30,36 @@ $purple: #b388ff;
 $blue: #40c4ff;
 $accent: #7c6cfc;
 
+/* ── GLASSMORPHISM ───────────────────────────── */
+.glass {
+    background: rgba(22, 33, 62, 0.7) !important;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ── ANIMATIONS ─────────────────────────────── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-card, .table-wrap, .toolbar {
+    animation: fadeInUp 0.5s ease backwards;
+}
+
+.hero-card:nth-child(1) { animation-delay: 0.1s; }
+.hero-card:nth-child(2) { animation-delay: 0.2s; }
+.hero-card:nth-child(3) { animation-delay: 0.3s; }
+.toolbar { animation-delay: 0.4s; }
+.table-wrap { animation-delay: 0.5s; }
+
 /* ── HERO STATS ─────────────────────────────── */
 .hero-stats {
     display: grid;
@@ -49,7 +79,7 @@ $accent: #7c6cfc;
     border-radius: 16px;
     padding: 24px 28px;
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &::before {
         content: '';
@@ -57,10 +87,13 @@ $accent: #7c6cfc;
         inset: 0;
         border-radius: 16px;
         pointer-events: none;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
     }
 
     &:hover {
-        transform: translateY(-2px);
+        transform: translateY(-4px) scale(1.01);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.15) !important;
     }
 }
 

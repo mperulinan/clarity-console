@@ -1,24 +1,24 @@
 <div class="dashboard">
 
-    @if (isLoading) {
+    @if (isLoading()) {
     <!-- ── SKELETON ───────────────────────────────────────────── -->
     <div class="skeleton-wrap">
         <div class="skeleton-hero">
-            <div class="skel-card">
+            <div class="skel-card glass">
                 <div class="skel-line w40"></div>
                 <div class="skel-line w70 tall"></div>
             </div>
-            <div class="skel-card glow">
+            <div class="skel-card glass glow">
                 <div class="skel-line w50"></div>
                 <div class="skel-line w80 tall"></div>
                 <div class="skel-line w30"></div>
             </div>
-            <div class="skel-card">
+            <div class="skel-card glass">
                 <div class="skel-line w40"></div>
                 <div class="skel-line w60 tall"></div>
             </div>
         </div>
-        <div class="skel-table">
+        <div class="skel-table glass">
             <div class="skel-table-header">
                 @for (col of [1,2,3,4,5,6,7]; track $index) {
                 <div class="skel-line w80"></div>
@@ -42,52 +42,52 @@
     </div>
     }
 
-    @if (!isLoading) {
+    @if (!isLoading()) {
 
     <!-- ── HERO STATS ─────────────────────────────────────────── -->
     <div class="hero-stats">
 
         <!-- Total Portfolio Value -->
-        <div class="hero-card value-card">
+        <div class="hero-card value-card glass">
             <div class="hero-label">
                 <span class="hero-dot dot-blue"></span>
                 Portfolio Value
             </div>
-            <div class="hero-amount">{{ totalValue | currency:'USD':'symbol':'1.2-2' }}</div>
-            <div class="hero-sub">Cost Basis: {{ totalCost | currency:'USD':'symbol':'1.2-2' }}</div>
+            <div class="hero-amount">{{ totalValue() | currency:'USD':'symbol':'1.2-2' }}</div>
+            <div class="hero-sub">Cost Basis: {{ totalCost() | currency:'USD':'symbol':'1.2-2' }}</div>
         </div>
 
         <!-- Open P/L — THE STAR ★ -->
-        <div class="hero-card openpl-card" [class.pl-pos]="totalUnrealizedPL >= 0"
-            [class.pl-neg]="totalUnrealizedPL < 0">
+        <div class="hero-card openpl-card glass" [class.pl-pos]="totalUnrealizedPL() >= 0"
+            [class.pl-neg]="totalUnrealizedPL() < 0">
             <div class="hero-label">
-                <span class="hero-dot" [class.dot-green]="totalUnrealizedPL >= 0"
-                    [class.dot-red]="totalUnrealizedPL < 0"></span>
+                <span class="hero-dot" [class.dot-green]="totalUnrealizedPL() >= 0"
+                    [class.dot-red]="totalUnrealizedPL() < 0"></span>
                 Open P/L <span class="label-tag">UNREALIZED</span>
             </div>
-            <div class="hero-amount openpl-amount" [class.positive]="totalUnrealizedPL >= 0"
-                [class.negative]="totalUnrealizedPL < 0">
-                {{ totalUnrealizedPL >= 0 ? '+' : '' }}{{ totalUnrealizedPL | currency:'USD':'symbol':'1.2-2' }}
+            <div class="hero-amount openpl-amount" [class.positive]="totalUnrealizedPL() >= 0"
+                [class.negative]="totalUnrealizedPL() < 0">
+                {{ totalUnrealizedPL() >= 0 ? '+' : '' }}{{ totalUnrealizedPL() | currency:'USD':'symbol':'1.2-2' }}
             </div>
-            <div class="hero-badge" [class.badge-green]="totalUnrealizedPL >= 0"
-                [class.badge-red]="totalUnrealizedPL < 0">
-                <mat-icon class="badge-icon">{{ totalUnrealizedPL >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
-                {{ totalPLPercentage >= 0 ? '+' : '' }}{{ totalPLPercentage | number:'1.2-2' }}% all time
+            <div class="hero-badge" [class.badge-green]="totalUnrealizedPL() >= 0"
+                [class.badge-red]="totalUnrealizedPL() < 0">
+                <mat-icon class="badge-icon">{{ totalUnrealizedPL() >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
+                {{ totalPLPercentage() >= 0 ? '+' : '' }}{{ totalPLPercentage() | number:'1.2-2' }}% all time
             </div>
         </div>
 
         <!-- Realized P/L -->
-        <div class="hero-card realized-card">
+        <div class="hero-card realized-card glass">
             <div class="hero-label">
                 <span class="hero-dot dot-purple"></span>
                 Realized P/L <span class="label-tag tag-purple">LOCKED IN</span>
             </div>
-            <div class="hero-amount" [class.positive]="totalRealizedPL >= 0" [class.negative]="totalRealizedPL < 0">
-                {{ totalRealizedPL >= 0 ? '+' : '' }}{{ totalRealizedPL | currency:'USD':'symbol':'1.2-2' }}
+            <div class="hero-amount" [class.positive]="totalRealizedPL() >= 0" [class.negative]="totalRealizedPL() < 0">
+                {{ totalRealizedPL() >= 0 ? '+' : '' }}{{ totalRealizedPL() | currency:'USD':'symbol':'1.2-2' }}
             </div>
             <div class="hero-sub">
-                Total P/L: <span [class.positive]="totalPL >= 0" [class.negative]="totalPL < 0">
-                    {{ totalPL >= 0 ? '+' : '' }}{{ totalPL | currency:'USD':'symbol':'1.2-2' }}
+                Total P/L: <span [class.positive]="totalPL() >= 0" [class.negative]="totalPL() < 0">
+                    {{ totalPL() >= 0 ? '+' : '' }}{{ totalPL() | currency:'USD':'symbol':'1.2-2' }}
                 </span>
             </div>
         </div>
@@ -96,7 +96,7 @@
 
     <!-- ── ADD TRANSACTION ────────────────────────────────────── -->
     <div class="toolbar">
-        <p class="holdings-title">Holdings <span class="holdings-count">{{ dataSource.length }}</span></p>
+        <p class="holdings-title">Holdings <span class="holdings-count">{{ dataSource().length }}</span></p>
         <button class="add-btn" (click)="openNewTransaction()">
             <mat-icon>add</mat-icon>
             New Transaction
@@ -104,7 +104,7 @@
     </div>
 
     <!-- ── HOLDINGS TABLE ─────────────────────────────────────── -->
-    <div class="table-wrap">
+    <div class="table-wrap glass">
         <table class="holdings-table">
             <thead>
                 <tr>
@@ -118,7 +118,7 @@
                 </tr>
             </thead>
             <tbody>
-                @for (row of dataSource; track row.assetId) {
+                @for (row of dataSource(); track row.assetId) {
                 <tr class="holdings-row">
 
                     <!-- Asset -->
@@ -151,7 +151,7 @@
 
                     <!-- Avg Cost -->
                     <td class="col-num">
-                        <span class="cell-primary">{{ row.avgBuyPrice | currency:'USD':'symbol':'1.2-6' }}</span>
+                        <span class="cell-primary">{{ row.avgBuyPrice | currency:'USD':'symbol':'1.2-2' }}</span>
                     </td>
 
                     <!-- Open P/L — highlighted column -->
@@ -208,6 +208,6 @@
         </table>
     </div><!-- /table-wrap -->
 
-    } <!-- /!isLoading -->
+    } <!-- /!isLoading() -->
 
 </div><!-- /dashboard -->
