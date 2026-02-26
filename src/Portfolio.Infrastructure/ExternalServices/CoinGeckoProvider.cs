@@ -43,8 +43,8 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
             return dtos.ToDictionary(
                 d => d.Id,
                 d => new AssetMarketData(
-                    d.Symbol ?? d.Id,
-                    d.Name ?? d.Id,
+                    d.Symbol,
+                    d.Name,
                     d.Price ?? 0,
                     d.ImageUrl),
                 StringComparer.OrdinalIgnoreCase);

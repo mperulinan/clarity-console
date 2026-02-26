@@ -13,7 +13,7 @@ interface DashboardRow {
     assetId: string;
     name: string;
     symbol: string;
-    image: string;
+    image?: string;
     price: number;
     holdingsPrice: number;
     holdingsAmount: number;
@@ -64,13 +64,12 @@ export class DashboardComponent implements OnInit {
             .subscribe({
                 next: (metrics: PortfolioMetrics) => {
                     if (metrics && metrics.holdings) {
-                        console.log(metrics);
                         this.dataSource = metrics.holdings
                             .map(h => ({
                                 assetId: h.id,
-                                name: h.name,
-                                symbol: h.symbol.toUpperCase(),
-                                image: h.imageUrl ?? '',
+                                name: h.name == "" ? h.id : h.name,
+                                symbol: h.symbol == "" ? h.id.toUpperCase() : h.symbol.toUpperCase(),
+                                image: h.imageUrl,
                                 price: h.currentPrice,
                                 holdingsPrice: h.currentValue,
                                 holdingsAmount: h.quantity,
