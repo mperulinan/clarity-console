@@ -85,7 +85,7 @@ public class PortfolioServiceTests
         _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
         
         _mockMarketData.GetMarketDataAsync(Arg.Any<List<string>>(), FiatCurrency.USD)
-            .Returns(Task.FromResult(new Dictionary<string, AssetMarketData> { { "BTC", new AssetMarketData(30000m) } }));
+            .Returns(Task.FromResult(new Dictionary<string, AssetMarketData> { { "BTC", new AssetMarketData("BTC", "Bitcoin", 30000m) } }));
             
         _mockMetrics.CalculateMetrics(Arg.Any<List<AssetHolding>>(), Arg.Any<Dictionary<string, decimal>>())
             .Returns(new PortfolioMetrics());

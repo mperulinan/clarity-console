@@ -17,8 +17,9 @@ public partial class PortfolioContext : DbContext
     }
 
     public virtual DbSet<Transaction> Transactions { get; set; }
-
     public virtual DbSet<TransactionType> TransactionTypes { get; set; }
+    public virtual DbSet<Asset> Assets { get; set; }
+    public virtual DbSet<AssetType> AssetTypes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -61,6 +62,31 @@ public partial class PortfolioContext : DbContext
                 .HasPrincipalKey(tt => tt.Code) // The String PK in the lookup table
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Transaction_TransactionType");
+        });
+
+        modelBuilder.Entity<Asset>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("Asset");
+            entity.Property(e => e.Symbol).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.ExternalId).HasMaxLength(200);
+            entity.Property(e => e.AssetTypeCode).HasMaxLength(50);
+
+            entity.HasOne(d => d.AssetType)
+                .WithMany(p => p.Assets)
+                .HasForeignKey(d => d.AssetTypeCode)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AssetType>(entity =>
+        {
+            entity.HasKey(e => e.Value);
+            entity.ToTable("AssetType");
+            entity.Property(e => e.Value).HasColumnName("Code").HasMaxLength(50).ValueGeneratedNever();
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
+
+            entity.HasData(AssetType.List);
         });
 
         modelBuilder.Entity<TransactionType>(entity =>
