@@ -28,11 +28,6 @@ namespace Portfolio.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AssetTypeCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("ExternalId")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -47,45 +42,15 @@ namespace Portfolio.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssetTypeCode");
-
-                    b.ToTable("Asset", (string)null);
-                });
-
-            modelBuilder.Entity("Portfolio.Domain.Entities.AssetType", b =>
-                {
-                    b.Property<string>("Value")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Code");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("AssetType");
 
-                    b.HasKey("Value");
+                    b.HasKey("Id");
 
-                    b.ToTable("AssetType", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Value = "CRYPTO",
-                            Name = "Crypto"
-                        },
-                        new
-                        {
-                            Value = "FIAT",
-                            Name = "Fiat"
-                        },
-                        new
-                        {
-                            Value = "STOCK",
-                            Name = "Stock"
-                        });
+                    b.ToTable("Asset", (string)null);
                 });
 
             modelBuilder.Entity("Portfolio.Domain.Entities.Transaction", b =>
@@ -138,7 +103,7 @@ namespace Portfolio.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("TransactionTypeCode")
+                    b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
@@ -150,69 +115,7 @@ namespace Portfolio.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("PK__YourTabl__3214EC0704F226F8");
 
-                    b.HasIndex("TransactionTypeCode");
-
                     b.ToTable("Transaction", (string)null);
-                });
-
-            modelBuilder.Entity("Portfolio.Domain.Entities.TransactionType", b =>
-                {
-                    b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Code");
-
-                    b.ToTable("TransactionType", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Code = "REWARD",
-                            Name = "Reward"
-                        },
-                        new
-                        {
-                            Code = "SWAP",
-                            Name = "Swap"
-                        },
-                        new
-                        {
-                            Code = "TRANSFER_IN",
-                            Name = "Transfer In"
-                        });
-                });
-
-            modelBuilder.Entity("Portfolio.Domain.Entities.Asset", b =>
-                {
-                    b.HasOne("Portfolio.Domain.Entities.AssetType", "AssetType")
-                        .WithMany("Assets")
-                        .HasForeignKey("AssetTypeCode")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AssetType");
-                });
-
-            modelBuilder.Entity("Portfolio.Domain.Entities.Transaction", b =>
-                {
-                    b.HasOne("Portfolio.Domain.Entities.TransactionType", "TransactionType")
-                        .WithMany()
-                        .HasForeignKey("TransactionTypeCode")
-                        .IsRequired()
-                        .HasConstraintName("FK_Transaction_TransactionType");
-
-                    b.Navigation("TransactionType");
-                });
-
-            modelBuilder.Entity("Portfolio.Domain.Entities.AssetType", b =>
-                {
-                    b.Navigation("Assets");
                 });
 #pragma warning restore 612, 618
         }

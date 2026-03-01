@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
+using Portfolio.Domain.ValueObjects;
 using Portfolio.Infrastructure.Persistence;
 using Portfolio.Infrastructure.Persistence.Repositories;
 using Xunit;
@@ -24,7 +25,7 @@ public class TransactionRepositoryTests
         using (PortfolioContext context = new(_options))
         {
             TransactionRepository repository = new(context);
-            Transaction transaction = new(DateTime.UtcNow, TransactionTypeEnum.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
+            Transaction transaction = new(DateTime.UtcNow, TransactionType.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
 
             await repository.AddAsync(transaction);
         }
@@ -42,7 +43,7 @@ public class TransactionRepositoryTests
     {
         using (PortfolioContext context = new(_options))
         {
-            Transaction tx = new(DateTime.UtcNow, TransactionTypeEnum.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
+            Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
             context.Transactions.Add(tx);
             await context.SaveChangesAsync();
         }
@@ -65,7 +66,7 @@ public class TransactionRepositoryTests
         int id;
         using (PortfolioContext context = new(_options))
         {
-            Transaction tx = new(DateTime.UtcNow, TransactionTypeEnum.Swap, "USD", "ETH", 100, 1, 1, null, 0, null, null, null, null, null);
+            Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, "USD", "ETH", 100, 1, 1, null, 0, null, null, null, null, null);
             context.Transactions.Add(tx);
             await context.SaveChangesAsync();
             id = tx.Id;

@@ -44,7 +44,7 @@ public class InventoryCalculator : IInventoryCalculator
             // --- HANDLING INFLOWS (Swap-in/TransferIn/Reward) ---
             if (tx.AmountReceived > 0 && !string.IsNullOrWhiteSpace(tx.ToAssetId))
             {
-                if (tx.Type == TransactionTypeEnum.Reward)
+                if (tx.Type == TransactionType.Reward)
                 {
                     decimal rewardProfit = (tx.AmountReceived * toAssetPrice) - (tx.Fee * feeAssetPrice);
                     pt.ProfitLoss = rewardProfit;
@@ -70,7 +70,7 @@ public class InventoryCalculator : IInventoryCalculator
                 UpdateTracker(realizedPLTracker, tx.FeeAsset, feePL);
             }
 
-            if (tx.Type == TransactionTypeEnum.Swap && tx.AmountSpent > 0 && !string.IsNullOrWhiteSpace(tx.FromAssetId))
+            if (tx.Type == TransactionType.Swap && tx.AmountSpent > 0 && !string.IsNullOrWhiteSpace(tx.FromAssetId))
             {
                 decimal swapPL = ConsumeInventory(fifoQueue, tx.FromAssetId, tx.AmountSpent, pt, isFee: false, currency, costBasisSoldTracker, lossCandidates);
                 UpdateTracker(realizedPLTracker, tx.FromAssetId, swapPL);

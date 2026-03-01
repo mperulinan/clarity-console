@@ -1,3 +1,5 @@
+using Portfolio.Domain.ValueObjects;
+
 namespace Portfolio.Domain.Entities;
 
 public class Asset
@@ -8,19 +10,17 @@ public class Asset
     
     public string? ExternalId { get; private set; } 
 
-    public string AssetTypeCode { get; private set; } = null!;
-    public AssetType AssetType { get; private set; } = null!;
+    public AssetType Type { get; private set; } = null!;
 
     // Constructor for EF Core
     private Asset() { }
 
-    public Asset(string symbol, string name, string? externalId, AssetType assetType)
+    public Asset(string symbol, string name, string? externalId, AssetType type)
     {
         Id = Guid.NewGuid();
         Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
         Name = name ?? throw new ArgumentNullException(nameof(name));
         ExternalId = externalId;
-        AssetType = assetType ?? throw new ArgumentNullException(nameof(assetType));
-        AssetTypeCode = assetType.Value;
+        Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 }

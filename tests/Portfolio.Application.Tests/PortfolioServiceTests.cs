@@ -41,7 +41,7 @@ public class PortfolioServiceTests
         NewTransactionRequest request = new()
         {
             Date = DateTime.UtcNow,
-            TransactionTypeCode = TransactionTypeEnum.Swap,
+            TransactionTypeCode = TransactionType.Swap,
             FromAssetId = "USD",
             ToAssetId = "BTC",
             AmountSpent = 10000,
@@ -62,7 +62,7 @@ public class PortfolioServiceTests
     public async Task CalculateExchangeRatesAsync_ShouldUpdateRates_ForPastTransactions()
     {
         var pastDate = DateTime.UtcNow.AddDays(-2);
-        Transaction tx = new(pastDate, TransactionTypeEnum.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
+        Transaction tx = new(pastDate, TransactionType.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
         
         // Setup Repo to return this transaction
         _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
@@ -81,7 +81,7 @@ public class PortfolioServiceTests
     [Fact]
     public async Task GetPortfolioMetrics_ShouldOrchestrateFlowCorrectly()
     {
-        Transaction tx = new(DateTime.UtcNow, TransactionTypeEnum.Swap, "USD", "BTC", 10000, 1, 1, null, 0, null, null, null, null, null);
+        Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, "USD", "BTC", 10000, 1, 1, null, 0, null, null, null, null, null);
         _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
         
         _mockMarketData.GetMarketDataAsync(Arg.Any<List<string>>(), FiatCurrency.USD)
