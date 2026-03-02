@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
 using Portfolio.Domain.ValueObjects;
 
@@ -16,7 +17,7 @@ public class PortfolioController(IPortfolioService portfolioService) : Controlle
     }
 
     [HttpGet("tax-report")]
-    public async Task<ActionResult<PortfolioReport>> GetTaxReport()
+    public async Task<ActionResult<PortfolioReportDto>> GetTaxReport()
     {
         var report = await portfolioService.GetPortfolioReportAsync();
         return Ok(report);

@@ -12,6 +12,7 @@ namespace Portfolio.Application.Tests;
 public class PortfolioServiceTests
 {
     private readonly ITransactionRepository _mockRepo;
+    private readonly IAssetRepository _mockAssetRepo;
     private readonly IExchangeRateProvider _mockRates;
     private readonly IAssetMarketDataService _mockMarketData;
     private readonly IPortfolioMetricsCalculator _mockMetrics;
@@ -21,6 +22,7 @@ public class PortfolioServiceTests
     public PortfolioServiceTests()
     {
         _mockRepo = Substitute.For<ITransactionRepository>();
+        _mockAssetRepo = Substitute.For<IAssetRepository>();
         _mockRates = Substitute.For<IExchangeRateProvider>();
         _mockMarketData = Substitute.For<IAssetMarketDataService>();
         _mockMetrics = Substitute.For<IPortfolioMetricsCalculator>();
@@ -35,6 +37,15 @@ public class PortfolioServiceTests
         );
     }
 
+    private static Transaction CreateTx(DateTime date, TransactionType type, string fromAsset, string toAsset, decimal spent, decimal received, decimal fromAssetPriceUsd, decimal? fromAssetPriceEur, decimal fee, string? feeAsset, decimal? feeUsdPrice, decimal? feeEurPrice, decimal? xr, string? notes)
+    {
+        return new Transaction(date, type, Guid.NewGuid(), Guid.NewGuid(), spent, received, fromAssetPriceUsd, fromAssetPriceEur, fee, feeAsset != null ? Guid.NewGuid() : null, feeUsdPrice, feeEurPrice, xr, notes)
+        {
+            FromAsset = new Asset(fromAsset, fromAsset, null, AssetType.Fiat),
+            ToAsset = new Asset(toAsset, toAsset, null, AssetType.Fiat)
+        };
+    }
+
     [Fact]
     public async Task AddTransaction_ShouldAddTransactionToRepository()
     {
@@ -42,8 +53,8 @@ public class PortfolioServiceTests
         {
             Date = DateTime.UtcNow,
             TransactionTypeCode = TransactionType.Swap,
-            FromAssetId = "USD",
-            ToAssetId = "BTC",
+            FromAssetId = Guid.NewGuid(),
+            ToAssetId = Guid.NewGuid(),
             AmountSpent = 10000,
             AmountReceived = 1,
             FromAssetPriceInUsd = 1
@@ -52,8 +63,8 @@ public class PortfolioServiceTests
         await _service.AddTransactionAsync(request);
 
         await _mockRepo.Received(1).AddAsync(Arg.Is<Transaction>(t => 
-            t.FromAssetId == "USD" && 
-            t.ToAssetId == "BTC" &&
+            t.FromAssetId == request.FromAssetId && 
+            t.ToAssetId == request.ToAssetId &&
             t.AmountSpent == 10000
         ));
     }
@@ -62,7 +73,7 @@ public class PortfolioServiceTests
     public async Task CalculateExchangeRatesAsync_ShouldUpdateRates_ForPastTransactions()
     {
         var pastDate = DateTime.UtcNow.AddDays(-2);
-        Transaction tx = new(pastDate, TransactionType.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
+        Transaction tx = CreateTx(pastDate, TransactionType.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
         
         // Setup Repo to return this transaction
         _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
@@ -81,19 +92,24 @@ public class PortfolioServiceTests
     [Fact]
     public async Task GetPortfolioMetrics_ShouldOrchestrateFlowCorrectly()
     {
-        Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, "USD", "BTC", 10000, 1, 1, null, 0, null, null, null, null, null);
+        Guid btcId = Guid.NewGuid();
+        Transaction tx = new Transaction(DateTime.UtcNow, TransactionType.Swap, Guid.NewGuid(), btcId, 10000, 1, 1, null, 0, null, null, null, null, null)
+        {
+            FromAsset = new Asset("USD", "US Dollar", null, AssetType.Fiat),
+            ToAsset = new Asset("BTC", "Bitcoin", null, AssetType.Crypto)
+        };
         _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
         
-        _mockMarketData.GetMarketDataAsync(Arg.Any<List<string>>(), FiatCurrency.USD)
-            .Returns(Task.FromResult(new Dictionary<string, AssetMarketData> { { "BTC", new AssetMarketData("BTC", "Bitcoin", 30000m) } }));
+        _mockMarketData.GetMarketDataAsync(Arg.Any<IEnumerable<Guid>>(), FiatCurrency.USD)
+            .Returns(Task.FromResult(new Dictionary<Guid, AssetMarketData> { { btcId, new AssetMarketData("BTC", "Bitcoin", 30000m) } }));
             
-        _mockMetrics.CalculateMetrics(Arg.Any<List<AssetHolding>>(), Arg.Any<Dictionary<string, decimal>>())
+        _mockMetrics.CalculateMetrics(Arg.Any<List<AssetHolding>>(), Arg.Any<Dictionary<Guid, decimal>>())
             .Returns(new PortfolioMetrics());
 
         await _service.GetPortfolioMetricsAsync();
 
         _mockMetrics.Received(1).CalculateMetrics(
-            Arg.Is<List<AssetHolding>>(h => h.Count == 1 && h.First().Id == "BTC"), 
-            Arg.Any<Dictionary<string, decimal>>());
+            Arg.Is<List<AssetHolding>>(h => h.Count == 1 && h.First().Id == btcId), 
+            Arg.Any<Dictionary<Guid, decimal>>());
     }
 }

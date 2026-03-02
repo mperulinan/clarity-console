@@ -22,10 +22,16 @@ public class TransactionRepositoryTests
     [Fact]
     public async Task AddAsync_ShouldAddTransactionToDatabase()
     {
+        var usdAsset = new Asset("USD", "USD", null, AssetType.Fiat);
+        var btcAsset = new Asset("BTC", "BTC", null, AssetType.Crypto);
+
         using (PortfolioContext context = new(_options))
         {
+            context.Assets.AddRange(usdAsset, btcAsset);
+            await context.SaveChangesAsync();
+            
             TransactionRepository repository = new(context);
-            Transaction transaction = new(DateTime.UtcNow, TransactionType.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
+            Transaction transaction = new(DateTime.UtcNow, TransactionType.Swap, usdAsset.Id, btcAsset.Id, 100, 1, 1, null, 0, null, null, null, null, null);
 
             await repository.AddAsync(transaction);
         }
@@ -33,17 +39,21 @@ public class TransactionRepositoryTests
         using (PortfolioContext assertContext = new(_options))
         {
             Assert.Equal(1, await assertContext.Transactions.CountAsync());
-            var saved = await assertContext.Transactions.FirstAsync();
-            Assert.Equal("BTC", saved.ToAssetId);
+            var saved = await assertContext.Transactions.Include(t => t.ToAsset).FirstAsync();
+            Assert.Equal("BTC", saved.ToAsset.Symbol);
         }
     }
 
     [Fact]
     public async Task GetByIdAsync_ShouldReturnTransaction_WhenExists()
     {
+        var usdAsset = new Asset("USD", "USD", null, AssetType.Fiat);
+        var btcAsset = new Asset("BTC", "BTC", null, AssetType.Crypto);
+
         using (PortfolioContext context = new(_options))
         {
-            Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
+            context.Assets.AddRange(usdAsset, btcAsset);
+            Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, usdAsset.Id, btcAsset.Id, 100, 1, 1, null, 0, null, null, null, null, null);
             context.Transactions.Add(tx);
             await context.SaveChangesAsync();
         }
@@ -56,17 +66,20 @@ public class TransactionRepositoryTests
             Transaction? result = await repository.GetByIdAsync(tx.Id);
 
             Assert.NotNull(result);
-            Assert.Equal("BTC", result.ToAssetId);
+            Assert.Equal("BTC", result.ToAsset.Symbol);
         }
     }
 
     [Fact]
     public async Task UpdateAsync_ShouldUpdateTransaction()
     {
+        var usdAsset = new Asset("USD", "USD", null, AssetType.Fiat);
+        var ethAsset = new Asset("ETH", "ETH", null, AssetType.Crypto);
         int id;
         using (PortfolioContext context = new(_options))
         {
-            Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, "USD", "ETH", 100, 1, 1, null, 0, null, null, null, null, null);
+            context.Assets.AddRange(usdAsset, ethAsset);
+            Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, usdAsset.Id, ethAsset.Id, 100, 1, 1, null, 0, null, null, null, null, null);
             context.Transactions.Add(tx);
             await context.SaveChangesAsync();
             id = tx.Id;

@@ -2,7 +2,7 @@ namespace Portfolio.Domain.ValueObjects;
 
 public class EnrichedAssetHolding
 {
-    public string Id { get; set; } = null!;
+    public Guid Id { get; set; }
     public string Symbol { get; set; } = "";
     public string Name { get; set; } = "";
     public string? ImageUrl { get; set; }

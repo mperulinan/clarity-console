@@ -1,3 +1,4 @@
+using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 using Portfolio.Domain.ValueObjects;
@@ -5,54 +6,66 @@ using Portfolio.Domain.ValueObjects;
 namespace Portfolio.Domain.Services;
 
 public class AssetMarketDataService(
+    IAssetRepository assetRepository,
     ICryptoMarketDataProvider cryptoMarketDataProvider,
     IExchangeRateProvider exchangeRateProvider) : IAssetMarketDataService
 {
-    public async Task<Dictionary<string, AssetMarketData>> GetMarketDataAsync(IEnumerable<string> assetIds, FiatCurrency baseCurrency)
+    public async Task<Dictionary<Guid, AssetMarketData>> GetMarketDataAsync(IEnumerable<Guid> assetIds, FiatCurrency baseCurrency)
     {
-        Dictionary<string, AssetMarketData> marketData = [];
-        List<string> cryptoIds = [];
-        List<string> fiatIds = [];
+        Dictionary<Guid, AssetMarketData> marketData = [];
+        List<Asset> cryptoAssets = [];
+        List<Asset> fiatAssets = [];
 
-        // 1. Classify Assets
-        foreach (string id in assetIds)
+        // 1. Classify Assets by retrieving them from repository in a single query
+        var assets = await assetRepository.GetByIdsAsync(assetIds.Distinct());
+        
+        foreach (var asset in assets)
         {
-            if (FiatCurrency.IsFiat(id))
+            if (asset.Type == AssetType.Fiat)
             {
-                fiatIds.Add(id);
+                fiatAssets.Add(asset);
             }
-            else
+            else // Currently everything else is treated as crypto
             {
-                cryptoIds.Add(id);
+                cryptoAssets.Add(asset);
             }
         }
 
         // 2. Resolve Crypto Market Data
-        if (cryptoIds.Count > 0)
+        if (cryptoAssets.Count > 0)
         {
-            var cryptoData = await cryptoMarketDataProvider.GetCryptoMarketDataAsync(cryptoIds, baseCurrency);
-            foreach (var kvp in cryptoData)
+            var externalIds = cryptoAssets
+                .Where(a => !string.IsNullOrWhiteSpace(a.ExternalId))
+                .Select(a => a.ExternalId!);
+
+            var cryptoData = await cryptoMarketDataProvider.GetCryptoMarketDataAsync(externalIds, baseCurrency);
+            
+            foreach (var asset in cryptoAssets)
             {
-                marketData[kvp.Key] = kvp.Value;
+                if (cryptoData.TryGetValue(asset.ExternalId!, out var data))
+                {
+                    marketData[asset.Id] = data;
+                }
             }
         }
 
-        // 3. Resolve Fiat Prices (Images are generally null or handled locally later)
-        if (fiatIds.Count > 0)
+        // 3. Resolve Fiat Prices
+        if (fiatAssets.Count > 0)
         {
-            foreach (var fiatId in fiatIds)
+            foreach (var asset in fiatAssets)
             {
-                var price = await GetFiatPriceAsync(fiatId, baseCurrency);
-                marketData[fiatId] = new AssetMarketData(fiatId, fiatId, price);
+                var price = await GetFiatPriceAsync(asset, baseCurrency);
+                marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, price);
             }
         }
 
         return marketData;
     }
 
-    private async Task<decimal> GetFiatPriceAsync(string fiatAssetId, FiatCurrency baseCurrency)
+    private async Task<decimal> GetFiatPriceAsync(Asset fiatAsset, FiatCurrency baseCurrency)
     {
-        FiatCurrency assetCurrency = FiatCurrency.Parse(fiatAssetId);
+        // For Fiat assets, their Symbol corresponds to the FiatCurrency
+        FiatCurrency assetCurrency = FiatCurrency.Parse(fiatAsset.Symbol.ToUpper());
         if (assetCurrency == baseCurrency)
         {
             return 1.0m;

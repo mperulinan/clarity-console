@@ -22,9 +22,9 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
         [property: JsonPropertyName("image")] string? ImageUrl
     );
 
-    public async Task<Dictionary<string, AssetMarketData>> GetCryptoMarketDataAsync(IEnumerable<string> assetIds, FiatCurrency priceCurrency)
+    public async Task<Dictionary<string, AssetMarketData>> GetCryptoMarketDataAsync(IEnumerable<string> assetExternalIds, FiatCurrency priceCurrency)
     {
-        var cryptoIds = assetIds.Distinct().ToList();
+        var cryptoIds = assetExternalIds.Distinct().ToList();
         if (cryptoIds.Count == 0)
         {
             return new Dictionary<string, AssetMarketData>(StringComparer.OrdinalIgnoreCase);

@@ -1,7 +1,6 @@
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.ValueObjects;
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portfolio.Domain.Entities;
 
@@ -10,18 +9,21 @@ public class Transaction
     public int Id { get; private set; }
     public DateTime Date { get; private set; }
     public TransactionType Type { get; private set; } = null!;
-    public string FromAssetId { get; private set; } = null!;
-    public string ToAssetId { get; private set; } = null!;
+    public Guid FromAssetId { get; private set; }
+    public Asset FromAsset { get; set; } = null!;
+    public Guid ToAssetId { get; private set; }
+    public Asset ToAsset { get; set; } = null!;
     public decimal AmountSpent { get; private set; }
     public decimal AmountReceived { get; private set; }
     public decimal FromAssetPriceInUsd { get; private set; }
     public decimal? FromAssetPriceInEur { get; private set; }
     public decimal Fee { get; private set; }
-    public string? FeeAsset { get; private set; }
+    public Guid? FeeAssetId { get; private set; }
+    public Asset? FeeAsset { get; set; }
     public decimal? FeeAssetPriceInUsd { get; private set; }
     public decimal? FeeAssetPriceInEur { get; private set; }
     public decimal? UsdEurExchangeRate { get; private set; }
-    public string? Notes { get; private set; }    
+    public string? Notes { get; private set; }
 
     // Constructor for EF Core.
     private Transaction() { }
@@ -29,14 +31,14 @@ public class Transaction
     public Transaction(
         DateTime date,
         TransactionType transactionType,
-        string fromAssetId,
-        string toAssetId,
+        Guid fromAssetId,
+        Guid toAssetId,
         decimal amountSpent,
         decimal amountReceived,
         decimal fromAssetPriceInUsd,
         decimal? fromAssetPriceInEur,
         decimal fee,
-        string? feeAsset,
+        Guid? feeAssetId,
         decimal? feeAssetPriceInUsd,
         decimal? feeAssetPriceInEur,
         decimal? usdEurExchangeRate,
@@ -44,14 +46,14 @@ public class Transaction
     {
         Date = date;
         Type = transactionType ?? throw new ArgumentNullException(nameof(transactionType));
-        FromAssetId = fromAssetId ?? throw new ArgumentNullException(nameof(fromAssetId));
-        ToAssetId = toAssetId ?? throw new ArgumentNullException(nameof(toAssetId));
+        FromAssetId = fromAssetId;
+        ToAssetId = toAssetId;
         AmountSpent = amountSpent;
         AmountReceived = amountReceived;
         FromAssetPriceInUsd = fromAssetPriceInUsd;
         FromAssetPriceInEur = fromAssetPriceInEur;
         Fee = fee;
-        FeeAsset = feeAsset;
+        FeeAssetId = feeAssetId;
         FeeAssetPriceInUsd = feeAssetPriceInUsd;
         FeeAssetPriceInEur = feeAssetPriceInEur;
         UsdEurExchangeRate = usdEurExchangeRate;

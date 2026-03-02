@@ -14,6 +14,37 @@ public class InventoryCalculatorTests
         _calculator = new InventoryCalculator();
     }
 
+    private static readonly Dictionary<string, Guid> _symbolToId = [];
+    private static Guid GetId(string symbol)
+    {
+        if (!_symbolToId.TryGetValue(symbol, out var id))
+        {
+            id = Guid.NewGuid();
+            _symbolToId[symbol] = id;
+        }
+        return id;
+    }
+
+    private static Transaction CreateTx(DateTime date, TransactionType type, string fromAsset, string toAsset, decimal spent, decimal received, decimal fromAssetPriceUsd, decimal? fromAssetPriceEur, decimal fee, string? feeAsset, decimal? feeUsdPrice, decimal? feeEurPrice, decimal? xr, string? notes)
+    {
+        var fromAsstId = GetId(fromAsset);
+        var toAsstId = GetId(toAsset);
+        var feeAsstId = feeAsset != null ? GetId(feeAsset) : (Guid?)null;
+
+        var tx = new Transaction(date, type, fromAsstId, toAsstId, spent, received, fromAssetPriceUsd, fromAssetPriceEur, fee, feeAsstId, feeUsdPrice, feeEurPrice, xr, notes)
+        {
+            FromAsset = new Asset(fromAsset, fromAsset, null, fromAsset == "USD" || fromAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto),
+            ToAsset = new Asset(toAsset, toAsset, null, toAsset == "USD" || toAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto)
+        };
+
+        if (feeAsset != null)
+        {
+            tx.FeeAsset = new Asset(feeAsset, feeAsset, null, feeAsset == "USD" || feeAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto);
+        }
+
+        return tx;
+    }
+
     [Fact]
     public void CalculateInventory_Fifo_ShouldConsumeOldestInventoryFirst()
     {
@@ -23,17 +54,20 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Transfer in 30k USD (Simulating Deposit)
-            new(new DateTime(2023, 1, 1), TransactionType.TransferIn, usd, usd, 0, 30000m, 1, 0.9m, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 1), TransactionType.TransferIn, usd, usd, 0, 30000m, 1, 0.9m, 0, null, null, null, null, null),
             // Swap $10k to 1 BTC (Simulating Buy)
-            new(new DateTime(2023, 1, 2), TransactionType.Swap, usd, btc, 10000m, 1, 1, null, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 2), TransactionType.Swap, usd, btc, 10000m, 1, 1, null, 0, null, null, null, null, null),
             // Swap $20k to 1 BTC (Simulating Buy)
-            new(new DateTime(2023, 2, 2), TransactionType.Swap, usd, btc, 20000m, 1, 1, null, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 2, 2), TransactionType.Swap, usd, btc, 20000m, 1, 1, null, 0, null, null, null, null, null),
             // Swap 1.5 BTC to USD at $30k (Simulating Sell)
-            new(new DateTime(2023, 3, 3), TransactionType.Swap, btc, usd, 1.5m, 45000m, 30000m, null, 0, null, null, null, null, null)
+            CreateTx(new DateTime(2023, 3, 3), TransactionType.Swap, btc, usd, 1.5m, 45000m, 30000m, null, 0, null, null, null, null, null)
         };
 
         // Act
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
+
+        var btcId = transactions.First(t => t.ToAsset.Symbol == btc).ToAssetId;
+        var usdId = transactions.First(t => t.FromAsset.Symbol == usd).FromAssetId;
 
         // Assert
         // First 1 BTC cost $10k. Next 0.5 BTC cost $10k (half of $20k). Total Cost = $20k.
@@ -44,12 +78,12 @@ public class InventoryCalculatorTests
         Assert.Equal(25000m, sellTx.ProfitLoss);
         
         // Remaining inventory: 0.5 BTC @ $20,000 basis = $10,000 total value
-        AssetHolding holdingBtc = report.Holdings.Single(h => h.Id == btc);
+        AssetHolding holdingBtc = report.Holdings.Single(h => h.Id == btcId);
         Assert.Equal(0.5m, holdingBtc.Quantity);
         Assert.Equal(20000m, holdingBtc.AvgCost);
 
         // Remaining cash inventory: 30,000 - 10,000 - 20,000 + 45,000 = 45,000.
-        AssetHolding holdingUsd = report.Holdings.Single(h => h.Id == usd);
+        AssetHolding holdingUsd = report.Holdings.Single(h => h.Id == usdId);
         Assert.Equal(45000m, holdingUsd.Quantity);
     }
 
@@ -60,7 +94,7 @@ public class InventoryCalculatorTests
         string eth = "ETH";
 
         // Reward: Receive 1 ETH when price is $2000. Fee is 0.
-        var rewardTx = new Transaction(
+        var rewardTx = CreateTx(
             new DateTime(2023, 1, 1), 
             TransactionType.Reward, 
             eth,
@@ -93,13 +127,13 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 1 BTC @ 30k
-            new(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 30000m, 1m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 30000m, 1m, 1m, null, 0, null, null, null, null, null),
             
             // Sell 1 BTC @ 20k (Loss 10k)
-            new(new DateTime(2023, 1, 15), TransactionType.Swap, btc, usd, 1m, 20000m, 20000m, null, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 15), TransactionType.Swap, btc, usd, 1m, 20000m, 20000m, null, 0, null, null, null, null, null),
             
             // Buy 1 BTC @ 22k within 2 months -> Wash Sale!
-            new(new DateTime(2023, 1, 20), TransactionType.Swap, usd, btc, 22000m, 1m, 1m, null, 0, null, null, null, null, null)
+            CreateTx(new DateTime(2023, 1, 20), TransactionType.Swap, usd, btc, 22000m, 1m, 1m, null, 0, null, null, null, null, null)
         };
 
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -123,13 +157,13 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 1 BTC @ 30k
-            new(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 30000m, 1m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 30000m, 1m, 1m, null, 0, null, null, null, null, null),
             
             // Sell 1 BTC @ 20k (Loss 10k)
-            new(new DateTime(2023, 1, 15), TransactionType.Swap, btc, usd, 1m, 20000m, 20000m, null, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 15), TransactionType.Swap, btc, usd, 1m, 20000m, 20000m, null, 0, null, null, null, null, null),
             
             // Buy 1 BTC @ 22k AFTER 2 months
-            new(new DateTime(2023, 3, 20), TransactionType.Swap, usd, btc, 22000m, 1m, 1m, null, 0, null, null, null, null, null)
+            CreateTx(new DateTime(2023, 3, 20), TransactionType.Swap, usd, btc, 22000m, 1m, 1m, null, 0, null, null, null, null, null)
         };
 
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -153,7 +187,7 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 1 BTC @ $10,000 using USD we don't have.
-            new(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null)
+            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null)
         };
 
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -173,13 +207,13 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // 1. Seed 10k USD (Transfer In)
-            new(new DateTime(2023, 1, 1), TransactionType.TransferIn, usd, usd, 0, 10000m, 1m, 1m, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 1), TransactionType.TransferIn, usd, usd, 0, 10000m, 1m, 1m, 0, null, null, null, null, null),
 
             // 2. Buy 1 BTC @ $10,000. Consumes all 10k USD.
-            new(new DateTime(2023, 1, 2), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 2), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null),
             
             // 3. Sell 2 BTC @ $20,000 each.
-            new(new DateTime(2023, 1, 3), TransactionType.Swap, btc, usd, 2m, 40000m, 20000m, null, 0, null, null, null, null, null)
+            CreateTx(new DateTime(2023, 1, 3), TransactionType.Swap, btc, usd, 2m, 40000m, 20000m, null, 0, null, null, null, null, null)
         };
 
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -203,10 +237,10 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 10 ETH @ $1000 = $10k.
-            new(new DateTime(2023, 1, 1), TransactionType.Swap, usd, eth, 10000m, 10m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, eth, 10000m, 10m, 1m, null, 0, null, null, null, null, null),
             
             // Transfer 5 ETH. Fee 0.1 ETH. FeeAsset = ETH.
-            new(new DateTime(2023, 1, 2), TransactionType.Swap, eth, usd, 5m, 5000m, 1000m, null, 0.1m, eth, 1000m, null, null, null)
+            CreateTx(new DateTime(2023, 1, 2), TransactionType.Swap, eth, usd, 5m, 5000m, 1000m, null, 0.1m, eth, 1000m, null, null, null)
         };
         
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -224,7 +258,8 @@ public class InventoryCalculatorTests
         // Spent for fee: 0.1.
         // Remaining: 4.9.
         
-        var holding = report.Holdings.Single(h => h.Id == eth);
+        var ethId = transactions.First(t => t.FromAsset.Symbol == eth).FromAssetId;
+        var holding = report.Holdings.Single(h => h.Id == ethId);
         Assert.Equal(4.9m, holding.Quantity);
     }
     
@@ -237,14 +272,15 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 1 BTC @ 10k
-            new(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null),
             
             // Sell 0.5 BTC @ 15k (Proceeds 7.5k)
-            new(new DateTime(2023, 1, 2), TransactionType.Swap, btc, usd, 0.5m, 7500m, 15000m, null, 0, null, null, null, null, null)
+            CreateTx(new DateTime(2023, 1, 2), TransactionType.Swap, btc, usd, 0.5m, 7500m, 15000m, null, 0, null, null, null, null, null)
         };
         
+        var btcId = transactions.First(t => t.ToAsset.Symbol == btc).ToAssetId;
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
-        var holding = report.Holdings.Single(h => h.Id == btc);
+        var holding = report.Holdings.Single(h => h.Id == btcId);
         
         // Sold 0.5 BTC. Cost basis was 10k * 0.5 = 5k.
         Assert.Equal(5000m, holding.CostBasisOfSold);

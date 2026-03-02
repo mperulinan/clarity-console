@@ -11,9 +11,6 @@ public class FiatCurrency : SmartEnum<FiatCurrency, string>
     {
     }
     
-    public static bool IsFiat(string code) => 
-        TryFromValue(code.ToLowerInvariant(), out _);
-
     public static FiatCurrency Parse(string code)
     {
         if (TryFromValue(code.ToLowerInvariant(), out var currency))

@@ -5,5 +5,5 @@ namespace Portfolio.Domain.Interfaces;
 
 public interface IAssetMarketDataService
 {
-    Task<Dictionary<string, AssetMarketData>> GetMarketDataAsync(IEnumerable<string> assetIds, FiatCurrency baseCurrency);
+    Task<Dictionary<Guid, AssetMarketData>> GetMarketDataAsync(IEnumerable<Guid> assetIds, FiatCurrency baseCurrency);
 }

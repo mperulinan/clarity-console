@@ -42,7 +42,7 @@ public class PortfolioService(
         return metrics;
     }
 
-    private static void EnrichHoldingsMetadata(IEnumerable<EnrichedAssetHolding> holdings, Dictionary<string, AssetMarketData> marketData)
+    private static void EnrichHoldingsMetadata(IEnumerable<EnrichedAssetHolding> holdings, Dictionary<Guid, AssetMarketData> marketData)
     {
         foreach (var holding in holdings)
         {
@@ -55,11 +55,64 @@ public class PortfolioService(
         }
     }
 
-    // Kept for backward compatibility / Tax Report, but explicitly EUR
-    public async Task<PortfolioReport> GetPortfolioReportAsync() 
+    public async Task<PortfolioReportDto> GetPortfolioReportAsync() 
     {
         var transactions = await transactionRepository.GetAllAsync();
-        return inventoryCalculator.CalculateInventory(transactions, FiatCurrency.EUR);
+        var report = inventoryCalculator.CalculateInventory(transactions, FiatCurrency.EUR);
+        
+        return new PortfolioReportDto
+        {
+            Transactions = report.Transactions.Select(pt => new ProcessedTransactionDto
+            {
+                Transaction = MapToDto(pt.Transaction),
+                ProfitLoss = pt.ProfitLoss,
+                TotalLossAmount = pt.TotalLossAmount,
+                IsLossDisallowed = pt.IsLossDisallowed,
+                DisallowedByTransactionId = pt.DisallowedByTransactionId,
+                DisallowsPreviousLosses = pt.DisallowsPreviousLosses,
+                Error = pt.Error
+            }),
+            Holdings = report.Holdings.Select(h => new AssetHoldingDto
+            {
+                Id = h.Id,
+                Quantity = h.Quantity,
+                AvgCost = h.AvgCost,
+                RealizedPL = h.RealizedPL,
+                CostBasisOfSold = h.CostBasisOfSold
+            })
+        };
+    }
+
+    private static TransactionDto MapToDto(Transaction transaction)
+    {
+        return new TransactionDto
+        {
+            Id = transaction.Id,
+            Date = transaction.Date,
+            Type = transaction.Type,
+            FromAsset = MapToDto(transaction.FromAsset),
+            ToAsset = MapToDto(transaction.ToAsset),
+            AmountSpent = transaction.AmountSpent,
+            AmountReceived = transaction.AmountReceived,
+            FromAssetPriceInUsd = transaction.FromAssetPriceInUsd,
+            FromAssetPriceInEur = transaction.FromAssetPriceInEur,
+            Fee = transaction.Fee,
+            FeeAsset = transaction.FeeAsset != null ? MapToDto(transaction.FeeAsset) : null,
+            FeeAssetPriceInUsd = transaction.FeeAssetPriceInUsd,
+            FeeAssetPriceInEur = transaction.FeeAssetPriceInEur,
+            UsdEurExchangeRate = transaction.UsdEurExchangeRate,
+            Notes = transaction.Notes
+        };
+    }
+
+    private static AssetDto MapToDto(Asset asset)
+    {
+        return new AssetDto
+        {
+            Id = asset.Id,
+            Name = asset.Name,
+            Symbol = asset.Symbol
+        };
     }
 
     public async Task AddTransactionAsync(NewTransactionRequest request)
@@ -67,7 +120,7 @@ public class PortfolioService(
         // Store USD prices immediately, EUR prices will be calculated lazily
         // when the Transactions page is loaded (only for past-day transactions)
         
-        var newTransaction = new Transaction(
+        Transaction newTransaction = new(
             request.Date.ToUniversalTime(),
             request.TransactionTypeCode,
             request.FromAssetId,
@@ -77,7 +130,7 @@ public class PortfolioService(
             request.FromAssetPriceInUsd,
             request.FromAssetPriceInEur,
             request.Fee,
-            request.FeeAsset,
+            request.FeeAssetId,
             request.FeeAssetPriceInUsd,
             request.FeeAssetPriceInEur,
             null, // UsdEurExchangeRate - will be set when EUR prices are calculated

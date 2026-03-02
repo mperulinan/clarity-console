@@ -37,20 +37,34 @@ public partial class PortfolioContext : DbContext
             entity.ToTable("Transaction");
 
             entity.Property(e => e.Date).HasColumnType("datetime");
-            entity.Property(e => e.FromAssetId).HasMaxLength(50);
-            entity.Property(e => e.ToAssetId).HasMaxLength(50);
             entity.Property(e => e.AmountSpent).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.AmountReceived).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.FromAssetPriceInUsd).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.FromAssetPriceInEur).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.Fee).HasColumnType("decimal(36, 18)");
-            entity.Property(e => e.FeeAsset).HasMaxLength(50);
             entity.Property(e => e.FeeAssetPriceInUsd).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.FeeAssetPriceInEur).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.UsdEurExchangeRate).HasColumnType("decimal(18, 8)");
             entity.Property(e => e.Notes).HasMaxLength(-1);
 
-            // Map TransactionType property directly as a string column with a converter
+            entity.HasOne(d => d.FromAsset)
+                .WithMany()
+                .HasForeignKey(d => d.FromAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Transaction_FromAsset");
+
+            entity.HasOne(d => d.ToAsset)
+                .WithMany()
+                .HasForeignKey(d => d.ToAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Transaction_ToAsset");
+
+            entity.HasOne(d => d.FeeAsset)
+                .WithMany()
+                .HasForeignKey(d => d.FeeAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Transaction_FeeAsset");
+
             entity.Property(e => e.Type)
                 .HasColumnName("TransactionType")
                 .HasMaxLength(50)

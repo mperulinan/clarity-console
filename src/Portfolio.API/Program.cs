@@ -28,6 +28,7 @@ builder.Services.AddDbContext<PortfolioContext>(options =>
 
 // Dependency Injection
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<IInventoryCalculator, InventoryCalculator>();
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddScoped<IExchangeRateProvider, FrankfurterExchangeRateProvider>();

@@ -7,7 +7,7 @@ export interface NewTransactionRequest {
     amountReceived: number;
     fromAssetPriceInUsd?: number;
     fee: number;
-    feeAsset?: string;
+    feeAssetId?: string;
     feeAssetPriceInUsd?: number;
     notes?: string;
 }

@@ -8,12 +8,20 @@ public class TransactionRepository(PortfolioContext context) : ITransactionRepos
 {
     public async Task<IEnumerable<Transaction>> GetAllAsync()
     {
-        return await context.Transactions.ToListAsync();
+        return await context.Transactions
+            .Include(t => t.FromAsset)
+            .Include(t => t.ToAsset)
+            .Include(t => t.FeeAsset)
+            .ToListAsync();
     }
 
     public async Task<Transaction?> GetByIdAsync(int id)
     {
-        return await context.Transactions.FindAsync(id);
+        return await context.Transactions
+            .Include(t => t.FromAsset)
+            .Include(t => t.ToAsset)
+            .Include(t => t.FeeAsset)
+            .FirstOrDefaultAsync(t => t.Id == id);
     }
 
     public async Task AddAsync(Transaction transaction)

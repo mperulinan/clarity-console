@@ -73,13 +73,13 @@ export class NewTransactionComponent {
         const request: NewTransactionRequest = {
             date: formValue.date.toISOString(),
             transactionTypeCode: formValue.type,
-            fromAssetId: formValue.fromAssetId.toUpperCase(),
-            toAssetId: formValue.toAssetId.toUpperCase(),
+            fromAssetId: formValue.fromAssetId,
+            toAssetId: formValue.toAssetId,
             amountSpent: Number(formValue.amountSpent),
             amountReceived: Number(formValue.amountReceived),
             fromAssetPriceInUsd: formValue.fromAssetPriceInUsd ? Number(formValue.fromAssetPriceInUsd) : undefined,
             fee: Number(formValue.fee || 0),
-            feeAsset: formValue.feeAsset ? formValue.feeAsset.toUpperCase() : undefined,
+            feeAssetId: formValue.feeAssetId,
             feeAssetPriceInUsd: formValue.feeAssetPriceInUsd ? Number(formValue.feeAssetPriceInUsd) : undefined,
             notes: formValue.notes
         };

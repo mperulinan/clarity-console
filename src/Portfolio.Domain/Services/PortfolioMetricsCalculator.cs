@@ -7,7 +7,7 @@ public class PortfolioMetricsCalculator : IPortfolioMetricsCalculator
 {
     public PortfolioMetrics CalculateMetrics(
         List<AssetHolding> holdings, 
-        Dictionary<string, decimal> currentPricesUsd)
+        Dictionary<Guid, decimal> currentPricesUsd)
     {
         List<EnrichedAssetHolding> enriched = EnrichHoldings(holdings, currentPricesUsd);
         PortfolioTotals totals = CalculateTotals(enriched);
@@ -27,11 +27,11 @@ public class PortfolioMetricsCalculator : IPortfolioMetricsCalculator
     
     private static List<EnrichedAssetHolding> EnrichHoldings(
         List<AssetHolding> holdings, 
-        Dictionary<string, decimal> pricesUsd)
+        Dictionary<Guid, decimal> pricesUsd)
     {
         return [.. holdings.Select(h => 
         {
-            decimal currentPrice = pricesUsd.GetValueOrDefault(h.Id.ToLower(), 0);
+            decimal currentPrice = pricesUsd.GetValueOrDefault(h.Id, 0);
             decimal currentValue = h.Quantity * currentPrice;
             decimal totalCostBasis = h.Quantity * h.AvgCost;
             decimal openPL = currentValue - totalCostBasis;

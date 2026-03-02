@@ -18,7 +18,7 @@ public class InventoryCalculator : IInventoryCalculator
     private class LossCandidate
     {
         public int TransactionId { get; set; }
-        public string AssetId { get; set; } = default!;
+        public Guid AssetId { get; set; } = default!;
         public DateTime Date { get; set; }
         public ProcessedTransaction ProcessedTransaction { get; set; } = default!;
     }
@@ -30,10 +30,10 @@ public class InventoryCalculator : IInventoryCalculator
             .Select(t => new ProcessedTransaction(t))
             .ToList();
 
-        Dictionary<string, Queue<InventoryEntry>> fifoQueue = [];
-        Dictionary<string, List<LossCandidate>> lossCandidates = [];
-        Dictionary<string, decimal> realizedPLTracker = [];
-        Dictionary<string, decimal> costBasisSoldTracker = [];
+        Dictionary<Guid, Queue<InventoryEntry>> fifoQueue = [];
+        Dictionary<Guid, List<LossCandidate>> lossCandidates = [];
+        Dictionary<Guid, decimal> realizedPLTracker = [];
+        Dictionary<Guid, decimal> costBasisSoldTracker = [];
 
         foreach (var pt in processedTransactions)
         {
@@ -42,7 +42,7 @@ public class InventoryCalculator : IInventoryCalculator
             decimal feeAssetPrice = tx.GetFeeAssetPrice(currency) ?? 0;
 
             // --- HANDLING INFLOWS (Swap-in/TransferIn/Reward) ---
-            if (tx.AmountReceived > 0 && !string.IsNullOrWhiteSpace(tx.ToAssetId))
+            if (tx.AmountReceived > 0 && tx.ToAssetId != Guid.Empty)
             {
                 if (tx.Type == TransactionType.Reward)
                 {
@@ -64,13 +64,14 @@ public class InventoryCalculator : IInventoryCalculator
             }
 
             // --- HANDLING OUTFLOWS (Swap-out/Fee) ---
-            if (tx.Fee > 0 && !string.IsNullOrWhiteSpace(tx.FeeAsset))
+            Guid feeAssetId = tx.FeeAssetId ?? Guid.Empty;
+            if (tx.Fee > 0 && feeAssetId != Guid.Empty)
             {
-                decimal feePL = ConsumeInventory(fifoQueue, tx.FeeAsset, tx.Fee, pt, isFee: true, currency, costBasisSoldTracker);
-                UpdateTracker(realizedPLTracker, tx.FeeAsset, feePL);
+                decimal feePL = ConsumeInventory(fifoQueue, feeAssetId, tx.Fee, pt, isFee: true, currency, costBasisSoldTracker);
+                UpdateTracker(realizedPLTracker, feeAssetId, feePL);
             }
 
-            if (tx.Type == TransactionType.Swap && tx.AmountSpent > 0 && !string.IsNullOrWhiteSpace(tx.FromAssetId))
+            if (tx.Type == TransactionType.Swap && tx.AmountSpent > 0)
             {
                 decimal swapPL = ConsumeInventory(fifoQueue, tx.FromAssetId, tx.AmountSpent, pt, isFee: false, currency, costBasisSoldTracker, lossCandidates);
                 UpdateTracker(realizedPLTracker, tx.FromAssetId, swapPL);
@@ -86,10 +87,8 @@ public class InventoryCalculator : IInventoryCalculator
         };
     }
 
-    private static void UpdateTracker(Dictionary<string, decimal> tracker, string assetId, decimal amount)
+    private static void UpdateTracker(Dictionary<Guid, decimal> tracker, Guid assetId, decimal amount)
     {
-        if (string.IsNullOrWhiteSpace(assetId)) return;
-
         if (!tracker.ContainsKey(assetId))
         {
             tracker[assetId] = 0;
@@ -99,9 +98,9 @@ public class InventoryCalculator : IInventoryCalculator
     }
 
     private static List<AssetHolding> GenerateAssetHoldings(
-        Dictionary<string, Queue<InventoryEntry>> fifoQueue,
-        Dictionary<string, decimal> realizedPLTracker,
-        Dictionary<string, decimal> costBasisSoldTracker)
+        Dictionary<Guid, Queue<InventoryEntry>> fifoQueue,
+        Dictionary<Guid, decimal> realizedPLTracker,
+        Dictionary<Guid, decimal> costBasisSoldTracker)
     {
         List<AssetHolding> holdings = [];
 
@@ -132,8 +131,8 @@ public class InventoryCalculator : IInventoryCalculator
     }
 
     private static void CheckWashSale(
-        Dictionary<string, List<LossCandidate>> lossCandidates,
-        string assetId,
+        Dictionary<Guid, List<LossCandidate>> lossCandidates,
+        Guid assetId,
         DateTime purchaseDate,
         ProcessedTransaction currentTransaction)
     {
@@ -159,18 +158,20 @@ public class InventoryCalculator : IInventoryCalculator
     }
 
     private static decimal ConsumeInventory(
-        Dictionary<string, Queue<InventoryEntry>> queue,
-        string assetId,
+        Dictionary<Guid, Queue<InventoryEntry>> queue,
+        Guid assetId,
         decimal amountToConsume,
         ProcessedTransaction pTransaction,
         bool isFee,
         FiatCurrency currency,
-        Dictionary<string, decimal> costBasisSoldTracker,
-        Dictionary<string, List<LossCandidate>>? lossCandidates = null)
+        Dictionary<Guid, decimal> costBasisSoldTracker,
+        Dictionary<Guid, List<LossCandidate>>? lossCandidates = null)
     {
         if (!queue.TryGetValue(assetId, out var inventory) || inventory.Count == 0)
         {
-            pTransaction.Error = $"Insufficient inventory for {assetId}. Needed {amountToConsume}.";
+            string symbol = pTransaction.Transaction.FromAssetId == assetId ? pTransaction.Transaction.FromAsset.Symbol : 
+                            (pTransaction.Transaction.ToAssetId == assetId ? pTransaction.Transaction.ToAsset.Symbol : assetId.ToString());
+            pTransaction.Error = $"Insufficient inventory for {symbol}. Needed {amountToConsume}.";
             return 0;
         }
 
@@ -194,7 +195,9 @@ public class InventoryCalculator : IInventoryCalculator
         
         if (remaining > 0)
         {
-             pTransaction.Error = $"Insufficient inventory for {assetId}. Missing {remaining}, used {amountToConsume - remaining}.";
+             string symbol = pTransaction.Transaction.FromAssetId == assetId ? pTransaction.Transaction.FromAsset.Symbol : 
+                             (pTransaction.Transaction.ToAssetId == assetId ? pTransaction.Transaction.ToAsset.Symbol : assetId.ToString());
+             pTransaction.Error = $"Insufficient inventory for {symbol}. Missing {remaining}, used {amountToConsume - remaining}.";
         }
 
         var tx = pTransaction.Transaction;
@@ -211,7 +214,7 @@ public class InventoryCalculator : IInventoryCalculator
         decimal pl = proceeds - totalCostBasis;
 
         pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;
-
+        
         if (!isFee && pl < 0 && lossCandidates != null)
         {
             if (!lossCandidates.TryGetValue(assetId, out var assetLossCandidates))

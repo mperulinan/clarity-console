@@ -11,7 +11,7 @@ namespace Portfolio.API.Controllers;
 public class TransactionController(IPortfolioService portfolioService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IEnumerable<Domain.Entities.Transaction>> GetTransactions()
+    public async Task<IEnumerable<TransactionDto>> GetTransactions()
     {
         var report = await portfolioService.GetPortfolioReportAsync();
         return report.Transactions.Select(t => t.Transaction);

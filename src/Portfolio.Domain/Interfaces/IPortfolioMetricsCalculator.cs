@@ -6,5 +6,5 @@ public interface IPortfolioMetricsCalculator
 {
     PortfolioMetrics CalculateMetrics(
         List<AssetHolding> holdings, 
-        Dictionary<string, decimal> currentPricesUsd);
+        Dictionary<Guid, decimal> currentPricesUsd);
 }
