@@ -87,6 +87,12 @@ public partial class PortfolioContext : DbContext
                 .HasConversion(
                     v => v.Value,
                     v => AssetType.FromValue(v));
+
+            entity.HasData(new List<Asset>
+            {
+                Asset.CreateForSeeding(FiatCurrency.USD.Id, FiatCurrency.USD.Value, FiatCurrency.USD.Name, FiatCurrency.USD.Value, AssetType.Fiat),
+                Asset.CreateForSeeding(FiatCurrency.EUR.Id, FiatCurrency.EUR.Value, FiatCurrency.EUR.Name, FiatCurrency.EUR.Value, AssetType.Fiat),
+            });
         });
 
         OnModelCreatingPartial(modelBuilder);

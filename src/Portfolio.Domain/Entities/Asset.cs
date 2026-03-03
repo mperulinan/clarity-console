@@ -23,4 +23,16 @@ public class Asset
         ExternalId = externalId;
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
+
+    public static Asset CreateForSeeding(Guid id, string symbol, string name, string externalId, AssetType type)
+    {
+        return new Asset
+        {
+            Id = id,
+            Symbol = symbol,
+            Name = name,
+            ExternalId = externalId,
+            Type = type
+        };
+    }
 }

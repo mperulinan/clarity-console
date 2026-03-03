@@ -65,7 +65,7 @@ public class AssetMarketDataService(
     private async Task<decimal> GetFiatPriceAsync(Asset fiatAsset, FiatCurrency baseCurrency)
     {
         // For Fiat assets, their Symbol corresponds to the FiatCurrency
-        FiatCurrency assetCurrency = FiatCurrency.Parse(fiatAsset.Symbol.ToUpper());
+        FiatCurrency assetCurrency = FiatCurrency.Parse(fiatAsset.Symbol);
         if (assetCurrency == baseCurrency)
         {
             return 1.0m;
