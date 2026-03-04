@@ -13,25 +13,27 @@ public class AssetMarketDataService(
     public async Task<Dictionary<Guid, AssetMarketData>> GetMarketDataAsync(IEnumerable<Guid> assetIds, FiatCurrency baseCurrency)
     {
         Dictionary<Guid, AssetMarketData> marketData = [];
-        List<Asset> cryptoAssets = [];
-        List<Asset> fiatAssets = [];
 
-        // 1. Classify Assets by retrieving them from repository in a single query
+        // 1. Retrieve and Classify in one go using Lookup
         var assets = await assetRepository.GetByIdsAsync(assetIds.Distinct());
-        
-        foreach (var asset in assets)
+        var assetsByType = assets.ToLookup(a => a.Type);
+
+        // 2. Resolve "OTHER" Assets (Manual/No Price)
+        // We handle these first because they are "instant" (no async calls needed)
+        foreach (var asset in assetsByType[AssetType.Other])
         {
-            if (asset.Type == AssetType.Fiat)
-            {
-                fiatAssets.Add(asset);
-            }
-            else // Currently everything else is treated as crypto
-            {
-                cryptoAssets.Add(asset);
-            }
+            marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, 0m);
         }
 
-        // 2. Resolve Crypto Market Data
+        // 3. Resolve Fiat Prices
+        foreach (var asset in assetsByType[AssetType.Fiat])
+        {
+            var price = await GetFiatPriceAsync(asset, baseCurrency);
+            marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, price);
+        }
+
+        // 4. Resolve Crypto Market Data
+        var cryptoAssets = assetsByType[AssetType.Crypto].ToList();
         if (cryptoAssets.Count > 0)
         {
             var externalIds = cryptoAssets
@@ -39,23 +41,18 @@ public class AssetMarketDataService(
                 .Select(a => a.ExternalId!);
 
             var cryptoData = await cryptoMarketDataProvider.GetCryptoMarketDataAsync(externalIds, baseCurrency);
-            
+
             foreach (var asset in cryptoAssets)
             {
-                if (cryptoData.TryGetValue(asset.ExternalId!, out var data))
+                // If the provider has data, use it; otherwise, default to 0
+                if (asset.ExternalId != null && cryptoData.TryGetValue(asset.ExternalId, out var data))
                 {
                     marketData[asset.Id] = data;
                 }
-            }
-        }
-
-        // 3. Resolve Fiat Prices
-        if (fiatAssets.Count > 0)
-        {
-            foreach (var asset in fiatAssets)
-            {
-                var price = await GetFiatPriceAsync(asset, baseCurrency);
-                marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, price);
+                else
+                {
+                    marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, 0m);
+                }
             }
         }
 
