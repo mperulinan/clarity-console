@@ -33,13 +33,13 @@ public class InventoryCalculatorTests
 
         var tx = new Transaction(date, type, fromAsstId, toAsstId, spent, received, fromAssetPriceUsd, fromAssetPriceEur, fee, feeAsstId, feeUsdPrice, feeEurPrice, xr, notes)
         {
-            FromAsset = new Asset(fromAsset, fromAsset, null, fromAsset == "USD" || fromAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto),
-            ToAsset = new Asset(toAsset, toAsset, null, toAsset == "USD" || toAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto)
+            FromAsset = new Asset(fromAsset, fromAsset, null, null, fromAsset == "USD" || fromAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto),
+            ToAsset = new Asset(toAsset, toAsset, null, null, toAsset == "USD" || toAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto)
         };
 
         if (feeAsset != null)
         {
-            tx.FeeAsset = new Asset(feeAsset, feeAsset, null, feeAsset == "USD" || feeAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto);
+            tx.FeeAsset = new Asset(feeAsset, feeAsset, null, null, feeAsset == "USD" || feeAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto);
         }
 
         return tx;

@@ -22,8 +22,8 @@ public class TransactionRepositoryTests
     [Fact]
     public async Task AddAsync_ShouldAddTransactionToDatabase()
     {
-        var usdAsset = new Asset("USD", "USD", null, AssetType.Fiat);
-        var btcAsset = new Asset("BTC", "BTC", null, AssetType.Crypto);
+        var usdAsset = new Asset("USD", "USD", null, null, AssetType.Fiat);
+        var btcAsset = new Asset("BTC", "BTC", null, null, AssetType.Crypto);
 
         using (PortfolioContext context = new(_options))
         {
@@ -47,8 +47,8 @@ public class TransactionRepositoryTests
     [Fact]
     public async Task GetByIdAsync_ShouldReturnTransaction_WhenExists()
     {
-        var usdAsset = new Asset("USD", "USD", null, AssetType.Fiat);
-        var btcAsset = new Asset("BTC", "BTC", null, AssetType.Crypto);
+        var usdAsset = new Asset("USD", "USD", null, null, AssetType.Fiat);
+        var btcAsset = new Asset("BTC", "BTC", null, null, AssetType.Crypto);
 
         using (PortfolioContext context = new(_options))
         {
@@ -73,8 +73,8 @@ public class TransactionRepositoryTests
     [Fact]
     public async Task UpdateAsync_ShouldUpdateTransaction()
     {
-        var usdAsset = new Asset("USD", "USD", null, AssetType.Fiat);
-        var ethAsset = new Asset("ETH", "ETH", null, AssetType.Crypto);
+        var usdAsset = new Asset("USD", "USD", null, null, AssetType.Fiat);
+        var ethAsset = new Asset("ETH", "ETH", null, null, AssetType.Crypto);
         int id;
         using (PortfolioContext context = new(_options))
         {

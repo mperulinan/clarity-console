@@ -90,8 +90,8 @@ public partial class PortfolioContext : DbContext
 
             entity.HasData(new List<Asset>
             {
-                Asset.CreateForSeeding(FiatCurrency.USD.Id, FiatCurrency.USD.Value, FiatCurrency.USD.Name, FiatCurrency.USD.Value, AssetType.Fiat),
-                Asset.CreateForSeeding(FiatCurrency.EUR.Id, FiatCurrency.EUR.Value, FiatCurrency.EUR.Name, FiatCurrency.EUR.Value, AssetType.Fiat),
+                Asset.CreateForSeeding(FiatCurrency.USD.Id, FiatCurrency.USD.Value, FiatCurrency.USD.Name, FiatCurrency.USD.Value, AssetType.Fiat, FiatCurrency.USD.ImageUrl),
+                Asset.CreateForSeeding(FiatCurrency.EUR.Id, FiatCurrency.EUR.Value, FiatCurrency.EUR.Name, FiatCurrency.EUR.Value, AssetType.Fiat, FiatCurrency.EUR.ImageUrl),
             });
         });
 

@@ -41,8 +41,8 @@ public class PortfolioServiceTests
     {
         return new Transaction(date, type, Guid.NewGuid(), Guid.NewGuid(), spent, received, fromAssetPriceUsd, fromAssetPriceEur, fee, feeAsset != null ? Guid.NewGuid() : null, feeUsdPrice, feeEurPrice, xr, notes)
         {
-            FromAsset = new Asset(fromAsset, fromAsset, null, AssetType.Fiat),
-            ToAsset = new Asset(toAsset, toAsset, null, AssetType.Fiat)
+            FromAsset = new Asset(fromAsset, fromAsset, null, null, AssetType.Fiat),
+            ToAsset = new Asset(toAsset, toAsset, null, null, AssetType.Fiat)
         };
     }
 
@@ -95,8 +95,8 @@ public class PortfolioServiceTests
         Guid btcId = Guid.NewGuid();
         Transaction tx = new Transaction(DateTime.UtcNow, TransactionType.Swap, Guid.NewGuid(), btcId, 10000, 1, 1, null, 0, null, null, null, null, null)
         {
-            FromAsset = new Asset("USD", "US Dollar", null, AssetType.Fiat),
-            ToAsset = new Asset("BTC", "Bitcoin", null, AssetType.Crypto)
+            FromAsset = new Asset("USD", "US Dollar", null, null, AssetType.Fiat),
+            ToAsset = new Asset("BTC", "Bitcoin", null, null, AssetType.Crypto)
         };
         _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
         

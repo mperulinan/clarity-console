@@ -4,14 +4,16 @@ namespace Portfolio.Domain.Enums;
 
 public class FiatCurrency : SmartEnum<FiatCurrency, string>
 {
-    public static readonly FiatCurrency USD = new("USD", "usd", Guid.Parse("0200F65C-EA84-4ED6-B1C0-EB36527F11ED"));
-    public static readonly FiatCurrency EUR = new("EUR", "eur", Guid.Parse("2574E866-B50C-41EA-9293-CE8964AEFCD2"));
+    public static readonly FiatCurrency USD = new("USD", "usd", Guid.Parse("0200F65C-EA84-4ED6-B1C0-EB36527F11ED"), "https://static.okx.com/cdn/oksupport/asset/currency/icon/usd.png");
+    public static readonly FiatCurrency EUR = new("EUR", "eur", Guid.Parse("2574E866-B50C-41EA-9293-CE8964AEFCD2"), "https://static.okx.com/cdn/oksupport/asset/currency/icon/eur.png");
 
     public Guid Id { get; }
+    public string? ImageUrl { get; }
 
-    private FiatCurrency(string name, string value, Guid id) : base(name, value)
+    private FiatCurrency(string name, string value, Guid id, string? imageUrl = null) : base(name, value)
     {
         Id = id;
+        ImageUrl = imageUrl;
     }
     
     public static FiatCurrency Parse(string symbol)

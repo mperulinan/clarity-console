@@ -15,10 +15,10 @@ public class TransactionTests
 
         var tx = new Transaction(date, type, fromAsstId, toAsstId, spent, received, fromAssetPriceUsd, fromAssetPriceEur, fee, feeAsstId, feeUsdPrice, feeEurPrice, xr, notes)
         {
-            FromAsset = new Asset(fromAsset, fromAsset, null, AssetType.Crypto),
-            ToAsset = new Asset(toAsset, toAsset, null, AssetType.Crypto)
+            FromAsset = new Asset(fromAsset, fromAsset, null, null, AssetType.Crypto),
+            ToAsset = new Asset(toAsset, toAsset, null, null, AssetType.Crypto)
         };
-        if (feeAsset != null) tx.FeeAsset = new Asset(feeAsset, feeAsset, null, AssetType.Crypto);
+        if (feeAsset != null) tx.FeeAsset = new Asset(feeAsset, feeAsset, null, null, AssetType.Crypto);
         return tx;
     }
     [Fact]
