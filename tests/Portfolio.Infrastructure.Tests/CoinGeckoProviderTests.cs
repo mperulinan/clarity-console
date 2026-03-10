@@ -29,38 +29,34 @@ public class CoinGeckoProviderTests
             .Build();
 
     [Fact]
-    public async Task GetCryptoMarketDataAsync_ShouldParsePriceAndImageCorrectly()
+    public async Task GetPricesAsync_ShouldParsePriceCorrectly()
     {
-        const string marketsJson = """
-            [
-              { "id": "bitcoin",  "current_price": 70000, "image": "https://bitcoin.png" },
-              { "id": "ethereum", "current_price": 3000, "image": "https://ethereum.png" }
-            ]
+        const string pricesJson = """
+            {
+              "bitcoin": { "usd": 70000 },
+              "ethereum": { "usd": 3000 }
+            }
             """;
 
         FakeHttpMessageHandler fakeHandler = new()
         {
             Check = req => new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(marketsJson, Encoding.UTF8, "application/json")
+                Content = new StringContent(pricesJson, Encoding.UTF8, "application/json")
             }
         };
 
         HttpClient httpClient = new(fakeHandler);
         CoinGeckoProvider provider = new(httpClient, BuildConfig());
 
-        // Domain layer guarantees we only pass cryptos here
-        var data = await provider.GetCryptoMarketDataAsync(["bitcoin", "ethereum"], FiatCurrency.USD);
+        var data = await provider.GetPricesAsync(["bitcoin", "ethereum"], FiatCurrency.USD);
 
-        Assert.Equal(70000m, data["bitcoin"].Price);
-        Assert.Equal("https://bitcoin.png", data["bitcoin"].ImageUrl);
-        
-        Assert.Equal(3000m, data["ethereum"].Price);
-        Assert.Equal("https://ethereum.png", data["ethereum"].ImageUrl);
+        Assert.Equal(70000m, data["bitcoin"]);
+        Assert.Equal(3000m, data["ethereum"]);
     }
 
     [Fact]
-    public async Task GetCryptoMarketDataAsync_ShouldReturnEmpty_WhenApiFails()
+    public async Task GetPricesAsync_ShouldReturnEmpty_WhenApiFails()
     {
         FakeHttpMessageHandler fakeHandler = new()
         {
@@ -70,7 +66,7 @@ public class CoinGeckoProviderTests
         HttpClient httpClient = new(fakeHandler);
         CoinGeckoProvider provider = new(httpClient, BuildConfig());
 
-        var data = await provider.GetCryptoMarketDataAsync(["bitcoin"], FiatCurrency.USD);
+        var data = await provider.GetPricesAsync(["bitcoin"], FiatCurrency.USD);
 
         Assert.Empty(data);
     }

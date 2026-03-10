@@ -10,5 +10,8 @@ namespace Portfolio.Application.DTOs
         public Guid Id { get; set; }
         public string Symbol { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+        public string? ExternalId { get; set; }
+        public string? ImageUrl { get; set; }
+        public string Type { get; set; } = string.Empty;
     }
 }

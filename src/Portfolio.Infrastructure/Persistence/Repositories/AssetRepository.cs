@@ -16,6 +16,11 @@ public class AssetRepository(PortfolioContext context) : IAssetRepository
         return await context.Assets.Where(a => ids.Contains(a.Id)).ToListAsync();
     }
 
+    public async Task<IEnumerable<Asset>> GetByExternalIdsAsync(IEnumerable<string> externalIds)
+    {
+        return await context.Assets.Where(a => a.ExternalId != null && externalIds.Contains(a.ExternalId)).ToListAsync();
+    }
+
     public async Task<IEnumerable<Asset>> GetAllAsync()
     {
         return await context.Assets.ToListAsync();
@@ -24,6 +29,12 @@ public class AssetRepository(PortfolioContext context) : IAssetRepository
     public async Task AddAsync(Asset asset)
     {
         await context.Assets.AddAsync(asset);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(Asset asset)
+    {
+        context.Assets.Update(asset);
         await context.SaveChangesAsync();
     }
 }

@@ -7,7 +7,7 @@ namespace Portfolio.Domain.Services;
 
 public class AssetMarketDataService(
     IAssetRepository assetRepository,
-    ICryptoMarketDataProvider cryptoMarketDataProvider,
+    IAssetPriceProvider assetPriceProvider,
     IExchangeRateProvider exchangeRateProvider) : IAssetMarketDataService
 {
     public async Task<Dictionary<Guid, AssetMarketData>> GetMarketDataAsync(IEnumerable<Guid> assetIds, FiatCurrency baseCurrency)
@@ -22,17 +22,17 @@ public class AssetMarketDataService(
         // We handle these first because they are "instant" (no async calls needed)
         foreach (var asset in assetsByType[AssetType.Other])
         {
-            marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, 0m);
+            marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, 0m, asset.ImageUrl);
         }
 
         // 3. Resolve Fiat Prices
         foreach (var asset in assetsByType[AssetType.Fiat])
         {
             var price = await GetFiatPriceAsync(asset, baseCurrency);
-            marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, price);
+            marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, price, asset.ImageUrl);
         }
 
-        // 4. Resolve Crypto Market Data
+        // 4. Resolve Crypto Market Data (Prices via Cache)
         var cryptoAssets = assetsByType[AssetType.Crypto].ToList();
         if (cryptoAssets.Count > 0)
         {
@@ -40,18 +40,17 @@ public class AssetMarketDataService(
                 .Where(a => !string.IsNullOrWhiteSpace(a.ExternalId))
                 .Select(a => a.ExternalId!);
 
-            var cryptoData = await cryptoMarketDataProvider.GetCryptoMarketDataAsync(externalIds, baseCurrency);
+            var cryptoPrices = await assetPriceProvider.GetPricesAsync(externalIds, baseCurrency);
 
             foreach (var asset in cryptoAssets)
             {
-                // If the provider has data, use it; otherwise, default to 0
-                if (asset.ExternalId != null && cryptoData.TryGetValue(asset.ExternalId, out var data))
+                if (asset.ExternalId != null && cryptoPrices.TryGetValue(asset.ExternalId, out var price))
                 {
-                    marketData[asset.Id] = data;
+                    marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, price, asset.ImageUrl);
                 }
                 else
                 {
-                    marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, 0m);
+                    marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, 0m, asset.ImageUrl);
                 }
             }
         }

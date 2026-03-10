@@ -7,6 +7,8 @@ using Portfolio.Infrastructure.Persistence;
 using Portfolio.Infrastructure.Persistence.Repositories;
 using Portfolio.Infrastructure.ExternalServices;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Caching.Memory;
+using Portfolio.API.BackgroundServices;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
@@ -32,9 +34,21 @@ builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<IInventoryCalculator, InventoryCalculator>();
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddScoped<IExchangeRateProvider, FrankfurterExchangeRateProvider>();
-builder.Services.AddScoped<ICryptoMarketDataProvider, CoinGeckoProvider>();
+
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<CoinGeckoProvider>();
+builder.Services.AddScoped<IAssetPriceProvider, AssetPriceCacheService>(sp => 
+    new AssetPriceCacheService(
+        sp.GetRequiredService<CoinGeckoProvider>(), 
+        sp.GetRequiredService<IMemoryCache>()
+    ));
+builder.Services.AddScoped<IAssetCatalogProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
+builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
+builder.Services.AddScoped<IAssetSynchronizationService, AssetSynchronizationService>();
+
 builder.Services.AddScoped<IAssetMarketDataService, AssetMarketDataService>();
 builder.Services.AddScoped<IPortfolioMetricsCalculator, PortfolioMetricsCalculator>();
+builder.Services.AddHostedService<AssetCatalogSyncBackgroundService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddControllers()

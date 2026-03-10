@@ -38,4 +38,11 @@ public class Asset
             ImageUrl = imageUrl
         };
     }
+
+    public void UpdateMetadata(string symbol, string name, string? imageUrl)
+    {
+        Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+        ImageUrl = imageUrl;
+    }
 }
