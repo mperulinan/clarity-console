@@ -171,13 +171,39 @@ public class InventoryCalculator : IInventoryCalculator
     {
         if (!queue.TryGetValue(assetId, out var inventory) || inventory.Count == 0)
         {
-            string symbol = (pTransaction.Transaction.FromAssetId == assetId && pTransaction.Transaction.FromAsset != null) ? pTransaction.Transaction.FromAsset.Symbol : 
-                            ((pTransaction.Transaction.ToAssetId == assetId && pTransaction.Transaction.ToAsset != null) ? pTransaction.Transaction.ToAsset.Symbol : assetId.ToString());
-            pTransaction.Error = $"Insufficient inventory for {symbol}. Needed {amountToConsume}.";
+            pTransaction.Error = $"Insufficient inventory for {GetAssetSymbol(pTransaction.Transaction, assetId)}. Needed {amountToConsume}.";
             return 0;
         }
 
-        decimal remaining = amountToConsume;
+        decimal totalCostBasis = DequeueInventory(inventory, amountToConsume, out decimal remaining);
+
+        if (remaining > 0)
+        {
+             pTransaction.Error = $"Insufficient inventory for {GetAssetSymbol(pTransaction.Transaction, assetId)}. Missing {remaining}, used {amountToConsume - remaining}.";
+        }
+
+        var tx = pTransaction.Transaction;
+        decimal? exitPrice = isFee ? tx.GetFeeAssetPrice(currency) : tx.GetFromAssetPrice(currency);
+        if (!exitPrice.HasValue) return 0;
+
+        decimal proceeds = amountToConsume * exitPrice.Value;
+        
+        UpdateTracker(costBasisSoldTracker, assetId, totalCostBasis);
+
+        decimal pl = proceeds - totalCostBasis;
+        pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;
+        
+        if (!isFee && pl < 0 && lossCandidates != null)
+        {
+            RecordLossCandidate(lossCandidates, assetId, tx, pTransaction);
+        }
+
+        return pl;
+    }
+
+    private static decimal DequeueInventory(Queue<InventoryEntry> inventory, decimal amountToConsume, out decimal remaining)
+    {
+        remaining = amountToConsume;
         decimal totalCostBasis = 0;
 
         while (remaining > 0 && inventory.Count > 0)
@@ -194,46 +220,36 @@ public class InventoryCalculator : IInventoryCalculator
                 inventory.Dequeue();
             }
         }
-        
-        if (remaining > 0)
+
+        return totalCostBasis;
+    }
+
+    private static string GetAssetSymbol(Transaction tx, Guid assetId)
+    {
+        if (tx.FromAssetId == assetId && tx.FromAsset != null) return tx.FromAsset.Symbol;
+        if (tx.ToAssetId == assetId && tx.ToAsset != null) return tx.ToAsset.Symbol;
+        if (tx.FeeAssetId == assetId && tx.FeeAsset != null) return tx.FeeAsset.Symbol;
+        return assetId.ToString();
+    }
+
+    private static void RecordLossCandidate(
+        Dictionary<Guid, List<LossCandidate>> lossCandidates,
+        Guid assetId,
+        Transaction tx,
+        ProcessedTransaction pTransaction)
+    {
+        if (!lossCandidates.TryGetValue(assetId, out var assetLossCandidates))
         {
-             string symbol = (pTransaction.Transaction.FromAssetId == assetId && pTransaction.Transaction.FromAsset != null) ? pTransaction.Transaction.FromAsset.Symbol : 
-                             ((pTransaction.Transaction.ToAssetId == assetId && pTransaction.Transaction.ToAsset != null) ? pTransaction.Transaction.ToAsset.Symbol : assetId.ToString());
-             pTransaction.Error = $"Insufficient inventory for {symbol}. Missing {remaining}, used {amountToConsume - remaining}.";
+            assetLossCandidates = [];
+            lossCandidates[assetId] = assetLossCandidates;
         }
 
-        var tx = pTransaction.Transaction;
-        decimal? exitPrice = isFee ? tx.GetFeeAssetPrice(currency) : tx.GetFromAssetPrice(currency);
-        if (!exitPrice.HasValue)
+        assetLossCandidates.Add(new LossCandidate
         {
-            return 0;
-        }
-
-        decimal proceeds = amountToConsume * exitPrice.Value;
-        
-        UpdateTracker(costBasisSoldTracker, assetId, totalCostBasis);
-
-        decimal pl = proceeds - totalCostBasis;
-
-        pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;
-        
-        if (!isFee && pl < 0 && lossCandidates != null)
-        {
-            if (!lossCandidates.TryGetValue(assetId, out var assetLossCandidates))
-            {
-                assetLossCandidates = [];
-                lossCandidates[assetId] = assetLossCandidates;
-            }
-
-            assetLossCandidates.Add(new LossCandidate
-            {
-                TransactionId = tx.Id,
-                AssetId = assetId,
-                Date = tx.Date,
-                ProcessedTransaction = pTransaction
-            });
-        }
-
-        return pl;
+            TransactionId = tx.Id,
+            AssetId = assetId,
+            Date = tx.Date,
+            ProcessedTransaction = pTransaction
+        });
     }
 }
