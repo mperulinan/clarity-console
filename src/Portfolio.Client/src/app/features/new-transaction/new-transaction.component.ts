@@ -39,9 +39,10 @@ export class NewTransactionComponent {
     isSubmitting = false;
 
     transactionTypes = [
-        { value: 'SWAP', label: 'Buy / Sell / Swap' },
-        // { value: 'TRANSFER', label: 'Transfer' }, // TODO: Implement later
-        // { value: 'REWARD', label: 'Reward' }
+        { value: 'SWAP', label: 'Swap' },
+        { value: 'DEPOSIT', label: 'Deposit' },
+        { value: 'WITHDRAWAL', label: 'Withdrawal' },
+        { value: 'REWARD', label: 'Reward' }
     ];
 
     constructor(
@@ -56,12 +57,47 @@ export class NewTransactionComponent {
             toAssetId: ['', Validators.required],
             amountSpent: [null, [Validators.required, Validators.min(0)]],
             amountReceived: [null, [Validators.required, Validators.min(0)]],
-            fromAssetPriceInUsd: [null],
+            spotPriceInUsd: [null, Validators.required],
             fee: [0],
-            feeAsset: [''],
-            feeAssetPriceInUsd: [null],
+            feeAssetId: [''],
+            feeSpotPriceInUsd: [null],
             notes: ['']
         });
+
+        this.onTypeChange('SWAP'); // Initial setup
+    }
+
+    onTypeChange(type: string) {
+        const fromControl = this.form.get('fromAssetId');
+        const toControl = this.form.get('toAssetId');
+        const spentControl = this.form.get('amountSpent');
+        const receivedControl = this.form.get('amountReceived');
+
+        // Reset validators
+        fromControl?.clearValidators();
+        toControl?.clearValidators();
+        spentControl?.clearValidators();
+        receivedControl?.clearValidators();
+
+        if (type === 'SWAP') {
+            fromControl?.setValidators(Validators.required);
+            toControl?.setValidators(Validators.required);
+            spentControl?.setValidators([Validators.required, Validators.min(0)]);
+            receivedControl?.setValidators([Validators.required, Validators.min(0)]);
+        } else if (type === 'DEPOSIT' || type === 'REWARD') {
+            toControl?.setValidators(Validators.required);
+            receivedControl?.setValidators([Validators.required, Validators.min(0)]);
+            spentControl?.setValue(0);
+        } else if (type === 'WITHDRAWAL') {
+            fromControl?.setValidators(Validators.required);
+            spentControl?.setValidators([Validators.required, Validators.min(0)]);
+            receivedControl?.setValue(0);
+        }
+
+        fromControl?.updateValueAndValidity();
+        toControl?.updateValueAndValidity();
+        spentControl?.updateValueAndValidity();
+        receivedControl?.updateValueAndValidity();
     }
 
     onSubmit() {
@@ -73,14 +109,14 @@ export class NewTransactionComponent {
         const request: NewTransactionRequest = {
             date: formValue.date.toISOString(),
             transactionTypeCode: formValue.type,
-            fromAssetId: formValue.fromAssetId,
-            toAssetId: formValue.toAssetId,
-            amountSpent: Number(formValue.amountSpent),
-            amountReceived: Number(formValue.amountReceived),
-            fromAssetPriceInUsd: formValue.fromAssetPriceInUsd ? Number(formValue.fromAssetPriceInUsd) : undefined,
+            fromAssetId: formValue.fromAssetId || undefined,
+            toAssetId: formValue.toAssetId || undefined,
+            amountSpent: Number(formValue.amountSpent || 0),
+            amountReceived: Number(formValue.amountReceived || 0),
+            spotPriceInUsd: Number(formValue.spotPriceInUsd),
             fee: Number(formValue.fee || 0),
-            feeAssetId: formValue.feeAssetId,
-            feeAssetPriceInUsd: formValue.feeAssetPriceInUsd ? Number(formValue.feeAssetPriceInUsd) : undefined,
+            feeAssetId: formValue.feeAssetId || undefined,
+            feeSpotPriceInUsd: formValue.feeSpotPriceInUsd ? Number(formValue.feeSpotPriceInUsd) : undefined,
             notes: formValue.notes
         };
 

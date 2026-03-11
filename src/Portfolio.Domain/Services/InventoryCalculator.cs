@@ -41,29 +41,30 @@ public class InventoryCalculator : IInventoryCalculator
             decimal toAssetPrice = tx.GetToAssetPrice(currency) ?? 0;
             decimal feeAssetPrice = tx.GetFeeAssetPrice(currency) ?? 0;
 
-            // --- HANDLING INFLOWS (Swap-in/TransferIn/Reward) ---
-            if (tx.AmountReceived > 0 && tx.ToAssetId != Guid.Empty)
+            // --- HANDLING INFLOWS (Swap-in/Deposit/Reward) ---
+            if (tx.AmountReceived > 0 && tx.ToAssetId.HasValue)
             {
+                Guid toAssetId = tx.ToAssetId.Value;
                 if (tx.Type == TransactionType.Reward)
                 {
                     decimal rewardProfit = (tx.AmountReceived * toAssetPrice) - (tx.Fee * feeAssetPrice);
                     pt.ProfitLoss = rewardProfit;
 
-                    UpdateTracker(realizedPLTracker, tx.ToAssetId, rewardProfit);
+                    UpdateTracker(realizedPLTracker, toAssetId, rewardProfit);
                 }
 
-                if (!fifoQueue.TryGetValue(tx.ToAssetId, out var inventory))
+                if (!fifoQueue.TryGetValue(toAssetId, out var inventory))
                 {
                     inventory = new Queue<InventoryEntry>();
-                    fifoQueue[tx.ToAssetId] = inventory;
+                    fifoQueue[toAssetId] = inventory;
                 }
 
                 inventory.Enqueue(new InventoryEntry { Quantity = tx.AmountReceived, Price = toAssetPrice });
 
-                CheckWashSale(lossCandidates, tx.ToAssetId, tx.Date, pt);
+                CheckWashSale(lossCandidates, toAssetId, tx.Date, pt);
             }
 
-            // --- HANDLING OUTFLOWS (Swap-out/Fee) ---
+            // --- HANDLING OUTFLOWS (Swap-out/Withdrawal/Fee) ---
             Guid feeAssetId = tx.FeeAssetId ?? Guid.Empty;
             if (tx.Fee > 0 && feeAssetId != Guid.Empty)
             {
@@ -71,10 +72,11 @@ public class InventoryCalculator : IInventoryCalculator
                 UpdateTracker(realizedPLTracker, feeAssetId, feePL);
             }
 
-            if (tx.Type == TransactionType.Swap && tx.AmountSpent > 0)
+            if ((tx.Type == TransactionType.Swap || tx.Type == TransactionType.Withdrawal) && tx.AmountSpent > 0 && tx.FromAssetId.HasValue)
             {
-                decimal swapPL = ConsumeInventory(fifoQueue, tx.FromAssetId, tx.AmountSpent, pt, isFee: false, currency, costBasisSoldTracker, lossCandidates);
-                UpdateTracker(realizedPLTracker, tx.FromAssetId, swapPL);
+                Guid fromAssetId = tx.FromAssetId.Value;
+                decimal outflowPL = ConsumeInventory(fifoQueue, fromAssetId, tx.AmountSpent, pt, isFee: false, currency, costBasisSoldTracker, lossCandidates);
+                UpdateTracker(realizedPLTracker, fromAssetId, outflowPL);
             }
         }
 
@@ -169,8 +171,8 @@ public class InventoryCalculator : IInventoryCalculator
     {
         if (!queue.TryGetValue(assetId, out var inventory) || inventory.Count == 0)
         {
-            string symbol = pTransaction.Transaction.FromAssetId == assetId ? pTransaction.Transaction.FromAsset.Symbol : 
-                            (pTransaction.Transaction.ToAssetId == assetId ? pTransaction.Transaction.ToAsset.Symbol : assetId.ToString());
+            string symbol = (pTransaction.Transaction.FromAssetId == assetId && pTransaction.Transaction.FromAsset != null) ? pTransaction.Transaction.FromAsset.Symbol : 
+                            ((pTransaction.Transaction.ToAssetId == assetId && pTransaction.Transaction.ToAsset != null) ? pTransaction.Transaction.ToAsset.Symbol : assetId.ToString());
             pTransaction.Error = $"Insufficient inventory for {symbol}. Needed {amountToConsume}.";
             return 0;
         }
@@ -195,8 +197,8 @@ public class InventoryCalculator : IInventoryCalculator
         
         if (remaining > 0)
         {
-             string symbol = pTransaction.Transaction.FromAssetId == assetId ? pTransaction.Transaction.FromAsset.Symbol : 
-                             (pTransaction.Transaction.ToAssetId == assetId ? pTransaction.Transaction.ToAsset.Symbol : assetId.ToString());
+             string symbol = (pTransaction.Transaction.FromAssetId == assetId && pTransaction.Transaction.FromAsset != null) ? pTransaction.Transaction.FromAsset.Symbol : 
+                             ((pTransaction.Transaction.ToAssetId == assetId && pTransaction.Transaction.ToAsset != null) ? pTransaction.Transaction.ToAsset.Symbol : assetId.ToString());
              pTransaction.Error = $"Insufficient inventory for {symbol}. Missing {remaining}, used {amountToConsume - remaining}.";
         }
 

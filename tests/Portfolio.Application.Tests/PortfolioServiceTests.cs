@@ -57,7 +57,7 @@ public class PortfolioServiceTests
             ToAssetId = Guid.NewGuid(),
             AmountSpent = 10000,
             AmountReceived = 1,
-            FromAssetPriceInUsd = 1
+            SpotPriceInUsd = 1
         };
 
         await _service.AddTransactionAsync(request);
@@ -85,7 +85,7 @@ public class PortfolioServiceTests
 
         await _mockRepo.Received(1).UpdateAsync(Arg.Is<Transaction>(t => 
             t.UsdEurExchangeRate == 0.85m &&
-            t.FromAssetPriceInEur == 0.85m // 1 * 0.85
+            t.SpotPriceInEur == 0.85m // 1 * 0.85
         ));
     }
 

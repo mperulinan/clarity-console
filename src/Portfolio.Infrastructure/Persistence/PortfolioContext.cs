@@ -39,11 +39,11 @@ public partial class PortfolioContext : DbContext
             entity.Property(e => e.Date).HasColumnType("datetime");
             entity.Property(e => e.AmountSpent).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.AmountReceived).HasColumnType("decimal(36, 18)");
-            entity.Property(e => e.FromAssetPriceInUsd).HasColumnType("decimal(36, 18)");
-            entity.Property(e => e.FromAssetPriceInEur).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.SpotPriceInUsd).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.SpotPriceInEur).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.Fee).HasColumnType("decimal(36, 18)");
-            entity.Property(e => e.FeeAssetPriceInUsd).HasColumnType("decimal(36, 18)");
-            entity.Property(e => e.FeeAssetPriceInEur).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.FeeSpotPriceInUsd).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.FeeSpotPriceInEur).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.UsdEurExchangeRate).HasColumnType("decimal(18, 8)");
             entity.Property(e => e.Notes).HasMaxLength(-1);
 

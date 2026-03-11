@@ -44,7 +44,7 @@ public class TransactionTests
         tx.UpdateExchangeRates(0.9m);
 
         Assert.Equal(0.9m, tx.UsdEurExchangeRate);
-        Assert.Equal(90m, tx.FromAssetPriceInEur);
-        Assert.Equal(9m, tx.FeeAssetPriceInEur); // 10 * 0.9
+        Assert.Equal(90m, tx.SpotPriceInEur);
+        Assert.Equal(9m, tx.FeeSpotPriceInEur); // 10 * 0.9
     }
 }

@@ -1,13 +1,13 @@
 export interface NewTransactionRequest {
     date: string;
     transactionTypeCode: string;
-    fromAssetId: string;
-    toAssetId: string;
+    fromAssetId?: string;
+    toAssetId?: string;
     amountSpent: number;
     amountReceived: number;
-    fromAssetPriceInUsd?: number;
+    spotPriceInUsd: number;
     fee: number;
     feeAssetId?: string;
-    feeAssetPriceInUsd?: number;
+    feeSpotPriceInUsd?: number;
     notes?: string;
 }

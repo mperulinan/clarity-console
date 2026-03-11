@@ -90,16 +90,16 @@ public class PortfolioService(
             Id = transaction.Id,
             Date = transaction.Date,
             Type = transaction.Type,
-            FromAsset = MapToDto(transaction.FromAsset),
-            ToAsset = MapToDto(transaction.ToAsset),
+            FromAsset = transaction.FromAsset != null ? MapToDto(transaction.FromAsset) : null,
+            ToAsset = transaction.ToAsset != null ? MapToDto(transaction.ToAsset) : null,
             AmountSpent = transaction.AmountSpent,
             AmountReceived = transaction.AmountReceived,
-            FromAssetPriceInUsd = transaction.FromAssetPriceInUsd,
-            FromAssetPriceInEur = transaction.FromAssetPriceInEur,
+            SpotPriceInUsd = transaction.SpotPriceInUsd,
+            SpotPriceInEur = transaction.SpotPriceInEur,
             Fee = transaction.Fee,
             FeeAsset = transaction.FeeAsset != null ? MapToDto(transaction.FeeAsset) : null,
-            FeeAssetPriceInUsd = transaction.FeeAssetPriceInUsd,
-            FeeAssetPriceInEur = transaction.FeeAssetPriceInEur,
+            FeeSpotPriceInUsd = transaction.FeeSpotPriceInUsd,
+            FeeSpotPriceInEur = transaction.FeeSpotPriceInEur,
             UsdEurExchangeRate = transaction.UsdEurExchangeRate,
             Notes = transaction.Notes
         };
@@ -127,12 +127,12 @@ public class PortfolioService(
             request.ToAssetId,
             request.AmountSpent,
             request.AmountReceived,
-            request.FromAssetPriceInUsd,
-            request.FromAssetPriceInEur,
+            request.SpotPriceInUsd,
+            null, // SpotPriceInEur
             request.Fee,
             request.FeeAssetId,
-            request.FeeAssetPriceInUsd,
-            request.FeeAssetPriceInEur,
+            request.FeeSpotPriceInUsd,
+            null, // FeeSpotPriceInEur
             null, // UsdEurExchangeRate - will be set when EUR prices are calculated
             request.Notes
         );
@@ -152,7 +152,7 @@ public class PortfolioService(
         var transactionsNeedingRates = transactions.Where(t => 
             t.Date.Date < today && // Only past transactions
             (
-                (!t.FromAssetPriceInEur.HasValue) || (t.FeeAssetPriceInUsd.HasValue && !t.FeeAssetPriceInEur.HasValue)
+                (!t.SpotPriceInEur.HasValue) || (t.FeeSpotPriceInUsd.HasValue && !t.FeeSpotPriceInEur.HasValue)
             )
         ).ToList();
 
