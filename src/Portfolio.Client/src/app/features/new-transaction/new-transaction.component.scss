@@ -1,10 +1,229 @@
-.transaction-card {
-    width: 100%;
-    max-width: 800px;
-    background-color: #2d2d2d;
+/* ═══════════════════════════════════════════════
+   New Transaction — Dark Theme (Glassmorphism)
+   ═══════════════════════════════════════════════ */
+
+:host {
+    display: block;
+    min-height: 100vh;
 }
 
-.bg-darker {
-    background-color: #252525;
-    border: 1px solid #333;
+.transaction-page {
+    padding: 28px 32px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* ── TOKENS ─────────────────────────────────── */
+$bg-card: #16213e;
+$border: rgba(255, 255, 255, 0.07);
+$text-primary: #f0f0f0;
+$text-muted: #8892a4;
+$accent: #7c6cfc;
+$accent-hover: #5c4ee8;
+
+/* ── GLASSMORPHISM ───────────────────────────── */
+.glass {
+    background: rgba(22, 33, 62, 0.7) !important;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ── ANIMATIONS ─────────────────────────────── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-card {
+    animation: fadeInUp 0.5s ease backwards;
+    position: relative;
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 16px;
+    padding: 32px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        pointer-events: none;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    }
+}
+
+.card-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+        color: $accent;
+    }
+}
+
+/* ── FORM SECTIONS ──────────────────────────── */
+.section-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: $text-muted;
+        margin-bottom: 16px;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+        }
+    }
+}
+
+/* ── TYPE BUTTONS ───────────────────────────── */
+.type-toggle-group {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px;
+    padding: 4px;
+    display: flex;
+
+    mat-button-toggle {
+        background: transparent;
+        color: $text-muted;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 600;
+        flex: 1;
+
+        &.mat-button-toggle-checked {
+            background: rgba(124, 108, 252, 0.2) !important;
+            color: $accent !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+    }
+}
+
+/* ── MATERIAL OVERRIDES ──────────────────────── */
+::ng-deep {
+    .mat-mdc-form-field {
+        width: 100%;
+    }
+
+    .mat-mdc-text-field-wrapper {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .mdc-line-ripple::before {
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .mdc-line-ripple::after {
+        border-bottom-color: $accent !important;
+    }
+
+    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
+        color: $text-muted !important;
+    }
+
+    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
+        color: $text-primary !important;
+    }
+
+    .mat-mdc-select-value {
+        color: $text-primary !important;
+    }
+
+    .mat-mdc-select-arrow {
+        color: $text-muted !important;
+    }
+}
+
+/* ── ACTIONS ────────────────────────────────── */
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid $border;
+
+    .cancel-btn {
+        color: $text-primary;
+        font-weight: 600;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, $accent, $accent-hover);
+        color: #fff;
+        font-weight: 600;
+        padding: 0 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(124, 108, 252, 0.3);
+        transition: transform 0.2s, box-shadow 0.2s;
+
+        &:not(:disabled):hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(124, 108, 252, 0.4);
+        }
+
+        &:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.3);
+            box-shadow: none;
+        }
+    }
+}
+
+/* ── SKELETON ────────────────────────────────── */
+@keyframes shimmer {
+    0% { background-position: -600px 0; }
+    100% { background-position: 600px 0; }
+}
+
+$skel-shine: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+
+.skel-card {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 16px;
+    height: 400px;
+}
+
+.skel-line {
+    background: $skel-shine;
+    background-size: 600px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 6px;
+    height: 48px;
+    margin-bottom: 16px;
 }

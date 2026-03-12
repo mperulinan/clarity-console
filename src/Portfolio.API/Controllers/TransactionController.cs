@@ -23,4 +23,17 @@ public class TransactionController(IPortfolioService portfolioService) : Control
         await portfolioService.AddTransactionAsync(request);
         return Ok();
     }
+
+    [HttpGet("types")]
+    public ActionResult<IEnumerable<TransactionTypeDto>> GetTransactionTypes()
+    {
+        var types = TransactionType.List.Select(t => new TransactionTypeDto
+        { 
+            Value = t.Value, 
+            Label = t.Name,
+            RequiresFromAsset = t.RequiresFromAsset,
+            RequiresToAsset = t.RequiresToAsset
+        });
+        return Ok(types);
+    }
 }

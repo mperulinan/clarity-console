@@ -5,6 +5,7 @@ import { PortfolioMetrics } from '../models/portfolio-metrics';
 import { PortfolioReport } from '../models/portfolio-report';
 import { NewTransactionRequest } from '../models/new-transaction-request';
 import { environment } from '../../environments/environment';
+import { TransactionType } from '../models/transaction';
 
 @Injectable({
     providedIn: 'root'
@@ -24,5 +25,9 @@ export class PortfolioService {
 
     addTransaction(request: NewTransactionRequest): Observable<void> {
         return this.http.post<void>(`${this.apiUrl}/Transaction`, request);
+    }
+
+    getTransactionTypes(): Observable<TransactionType[]> {
+        return this.http.get<TransactionType[]>(`${this.apiUrl}/Transaction/types`);
     }
 }

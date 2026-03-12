@@ -9,7 +9,7 @@ export interface ProcessedTransaction {
 export interface Transaction {
     id: number;
     date: string; // ISO date string
-    transactionTypeCode: string;
+    transactionType: TransactionType;
     fromAssetId?: string;
     toAssetId?: string;
     amountSpent: number;
@@ -22,4 +22,11 @@ export interface Transaction {
     feeSpotPriceInEur?: number;
     usdEurExchangeRate?: number;
     notes?: string;
+}
+
+export interface TransactionType {
+    value: string;
+    label: string;
+    requiresFromAsset: boolean;
+    requiresToAsset: boolean;
 }

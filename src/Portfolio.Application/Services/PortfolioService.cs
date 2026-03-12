@@ -128,11 +128,11 @@ public class PortfolioService(
             request.AmountSpent,
             request.AmountReceived,
             request.SpotPriceInUsd,
-            null, // SpotPriceInEur
+            request.SpotPriceInEur,
             request.Fee,
             request.FeeAssetId,
             request.FeeSpotPriceInUsd,
-            null, // FeeSpotPriceInEur
+            request.FeeSpotPriceInEur,
             null, // UsdEurExchangeRate - will be set when EUR prices are calculated
             request.Notes
         );
