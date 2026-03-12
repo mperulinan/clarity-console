@@ -21,134 +21,156 @@
         </h2>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col">
+            <mat-stepper [linear]="false" #stepper class="bg-transparent">
+                
+                <!-- ── STEP 1: CORE DETAILS ───────────────────────────── -->
+                <mat-step>
+                    <ng-template matStepLabel>Core Details</ng-template>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-4">
+                        <div>
+                            <div class="text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">Transaction Type</div>
+                            <mat-button-toggle-group formControlName="type" class="type-toggle-grid w-full">
+                                @for (type of transactionTypes(); track type.value) {
+                                <mat-button-toggle [value]="type.value">
+                                    {{ type.label }}
+                                </mat-button-toggle>
+                                }
+                            </mat-button-toggle-group>
+                        </div>
 
-            <!-- ── TYPE & DATE ────────────────────────────────────── -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <div class="text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">Transaction Type
+                        <div>
+                            <div class="text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">Date & Time</div>
+                            <div class="native-datetime-wrapper">
+                                <input type="datetime-local" formControlName="date" class="native-datetime-input w-full">
+                            </div>
+                        </div>
                     </div>
-                    <mat-button-toggle-group formControlName="type" class="type-toggle-group w-full">
-                        @for (type of transactionTypes(); track type.value) {
-                        <mat-button-toggle [value]="type.value">
-                            {{ type.label }}
-                        </mat-button-toggle>
-                        }
-                    </mat-button-toggle-group>
-                </div>
 
-                <div>
-                    <div class="text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">Date & Time</div>
-                    <mat-form-field appearance="fill">
-                        <mat-label>Transaction Date</mat-label>
-                        <input matInput [matDatepicker]="picker" formControlName="date">
-                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                        <mat-datepicker #picker></mat-datepicker>
-                    </mat-form-field>
-                </div>
-            </div>
-
-            <!-- ── FROM ASSET ─────────────────────────────────────── -->
-            @if (selectedTypeData()?.requiresFromAsset) {
-            <div class="section-card">
-                <div class="section-title">
-                    <mat-icon>transit_enterexit</mat-icon> Disposed Asset
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <mat-form-field appearance="fill">
-                        <mat-label>Asset Symbol or Name</mat-label>
-                        <input matInput formControlName="fromAssetId" placeholder="e.g. BTC, ETH">
-                    </mat-form-field>
-                    <mat-form-field appearance="fill">
-                        <mat-label>Total Amount Spent</mat-label>
-                        <input matInput type="number" formControlName="amountSpent">
-                    </mat-form-field>
-                </div>
-            </div>
-            }
-
-            <!-- ── TO ASSET ───────────────────────────────────────── -->
-            @if (selectedTypeData()?.requiresToAsset) {
-            <div class="section-card">
-                <div class="section-title">
-                    <mat-icon>account_balance_wallet</mat-icon> Acquired Asset
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <mat-form-field appearance="fill">
-                        <mat-label>Asset Symbol or Name</mat-label>
-                        <input matInput formControlName="toAssetId" placeholder="e.g. BTC, ETH">
-                    </mat-form-field>
-                    <mat-form-field appearance="fill">
-                        <mat-label>Total Amount Received</mat-label>
-                        <input matInput type="number" formControlName="amountReceived">
-                    </mat-form-field>
-                </div>
-            </div>
-            }
-
-            <!-- ── PRICE DETAILS ──────────────────────────────────── -->
-            <div class="section-card">
-                <div class="section-title">
-                    <mat-icon>analytics</mat-icon> Asset Pricing
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <mat-form-field appearance="fill">
-                        <mat-label>Spot Price in USD ($)</mat-label>
-                        <input matInput type="number" formControlName="spotPriceInUsd"
-                            placeholder="Required for metrics">
-                    </mat-form-field>
-                    <mat-form-field appearance="fill">
-                        <mat-label>Spot Price in EUR (€)</mat-label>
-                        <input matInput type="number" formControlName="spotPriceInEur" placeholder="Optional override">
-                    </mat-form-field>
-                </div>
-            </div>
-
-            <!-- ── FEES ───────────────────────────────────────────── -->
-            <div class="section-card">
-                <div class="section-title">
-                    <mat-icon>receipt</mat-icon> Transaction Fees
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <mat-form-field appearance="fill">
-                        <mat-label>Fee Amount</mat-label>
-                        <input matInput type="number" formControlName="fee">
-                    </mat-form-field>
-                    <mat-form-field appearance="fill">
-                        <mat-label>Fee Asset</mat-label>
-                        <input matInput formControlName="feeAssetId" placeholder="e.g. USD, BNB">
-                    </mat-form-field>
-                    <mat-form-field appearance="fill">
-                        <mat-label>Fee Price (USD)</mat-label>
-                        <input matInput type="number" formControlName="feeSpotPriceInUsd" placeholder="Optional">
-                    </mat-form-field>
-                    <mat-form-field appearance="fill">
-                        <mat-label>Fee Price (EUR)</mat-label>
-                        <input matInput type="number" formControlName="feeSpotPriceInEur" placeholder="Optional">
-                    </mat-form-field>
-                </div>
-            </div>
-
-            <!-- ── NOTES ──────────────────────────────────────────── -->
-            <mat-form-field appearance="fill">
-                <mat-label>Additional Notes</mat-label>
-                <textarea matInput formControlName="notes" rows="2" placeholder="Reasons, tx hashes, etc."></textarea>
-            </mat-form-field>
-
-            <!-- ── ACTIONS ────────────────────────────────────────── -->
-            <div class="action-buttons">
-                <button mat-button type="button" (click)="onCancel()" class="cancel-btn text-white">
-                    Cancel
-                </button>
-                <button mat-raised-button color="primary" type="submit" class="submit-btn"
-                    [disabled]="form.invalid || isSubmitting()">
-                    @if (isSubmitting()) {
-                    Saving...
-                    } @else {
-                    Save Transaction
+                    <!-- ── FROM ASSET ─────────────────────────────────────── -->
+                    @if (selectedTypeData()?.requiresFromAsset) {
+                    <div class="section-card">
+                        <div class="section-title">
+                            <mat-icon>{{ uiLabels().fromIcon }}</mat-icon> {{ uiLabels().fromTitle }}
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <mat-form-field appearance="fill">
+                                <mat-label>Asset Symbol or Name</mat-label>
+                                <input matInput formControlName="fromAssetId" placeholder="e.g. BTC, ETH">
+                            </mat-form-field>
+                            <mat-form-field appearance="fill">
+                                <mat-label>{{ uiLabels().fromAmount }}</mat-label>
+                                <input matInput type="number" formControlName="amountSpent">
+                            </mat-form-field>
+                        </div>
+                    </div>
                     }
-                </button>
-            </div>
 
+                    <!-- ── TO ASSET ───────────────────────────────────────── -->
+                    @if (selectedTypeData()?.requiresToAsset) {
+                    <div class="section-card">
+                        <div class="section-title">
+                            <mat-icon>{{ uiLabels().toIcon }}</mat-icon> {{ uiLabels().toTitle }}
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <mat-form-field appearance="fill">
+                                <mat-label>Asset Symbol or Name</mat-label>
+                                <input matInput formControlName="toAssetId" placeholder="e.g. BTC, ETH">
+                            </mat-form-field>
+                            <mat-form-field appearance="fill">
+                                <mat-label>{{ uiLabels().toAmount }}</mat-label>
+                                <input matInput type="number" formControlName="amountReceived">
+                            </mat-form-field>
+                        </div>
+                    </div>
+                    }
+
+                    <div class="action-buttons pt-0 border-t-0 mt-4">
+                        <button mat-button type="button" matStepperNext class="submit-btn ml-auto" [disabled]="!isStep1Valid">Next</button>
+                    </div>
+                </mat-step>
+
+                <!-- ── STEP 2: PRICING & FEES ─────────────────────────── -->
+                <mat-step>
+                    <ng-template matStepLabel>Pricing & Fees</ng-template>
+
+                    <div class="mt-4">
+                        <!-- ── PRICE DETAILS ──────────────────────────────────── -->
+                        <div class="section-card">
+                            <div class="section-title">
+                                <mat-icon>analytics</mat-icon> Asset Pricing
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <mat-form-field appearance="fill">
+                                    <mat-label>Spot Price in USD ($)</mat-label>
+                                    <input matInput type="number" formControlName="spotPriceInUsd" placeholder="Required for metrics">
+                                </mat-form-field>
+                                <mat-form-field appearance="fill">
+                                    <mat-label>Spot Price in EUR (€)</mat-label>
+                                    <input matInput type="number" formControlName="spotPriceInEur" placeholder="Optional override">
+                                </mat-form-field>
+                            </div>
+                        </div>
+
+                        <!-- ── FEES ───────────────────────────────────────────── -->
+                        <div class="section-card">
+                            <div class="section-title">
+                                <mat-icon>receipt</mat-icon> Transaction Fees
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                                <mat-form-field appearance="fill">
+                                    <mat-label>Fee Amount</mat-label>
+                                    <input matInput type="number" formControlName="fee">
+                                </mat-form-field>
+                                <mat-form-field appearance="fill">
+                                    <mat-label>Fee Asset</mat-label>
+                                    <input matInput formControlName="feeAssetId" placeholder="e.g. USD, BNB">
+                                </mat-form-field>
+                                <mat-form-field appearance="fill">
+                                    <mat-label>Fee Price (USD)</mat-label>
+                                    <input matInput type="number" formControlName="feeSpotPriceInUsd" placeholder="Optional">
+                                </mat-form-field>
+                                <mat-form-field appearance="fill">
+                                    <mat-label>Fee Price (EUR)</mat-label>
+                                    <input matInput type="number" formControlName="feeSpotPriceInEur" placeholder="Optional">
+                                </mat-form-field>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons pt-0 border-t-0 mt-4 justify-between">
+                        <button mat-button type="button" matStepperPrevious class="text-white">Back</button>
+                        <button mat-button type="button" matStepperNext class="submit-btn" [disabled]="!isStep2Valid">Next</button>
+                    </div>
+                </mat-step>
+
+                <!-- ── STEP 3: REVIEW ─────────────────────────────────── -->
+                <mat-step>
+                    <ng-template matStepLabel>Review</ng-template>
+
+                    <div class="mt-4">
+                        <!-- ── NOTES ──────────────────────────────────────────── -->
+                        <mat-form-field appearance="fill">
+                            <mat-label>Additional Notes</mat-label>
+                            <textarea matInput formControlName="notes" rows="4" placeholder="Reasons, tx hashes, etc."></textarea>
+                        </mat-form-field>
+                    </div>
+
+                    <!-- ── ACTIONS ────────────────────────────────────────── -->
+                    <div class="action-buttons mt-4">
+                        <button mat-button type="button" matStepperPrevious class="text-white mr-auto">Back</button>
+                        <button mat-button type="button" (click)="onCancel()" class="cancel-btn text-white">Cancel</button>
+                        <button mat-raised-button color="primary" type="submit" class="submit-btn" [disabled]="form.invalid || isSubmitting()">
+                            @if (isSubmitting()) {
+                            Saving...
+                            } @else {
+                            Save Transaction
+                            }
+                        </button>
+                    </div>
+                </mat-step>
+
+            </mat-stepper>
         </form>
     </div>
     }

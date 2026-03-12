@@ -2,6 +2,7 @@ import { Component, OnInit, signal, computed, ChangeDetectionStrategy } from '@a
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 // Material
 import { MatCardModule } from '@angular/material/card';
@@ -12,6 +13,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatStepperModule } from '@angular/material/stepper';
 
 import { PortfolioService } from '../../services/portfolio.service';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
@@ -31,7 +33,8 @@ import { finalize } from 'rxjs';
         MatDatepickerModule,
         MatButtonModule,
         MatIconModule,
-        MatButtonToggleModule
+        MatButtonToggleModule,
+        MatStepperModule
     ],
     templateUrl: './new-transaction.component.html',
     styleUrl: './new-transaction.component.scss',
@@ -45,12 +48,12 @@ export class NewTransactionComponent implements OnInit {
     isLoadingTypes = signal<boolean>(true);
     transactionTypes = signal<TransactionType[]>([]);
 
+    // Reactive Form to Signal Bridge
+    private typeValueChange: () => string;
+
     // Computed state
-    selectedTypeData = computed(() => {
-        const typeValue = this.form.get('type')?.value;
-        const types = this.transactionTypes();
-        return types.find(t => t.value === typeValue);
-    });
+    selectedTypeData: () => TransactionType | undefined;
+    uiLabels: () => any;
 
     constructor(
         private fb: FormBuilder,
@@ -58,7 +61,8 @@ export class NewTransactionComponent implements OnInit {
         private router: Router
     ) {
         this.form = this.fb.group({
-            date: [new Date(), Validators.required],
+            // Format to YYYY-MM-DDThh:mm for datetime-local
+            date: [new Date().toISOString().slice(0, 16), Validators.required],
             type: ['', Validators.required],
             fromAssetId: ['', Validators.required],
             toAssetId: ['', Validators.required],
@@ -71,6 +75,51 @@ export class NewTransactionComponent implements OnInit {
             feeSpotPriceInUsd: [null],
             feeSpotPriceInEur: [null],
             notes: ['']
+        });
+
+        // Initialize signals that depend on form
+        this.typeValueChange = toSignal(this.form.get('type')!.valueChanges, { initialValue: '' });
+
+        this.selectedTypeData = computed(() => {
+            const typeValue = this.typeValueChange();
+            const types = this.transactionTypes();
+            return types.find(t => t.value === typeValue);
+        });
+
+        this.uiLabels = computed(() => {
+            const typeData = this.selectedTypeData();
+            if (!typeData) return {
+                fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent',
+                toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received'
+            };
+
+            switch (typeData.value.toUpperCase()) {
+                case 'DEPOSIT':
+                    return {
+                        toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited',
+                        fromTitle: '', fromIcon: '', fromAmount: ''
+                    };
+                case 'WITHDRAWAL':
+                    return {
+                        fromTitle: 'Asset Withdrawn', fromIcon: 'north_east', fromAmount: 'Amount Withdrawn',
+                        toTitle: '', toIcon: '', toAmount: ''
+                    };
+                case 'SWAP':
+                    return {
+                        fromTitle: 'Asset Sold', fromIcon: 'sell', fromAmount: 'Amount Sold',
+                        toTitle: 'Asset Bought', toIcon: 'shopping_cart', toAmount: 'Amount Bought'
+                    };
+                case 'REWARD':
+                    return {
+                        toTitle: 'Asset Rewarded', toIcon: 'workspace_premium', toAmount: 'Reward Amount',
+                        fromTitle: '', fromIcon: '', fromAmount: ''
+                    };
+                default:
+                    return {
+                        fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent',
+                        toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received'
+                    };
+            }
         });
     }
 
@@ -142,7 +191,7 @@ export class NewTransactionComponent implements OnInit {
         const formValue = this.form.value;
 
         const request: NewTransactionRequest = {
-            date: formValue.date.toISOString(),
+            date: new Date(formValue.date).toISOString(),
             transactionTypeCode: formValue.type,
             fromAssetId: formValue.fromAssetId || undefined,
             toAssetId: formValue.toAssetId || undefined,
@@ -171,5 +220,15 @@ export class NewTransactionComponent implements OnInit {
 
     onCancel() {
         this.router.navigate(['/']);
+    }
+
+    get isStep1Valid(): boolean {
+        const controls = ['type', 'date', 'fromAssetId', 'amountSpent', 'toAssetId', 'amountReceived'];
+        return controls.every(c => this.form.get(c)?.valid);
+    }
+
+    get isStep2Valid(): boolean {
+        const controls = ['spotPriceInUsd', 'spotPriceInEur', 'fee', 'feeAssetId', 'feeSpotPriceInUsd', 'feeSpotPriceInEur'];
+        return controls.every(c => this.form.get(c)?.valid);
     }
 }

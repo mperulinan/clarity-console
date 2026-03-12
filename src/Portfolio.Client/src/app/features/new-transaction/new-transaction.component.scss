@@ -35,6 +35,7 @@ $accent-hover: #5c4ee8;
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -105,12 +106,15 @@ $accent-hover: #5c4ee8;
 }
 
 /* ── TYPE BUTTONS ───────────────────────────── */
-.type-toggle-group {
+.type-toggle-grid {
     background: rgba(0, 0, 0, 0.3) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 8px;
     padding: 4px;
-    display: flex;
+    display: grid;
+    /* Automatically wrap into exactly as many columns as will fit at 130px min width */
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 4px;
 
     mat-button-toggle {
         background: transparent;
@@ -118,7 +122,8 @@ $accent-hover: #5c4ee8;
         border: none !important;
         border-radius: 6px !important;
         font-weight: 600;
-        flex: 1;
+        text-align: center;
+        width: 100%;
 
         &.mat-button-toggle-checked {
             background: rgba(124, 108, 252, 0.2) !important;
@@ -128,8 +133,74 @@ $accent-hover: #5c4ee8;
     }
 }
 
+/* ── NATIVE DATETIME ────────────────────────── */
+.native-datetime-wrapper {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    transition: border-color 0.2s;
+
+    &:focus-within {
+        border-bottom-color: $accent;
+    }
+}
+
+.native-datetime-input {
+    background: transparent;
+    border: none;
+    color: $text-primary;
+    font-family: inherit;
+    font-size: 16px;
+    outline: none;
+    width: 100%;
+
+    &::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+        opacity: 0.6;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+}
+
 /* ── MATERIAL OVERRIDES ──────────────────────── */
 ::ng-deep {
+
+    /* MatStepper Glassmorphism Overrides */
+    .mat-stepper-horizontal {
+        background: transparent !important;
+    }
+
+    .mat-step-header {
+        .mat-step-label {
+            color: $text-muted !important;
+
+            &.mat-step-label-active {
+                color: $text-primary !important;
+                font-weight: 600;
+            }
+        }
+
+        .mat-step-icon {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: $text-muted;
+        }
+
+        &.mat-step-header-active {
+            .mat-step-icon {
+                background-color: $accent !important;
+                color: #fff !important;
+                box-shadow: 0 0 10px rgba(124, 108, 252, 0.5);
+            }
+        }
+    }
+
     .mat-mdc-form-field {
         width: 100%;
     }
@@ -206,8 +277,13 @@ $accent-hover: #5c4ee8;
 
 /* ── SKELETON ────────────────────────────────── */
 @keyframes shimmer {
-    0% { background-position: -600px 0; }
-    100% { background-position: 600px 0; }
+    0% {
+        background-position: -600px 0;
+    }
+
+    100% {
+        background-position: 600px 0;
+    }
 }
 
 $skel-shine: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
