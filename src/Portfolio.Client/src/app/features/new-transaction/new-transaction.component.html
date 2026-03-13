@@ -21,10 +21,10 @@
         </h2>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col">
-            <mat-stepper [linear]="false" #stepper class="bg-transparent">
+            <mat-stepper [linear]="true" #stepper class="bg-transparent">
                 
                 <!-- ── STEP 1: CORE DETAILS ───────────────────────────── -->
-                <mat-step>
+                <mat-step formGroupName="step1" [stepControl]="step1Group!">
                     <ng-template matStepLabel>Core Details</ng-template>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-4">
@@ -56,7 +56,27 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <mat-form-field appearance="fill">
                                 <mat-label>Asset Symbol or Name</mat-label>
-                                <input matInput formControlName="fromAssetId" placeholder="e.g. BTC, ETH">
+                                <input matInput formControlName="fromAssetId" placeholder="e.g. BTC, ETH"
+                                       [matAutocomplete]="fromAuto" 
+                                       (blur)="onAssetInputBlur('step1.fromAssetId')">
+                                <mat-autocomplete #fromAuto="matAutocomplete" 
+                                                  [displayWith]="displayAssetFn"
+                                                  (optionSelected)="onAssetSelected($event, 'step1.fromAssetId')">
+                                    @for (asset of filteredFromAssets(); track asset.externalId || asset.id) {
+                                        <mat-option [value]="asset">
+                                            <div class="flex items-center gap-2">
+                                                @if (asset.imageUrl) {
+                                                    <img [src]="asset.imageUrl" alt="Icon" class="w-6 h-6 rounded-full bg-black">
+                                                }
+                                                <span class="font-medium">{{ asset.symbol }}</span>
+                                                <span class="text-xs text-gray-400 opacity-75">- {{ asset.name }}</span>
+                                            </div>
+                                        </mat-option>
+                                    }
+                                </mat-autocomplete>
+                                @if (isSyncingAsset()) {
+                                    <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
+                                }
                             </mat-form-field>
                             <mat-form-field appearance="fill">
                                 <mat-label>{{ uiLabels().fromAmount }}</mat-label>
@@ -75,7 +95,27 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <mat-form-field appearance="fill">
                                 <mat-label>Asset Symbol or Name</mat-label>
-                                <input matInput formControlName="toAssetId" placeholder="e.g. BTC, ETH">
+                                <input matInput formControlName="toAssetId" placeholder="e.g. BTC, ETH"
+                                       [matAutocomplete]="toAuto" 
+                                       (blur)="onAssetInputBlur('step1.toAssetId')">
+                                <mat-autocomplete #toAuto="matAutocomplete" 
+                                                  [displayWith]="displayAssetFn"
+                                                  (optionSelected)="onAssetSelected($event, 'step1.toAssetId')">
+                                    @for (asset of filteredToAssets(); track asset.externalId || asset.id) {
+                                        <mat-option [value]="asset">
+                                            <div class="flex items-center gap-2">
+                                                @if (asset.imageUrl) {
+                                                    <img [src]="asset.imageUrl" alt="Icon" class="w-6 h-6 rounded-full bg-black">
+                                                }
+                                                <span class="font-medium">{{ asset.symbol }}</span>
+                                                <span class="text-xs text-gray-400 opacity-75">- {{ asset.name }}</span>
+                                            </div>
+                                        </mat-option>
+                                    }
+                                </mat-autocomplete>
+                                @if (isSyncingAsset()) {
+                                    <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
+                                }
                             </mat-form-field>
                             <mat-form-field appearance="fill">
                                 <mat-label>{{ uiLabels().toAmount }}</mat-label>
@@ -91,7 +131,7 @@
                 </mat-step>
 
                 <!-- ── STEP 2: PRICING & FEES ─────────────────────────── -->
-                <mat-step>
+                <mat-step formGroupName="step2" [stepControl]="step2Group!">
                     <ng-template matStepLabel>Pricing & Fees</ng-template>
 
                     <div class="mt-4">
@@ -124,7 +164,27 @@
                                 </mat-form-field>
                                 <mat-form-field appearance="fill">
                                     <mat-label>Fee Asset</mat-label>
-                                    <input matInput formControlName="feeAssetId" placeholder="e.g. USD, BNB">
+                                    <input matInput formControlName="feeAssetId" placeholder="e.g. USD, BNB"
+                                           [matAutocomplete]="feeAuto" 
+                                           (blur)="onAssetInputBlur('step2.feeAssetId')">
+                                    <mat-autocomplete #feeAuto="matAutocomplete" 
+                                                      [displayWith]="displayAssetFn"
+                                                      (optionSelected)="onAssetSelected($event, 'step2.feeAssetId')">
+                                        @for (asset of filteredFeeAssets(); track asset.externalId || asset.id) {
+                                            <mat-option [value]="asset">
+                                                <div class="flex items-center gap-2">
+                                                    @if (asset.imageUrl) {
+                                                        <img [src]="asset.imageUrl" alt="Icon" class="w-6 h-6 rounded-full bg-black">
+                                                    }
+                                                    <span class="font-medium">{{ asset.symbol }}</span>
+                                                    <span class="text-xs text-gray-400 opacity-75">- {{ asset.name }}</span>
+                                                </div>
+                                            </mat-option>
+                                        }
+                                    </mat-autocomplete>
+                                    @if (isSyncingAsset()) {
+                                        <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
+                                    }
                                 </mat-form-field>
                                 <mat-form-field appearance="fill">
                                     <mat-label>Fee Price (USD)</mat-label>
@@ -145,7 +205,7 @@
                 </mat-step>
 
                 <!-- ── STEP 3: REVIEW ─────────────────────────────────── -->
-                <mat-step>
+                <mat-step formGroupName="step3">
                     <ng-template matStepLabel>Review</ng-template>
 
                     <div class="mt-4">

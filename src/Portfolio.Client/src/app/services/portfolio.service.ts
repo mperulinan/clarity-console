@@ -7,6 +7,15 @@ import { NewTransactionRequest } from '../models/new-transaction-request';
 import { environment } from '../../environments/environment';
 import { TransactionType } from '../models/transaction';
 
+export interface AssetDto {
+    id: string; // The GUID from the DB, or empty if unsynced
+    symbol: string;
+    name: string;
+    externalId?: string;
+    imageUrl?: string;
+    type: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -29,5 +38,17 @@ export class PortfolioService {
 
     getTransactionTypes(): Observable<TransactionType[]> {
         return this.http.get<TransactionType[]>(`${this.apiUrl}/Transaction/types`);
+    }
+
+    searchAssets(query: string, type?: string): Observable<AssetDto[]> {
+        let params = `?query=${encodeURIComponent(query)}`;
+        if (type) {
+            params += `&type=${encodeURIComponent(type)}`;
+        }
+        return this.http.get<AssetDto[]>(`${this.apiUrl}/Asset/search${params}`);
+    }
+
+    syncAsset(asset: AssetDto): Observable<AssetDto> {
+        return this.http.post<AssetDto>(`${this.apiUrl}/Asset/sync`, asset);
     }
 }

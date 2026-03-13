@@ -1,8 +1,9 @@
-import { Component, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, signal, computed, ChangeDetectionStrategy, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Observable, debounceTime, switchMap, catchError, of, map, startWith, filter, tap } from 'rxjs';
 
 // Material
 import { MatCardModule } from '@angular/material/card';
@@ -14,8 +15,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatOptionModule } from '@angular/material/core';
 
-import { PortfolioService } from '../../services/portfolio.service';
+import { PortfolioService, AssetDto } from '../../services/portfolio.service';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType } from '../../models/transaction';
 import { finalize } from 'rxjs';
@@ -34,7 +37,9 @@ import { finalize } from 'rxjs';
         MatButtonModule,
         MatIconModule,
         MatButtonToggleModule,
-        MatStepperModule
+        MatStepperModule,
+        MatAutocompleteModule,
+        MatOptionModule
     ],
     templateUrl: './new-transaction.component.html',
     styleUrl: './new-transaction.component.scss',
@@ -46,7 +51,12 @@ export class NewTransactionComponent implements OnInit {
     // State using Signals
     isSubmitting = signal<boolean>(false);
     isLoadingTypes = signal<boolean>(true);
+    isSyncingAsset = signal<boolean>(false);
     transactionTypes = signal<TransactionType[]>([]);
+
+    filteredFromAssets!: WritableSignal<AssetDto[]>;
+    filteredToAssets!: WritableSignal<AssetDto[]>;
+    filteredFeeAssets!: WritableSignal<AssetDto[]>;
 
     // Reactive Form to Signal Bridge
     private typeValueChange: () => string;
@@ -61,24 +71,30 @@ export class NewTransactionComponent implements OnInit {
         private router: Router
     ) {
         this.form = this.fb.group({
-            // Format to YYYY-MM-DDThh:mm for datetime-local
-            date: [new Date().toISOString().slice(0, 16), Validators.required],
-            type: ['', Validators.required],
-            fromAssetId: ['', Validators.required],
-            toAssetId: ['', Validators.required],
-            amountSpent: [null, [Validators.required, Validators.min(0)]],
-            amountReceived: [null, [Validators.required, Validators.min(0)]],
-            spotPriceInUsd: [null, Validators.required],
-            spotPriceInEur: [null],
-            fee: [0],
-            feeAssetId: [''],
-            feeSpotPriceInUsd: [null],
-            feeSpotPriceInEur: [null],
-            notes: ['']
+            step1: this.fb.group({
+                // Format to YYYY-MM-DDThh:mm for datetime-local
+                date: [new Date().toISOString().slice(0, 16), Validators.required],
+                type: ['', Validators.required],
+                fromAssetId: ['', Validators.required],
+                toAssetId: ['', Validators.required],
+                amountSpent: [null, [Validators.required, Validators.min(0)]],
+                amountReceived: [null, [Validators.required, Validators.min(0)]]
+            }),
+            step2: this.fb.group({
+                spotPriceInUsd: [null, Validators.required],
+                spotPriceInEur: [null],
+                fee: [0],
+                feeAssetId: [''],
+                feeSpotPriceInUsd: [null],
+                feeSpotPriceInEur: [null]
+            }),
+            step3: this.fb.group({
+                notes: ['']
+            })
         });
 
         // Initialize signals that depend on form
-        this.typeValueChange = toSignal(this.form.get('type')!.valueChanges, { initialValue: '' });
+        this.typeValueChange = toSignal(this.form.get('step1.type')!.valueChanges, { initialValue: '' });
 
         this.selectedTypeData = computed(() => {
             const typeValue = this.typeValueChange();
@@ -123,6 +139,58 @@ export class NewTransactionComponent implements OnInit {
         });
     }
 
+    private setupAutocomplete(controlPath: string, targetSignal: WritableSignal<AssetDto[]>) {
+        this.form.get(controlPath)?.valueChanges.pipe(
+            startWith(''),
+            filter(value => typeof value === 'string'),
+            debounceTime(300),
+            switchMap((value: string) => {
+                if (!value || value.length < 2) return of([]);
+                return this.portfolioService.searchAssets(value).pipe(
+                    catchError(() => of([]))
+                );
+            })
+        ).subscribe(assets => targetSignal.set(assets));
+    }
+
+    displayAssetFn(asset: AssetDto): string {
+        return asset ? `${asset.name} (${asset.symbol})` : '';
+    }
+
+    onAssetSelected(event: MatAutocompleteSelectedEvent, controlPath: string) {
+        const asset = event.option.value as AssetDto;
+        if (!asset) return;
+
+        if (!asset.id || asset.id === '00000000-0000-0000-0000-000000000000') {
+            // Need to sync external asset first
+            this.isSyncingAsset.set(true);
+            this.form.get(controlPath)?.disable();
+
+            this.portfolioService.syncAsset(asset).pipe(
+                finalize(() => {
+                    this.isSyncingAsset.set(false);
+                    this.form.get(controlPath)?.enable();
+                })
+            ).subscribe({
+                next: (syncedAsset) => {
+                    this.form.get(controlPath)?.setValue(syncedAsset, { emitEvent: false });
+                },
+                error: (err) => {
+                    console.error('Failed to sync asset', err);
+                    this.form.get(controlPath)?.setValue(null); // Clear on fail
+                }
+            });
+        }
+    }
+
+    onAssetInputBlur(controlPath: string) {
+        // Enforce strict object selection (if value is still a string, they didn't pick an option)
+        const control = this.form.get(controlPath);
+        if (control && typeof control.value === 'string') {
+            control.setValue(null);
+        }
+    }
+
     ngOnInit() {
         this.portfolioService.getTransactionTypes()
             .pipe(finalize(() => this.isLoadingTypes.set(false)))
@@ -131,7 +199,7 @@ export class NewTransactionComponent implements OnInit {
                     this.transactionTypes.set(types);
                     if (types.length > 0) {
                         const firstType = types[0].value;
-                        this.form.get('type')?.setValue(firstType);
+                        this.form.get('step1.type')?.setValue(firstType);
                         this.updateValidators(types[0]);
                     }
                 },
@@ -140,8 +208,17 @@ export class NewTransactionComponent implements OnInit {
                 }
             });
 
+        // Setup Autocomplete pipelines
+        this.filteredFromAssets = signal<AssetDto[]>([]);
+        this.filteredToAssets = signal<AssetDto[]>([]);
+        this.filteredFeeAssets = signal<AssetDto[]>([]);
+
+        this.setupAutocomplete('step1.fromAssetId', this.filteredFromAssets);
+        this.setupAutocomplete('step1.toAssetId', this.filteredToAssets);
+        this.setupAutocomplete('step2.feeAssetId', this.filteredFeeAssets);
+
         // Listen to form type changes to update validators
-        this.form.get('type')?.valueChanges.subscribe(typeValue => {
+        this.form.get('step1.type')?.valueChanges.subscribe(typeValue => {
             const types = this.transactionTypes();
             const typeData = types.find(t => t.value === typeValue);
             if (typeData) {
@@ -151,10 +228,11 @@ export class NewTransactionComponent implements OnInit {
     }
 
     private updateValidators(typeData: TransactionType) {
-        const fromControl = this.form.get('fromAssetId');
-        const toControl = this.form.get('toAssetId');
-        const spentControl = this.form.get('amountSpent');
-        const receivedControl = this.form.get('amountReceived');
+        const step1 = this.form.get('step1');
+        const fromControl = step1?.get('fromAssetId');
+        const toControl = step1?.get('toAssetId');
+        const spentControl = step1?.get('amountSpent');
+        const receivedControl = step1?.get('amountReceived');
 
         // Reset validators
         fromControl?.clearValidators();
@@ -163,7 +241,7 @@ export class NewTransactionComponent implements OnInit {
         receivedControl?.clearValidators();
 
         if (typeData.requiresFromAsset) {
-            fromControl?.setValidators(Validators.required);
+            fromControl?.setValidators([Validators.required, this.requireAssetObject]);
             spentControl?.setValidators([Validators.required, Validators.min(0)]);
         } else {
             spentControl?.setValue(0);
@@ -171,7 +249,7 @@ export class NewTransactionComponent implements OnInit {
         }
 
         if (typeData.requiresToAsset) {
-            toControl?.setValidators(Validators.required);
+            toControl?.setValidators([Validators.required, this.requireAssetObject]);
             receivedControl?.setValidators([Validators.required, Validators.min(0)]);
         } else {
             receivedControl?.setValue(0);
@@ -184,26 +262,33 @@ export class NewTransactionComponent implements OnInit {
         receivedControl?.updateValueAndValidity();
     }
 
+    private requireAssetObject(control: AbstractControl): { [key: string]: boolean } | null {
+        if (!control.value) return null;
+        return typeof control.value === 'string' ? { 'requireMatch': true } : null;
+    }
+
     onSubmit() {
         if (this.form.invalid || this.isSubmitting()) return;
 
         this.isSubmitting.set(true);
-        const formValue = this.form.value;
+        const step1Value = this.form.get('step1')?.value;
+        const step2Value = this.form.get('step2')?.value;
+        const step3Value = this.form.get('step3')?.value;
 
         const request: NewTransactionRequest = {
-            date: new Date(formValue.date).toISOString(),
-            transactionTypeCode: formValue.type,
-            fromAssetId: formValue.fromAssetId || undefined,
-            toAssetId: formValue.toAssetId || undefined,
-            amountSpent: Number(formValue.amountSpent || 0),
-            amountReceived: Number(formValue.amountReceived || 0),
-            spotPriceInUsd: Number(formValue.spotPriceInUsd),
-            spotPriceInEur: formValue.spotPriceInEur ? Number(formValue.spotPriceInEur) : undefined,
-            fee: Number(formValue.fee || 0),
-            feeAssetId: formValue.feeAssetId || undefined,
-            feeSpotPriceInUsd: formValue.feeSpotPriceInUsd ? Number(formValue.feeSpotPriceInUsd) : undefined,
-            feeSpotPriceInEur: formValue.feeSpotPriceInEur ? Number(formValue.feeSpotPriceInEur) : undefined,
-            notes: formValue.notes
+            date: new Date(step1Value.date).toISOString(),
+            transactionTypeCode: step1Value.type,
+            fromAssetId: step1Value.fromAssetId?.id || undefined,
+            toAssetId: step1Value.toAssetId?.id || undefined,
+            amountSpent: Number(step1Value.amountSpent || 0),
+            amountReceived: Number(step1Value.amountReceived || 0),
+            spotPriceInUsd: Number(step2Value.spotPriceInUsd),
+            spotPriceInEur: step2Value.spotPriceInEur ? Number(step2Value.spotPriceInEur) : undefined,
+            fee: Number(step2Value.fee || 0),
+            feeAssetId: step2Value.feeAssetId?.id || undefined,
+            feeSpotPriceInUsd: step2Value.feeSpotPriceInUsd ? Number(step2Value.feeSpotPriceInUsd) : undefined,
+            feeSpotPriceInEur: step2Value.feeSpotPriceInEur ? Number(step2Value.feeSpotPriceInEur) : undefined,
+            notes: step3Value.notes
         };
 
         this.portfolioService.addTransaction(request)
@@ -222,13 +307,19 @@ export class NewTransactionComponent implements OnInit {
         this.router.navigate(['/']);
     }
 
+    get step1Group() {
+        return this.form.get('step1');
+    }
+
+    get step2Group() {
+        return this.form.get('step2');
+    }
+
     get isStep1Valid(): boolean {
-        const controls = ['type', 'date', 'fromAssetId', 'amountSpent', 'toAssetId', 'amountReceived'];
-        return controls.every(c => this.form.get(c)?.valid);
+        return this.form.get('step1')?.valid ?? false;
     }
 
     get isStep2Valid(): boolean {
-        const controls = ['spotPriceInUsd', 'spotPriceInEur', 'fee', 'feeAssetId', 'feeSpotPriceInUsd', 'feeSpotPriceInEur'];
-        return controls.every(c => this.form.get(c)?.valid);
+        return this.form.get('step2')?.valid ?? false;
     }
 }
