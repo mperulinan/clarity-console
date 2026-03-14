@@ -22,14 +22,15 @@
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col">
             <mat-stepper [linear]="true" #stepper class="bg-transparent">
-                
+
                 <!-- ── STEP 1: CORE DETAILS ───────────────────────────── -->
                 <mat-step formGroupName="step1" [stepControl]="step1Group!">
                     <ng-template matStepLabel>Core Details</ng-template>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-4">
                         <div>
-                            <div class="text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">Transaction Type</div>
+                            <div class="text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">Transaction
+                                Type</div>
                             <mat-button-toggle-group formControlName="type" class="type-toggle-grid w-full">
                                 @for (type of transactionTypes(); track type.value) {
                                 <mat-button-toggle [value]="type.value">
@@ -40,9 +41,11 @@
                         </div>
 
                         <div>
-                            <div class="text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">Date & Time</div>
+                            <div class="text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">Date & Time
+                            </div>
                             <div class="native-datetime-wrapper">
-                                <input type="datetime-local" formControlName="date" class="native-datetime-input w-full">
+                                <input type="datetime-local" step="1" formControlName="date"
+                                    class="native-datetime-input w-full">
                             </div>
                         </div>
                     </div>
@@ -57,25 +60,24 @@
                             <mat-form-field appearance="fill">
                                 <mat-label>Asset Symbol or Name</mat-label>
                                 <input matInput formControlName="fromAssetId" placeholder="e.g. BTC, ETH"
-                                       [matAutocomplete]="fromAuto" 
-                                       (blur)="onAssetInputBlur('step1.fromAssetId')">
-                                <mat-autocomplete #fromAuto="matAutocomplete" 
-                                                  [displayWith]="displayAssetFn"
-                                                  (optionSelected)="onAssetSelected($event, 'step1.fromAssetId')">
+                                    [matAutocomplete]="fromAuto" (blur)="onAssetInputBlur('step1.fromAssetId')">
+                                <mat-autocomplete #fromAuto="matAutocomplete" [displayWith]="displayAssetFn"
+                                    (optionSelected)="onAssetSelected($event, 'step1.fromAssetId')">
                                     @for (asset of filteredFromAssets(); track asset.externalId || asset.id) {
-                                        <mat-option [value]="asset">
-                                            <div class="flex items-center gap-2">
-                                                @if (asset.imageUrl) {
-                                                    <img [src]="asset.imageUrl" alt="Icon" class="w-6 h-6 rounded-full bg-black">
-                                                }
-                                                <span class="font-medium">{{ asset.symbol }}</span>
-                                                <span class="text-xs text-gray-400 opacity-75">- {{ asset.name }}</span>
-                                            </div>
-                                        </mat-option>
+                                    <mat-option [value]="asset">
+                                        <div class="flex items-center gap-2">
+                                            @if (asset.imageUrl) {
+                                            <img [src]="asset.imageUrl" alt="Icon"
+                                                class="w-6 h-6 rounded-full bg-black">
+                                            }
+                                            <span class="font-medium">{{ asset.symbol }}</span>
+                                            <span class="text-xs text-gray-400 opacity-75">- {{ asset.name }}</span>
+                                        </div>
+                                    </mat-option>
                                     }
                                 </mat-autocomplete>
                                 @if (isSyncingAsset()) {
-                                    <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
+                                <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
                                 }
                             </mat-form-field>
                             <mat-form-field appearance="fill">
@@ -96,25 +98,24 @@
                             <mat-form-field appearance="fill">
                                 <mat-label>Asset Symbol or Name</mat-label>
                                 <input matInput formControlName="toAssetId" placeholder="e.g. BTC, ETH"
-                                       [matAutocomplete]="toAuto" 
-                                       (blur)="onAssetInputBlur('step1.toAssetId')">
-                                <mat-autocomplete #toAuto="matAutocomplete" 
-                                                  [displayWith]="displayAssetFn"
-                                                  (optionSelected)="onAssetSelected($event, 'step1.toAssetId')">
+                                    [matAutocomplete]="toAuto" (blur)="onAssetInputBlur('step1.toAssetId')">
+                                <mat-autocomplete #toAuto="matAutocomplete" [displayWith]="displayAssetFn"
+                                    (optionSelected)="onAssetSelected($event, 'step1.toAssetId')">
                                     @for (asset of filteredToAssets(); track asset.externalId || asset.id) {
-                                        <mat-option [value]="asset">
-                                            <div class="flex items-center gap-2">
-                                                @if (asset.imageUrl) {
-                                                    <img [src]="asset.imageUrl" alt="Icon" class="w-6 h-6 rounded-full bg-black">
-                                                }
-                                                <span class="font-medium">{{ asset.symbol }}</span>
-                                                <span class="text-xs text-gray-400 opacity-75">- {{ asset.name }}</span>
-                                            </div>
-                                        </mat-option>
+                                    <mat-option [value]="asset">
+                                        <div class="flex items-center gap-2">
+                                            @if (asset.imageUrl) {
+                                            <img [src]="asset.imageUrl" alt="Icon"
+                                                class="w-6 h-6 rounded-full bg-black">
+                                            }
+                                            <span class="font-medium">{{ asset.symbol }}</span>
+                                            <span class="text-xs text-gray-400 opacity-75">- {{ asset.name }}</span>
+                                        </div>
+                                    </mat-option>
                                     }
                                 </mat-autocomplete>
                                 @if (isSyncingAsset()) {
-                                    <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
+                                <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
                                 }
                             </mat-form-field>
                             <mat-form-field appearance="fill">
@@ -126,7 +127,8 @@
                     }
 
                     <div class="action-buttons pt-0 border-t-0 mt-4">
-                        <button mat-button type="button" matStepperNext class="submit-btn ml-auto" [disabled]="!isStep1Valid">Next</button>
+                        <button mat-button type="button" matStepperNext class="submit-btn ml-auto"
+                            [disabled]="!isStep1Valid">Next</button>
                     </div>
                 </mat-step>
 
@@ -143,11 +145,13 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <mat-form-field appearance="fill">
                                     <mat-label>Spot Price in USD ($)</mat-label>
-                                    <input matInput type="number" formControlName="spotPriceInUsd" placeholder="Required for metrics">
+                                    <input matInput type="number" formControlName="spotPriceInUsd"
+                                        placeholder="Required for metrics">
                                 </mat-form-field>
                                 <mat-form-field appearance="fill">
                                     <mat-label>Spot Price in EUR (€)</mat-label>
-                                    <input matInput type="number" formControlName="spotPriceInEur" placeholder="Optional override">
+                                    <input matInput type="number" formControlName="spotPriceInEur"
+                                        placeholder="Optional override">
                                 </mat-form-field>
                             </div>
                         </div>
@@ -165,34 +169,35 @@
                                 <mat-form-field appearance="fill">
                                     <mat-label>Fee Asset</mat-label>
                                     <input matInput formControlName="feeAssetId" placeholder="e.g. USD, BNB"
-                                           [matAutocomplete]="feeAuto" 
-                                           (blur)="onAssetInputBlur('step2.feeAssetId')">
-                                    <mat-autocomplete #feeAuto="matAutocomplete" 
-                                                      [displayWith]="displayAssetFn"
-                                                      (optionSelected)="onAssetSelected($event, 'step2.feeAssetId')">
+                                        [matAutocomplete]="feeAuto" (blur)="onAssetInputBlur('step2.feeAssetId')">
+                                    <mat-autocomplete #feeAuto="matAutocomplete" [displayWith]="displayAssetFn"
+                                        (optionSelected)="onAssetSelected($event, 'step2.feeAssetId')">
                                         @for (asset of filteredFeeAssets(); track asset.externalId || asset.id) {
-                                            <mat-option [value]="asset">
-                                                <div class="flex items-center gap-2">
-                                                    @if (asset.imageUrl) {
-                                                        <img [src]="asset.imageUrl" alt="Icon" class="w-6 h-6 rounded-full bg-black">
-                                                    }
-                                                    <span class="font-medium">{{ asset.symbol }}</span>
-                                                    <span class="text-xs text-gray-400 opacity-75">- {{ asset.name }}</span>
-                                                </div>
-                                            </mat-option>
+                                        <mat-option [value]="asset">
+                                            <div class="flex items-center gap-2">
+                                                @if (asset.imageUrl) {
+                                                <img [src]="asset.imageUrl" alt="Icon"
+                                                    class="w-6 h-6 rounded-full bg-black">
+                                                }
+                                                <span class="font-medium">{{ asset.symbol }}</span>
+                                                <span class="text-xs text-gray-400 opacity-75">- {{ asset.name }}</span>
+                                            </div>
+                                        </mat-option>
                                         }
                                     </mat-autocomplete>
                                     @if (isSyncingAsset()) {
-                                        <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
+                                    <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
                                     }
                                 </mat-form-field>
                                 <mat-form-field appearance="fill">
                                     <mat-label>Fee Price (USD)</mat-label>
-                                    <input matInput type="number" formControlName="feeSpotPriceInUsd" placeholder="Optional">
+                                    <input matInput type="number" formControlName="feeSpotPriceInUsd"
+                                        placeholder="Optional">
                                 </mat-form-field>
                                 <mat-form-field appearance="fill">
                                     <mat-label>Fee Price (EUR)</mat-label>
-                                    <input matInput type="number" formControlName="feeSpotPriceInEur" placeholder="Optional">
+                                    <input matInput type="number" formControlName="feeSpotPriceInEur"
+                                        placeholder="Optional">
                                 </mat-form-field>
                             </div>
                         </div>
@@ -200,7 +205,8 @@
 
                     <div class="action-buttons pt-0 border-t-0 mt-4 justify-between">
                         <button mat-button type="button" matStepperPrevious class="text-white">Back</button>
-                        <button mat-button type="button" matStepperNext class="submit-btn" [disabled]="!isStep2Valid">Next</button>
+                        <button mat-button type="button" matStepperNext class="submit-btn"
+                            [disabled]="!isStep2Valid">Next</button>
                     </div>
                 </mat-step>
 
@@ -209,18 +215,95 @@
                     <ng-template matStepLabel>Review</ng-template>
 
                     <div class="mt-4">
+                        <!-- ── SUMMARY DETAILS ────────────────────────────────── -->
+                        <div class="section-card mb-6">
+                            <div class="section-title">
+                                <mat-icon>summarize</mat-icon> Transaction Summary
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm text-gray-300">
+                                <div>
+                                    <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Type</span>
+                                    <span class="font-medium text-white">{{ selectedTypeData()?.label || '-' }}</span>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Date & Time</span>
+                                    <span class="font-medium text-white">{{ step1Group?.value?.date | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                                </div>
+
+                                @if (selectedTypeData()?.requiresFromAsset) {
+                                    <div class="p-3 bg-black/20 rounded-lg border border-white/5">
+                                        <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                                            <mat-icon class="align-middle text-[16px] w-[16px] h-[16px] leading-[16px] inline-block mr-1 text-red-400">{{ uiLabels().fromIcon }}</mat-icon> {{ uiLabels().fromTitle }}
+                                        </span>
+                                        <div class="flex items-center gap-2 mt-2">
+                                            @if (step1Group?.value?.fromAssetId?.imageUrl) {
+                                                <img [src]="step1Group?.value?.fromAssetId?.imageUrl" class="w-5 h-5 rounded-full">
+                                            }
+                                            <span class="font-bold text-white text-lg">{{ step1Group?.value?.amountSpent }}</span>
+                                            <span class="text-gray-300">{{ step1Group?.value?.fromAssetId?.symbol || step1Group?.value?.fromAssetId || 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (selectedTypeData()?.requiresToAsset) {
+                                    <div class="p-3 bg-black/20 rounded-lg border border-white/5">
+                                        <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                                            <mat-icon class="align-middle text-[16px] w-[16px] h-[16px] leading-[16px] inline-block mr-1 text-green-400">{{ uiLabels().toIcon }}</mat-icon> {{ uiLabels().toTitle }}
+                                        </span>
+                                        <div class="flex items-center gap-2 mt-2">
+                                            @if (step1Group?.value?.toAssetId?.imageUrl) {
+                                                <img [src]="step1Group?.value?.toAssetId?.imageUrl" class="w-5 h-5 rounded-full">
+                                            }
+                                            <span class="font-bold text-white text-lg">{{ step1Group?.value?.amountReceived }}</span>
+                                            <span class="text-gray-300">{{ step1Group?.value?.toAssetId?.symbol || step1Group?.value?.toAssetId || 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <hr class="border-white/10 my-4">
+
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-300">
+                                <div>
+                                    <span class="block text-xs text-gray-500 mb-1">Spot Price (USD)</span>
+                                    <span class="font-medium text-white">{{ (step2Group?.value?.spotPriceInUsd | currency:'USD') || '-' }}</span>
+                                </div>
+                                <div>
+                                    <span class="block text-xs text-gray-500 mb-1">Spot Price (EUR)</span>
+                                    <span class="font-medium text-white">{{ (step2Group?.value?.spotPriceInEur | currency:'EUR') || '-' }}</span>
+                                </div>
+                                <div>
+                                    <span class="block text-xs text-gray-500 mb-1">Fee Amount</span>
+                                    <span class="font-medium text-white">
+                                        {{ step2Group?.value?.fee || '0' }} 
+                                        @if (step2Group?.value?.feeAssetId) {
+                                            <span class="text-xs text-gray-400 ml-1">{{ step2Group?.value?.feeAssetId?.symbol || step2Group?.value?.feeAssetId }}</span>
+                                        }
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="block text-xs text-gray-500 mb-1">Fee Spot Price (USD)</span>
+                                    <span class="font-medium text-white">{{ (step2Group?.value?.feeSpotPriceInUsd | currency:'USD') || '-' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- ── NOTES ──────────────────────────────────────────── -->
-                        <mat-form-field appearance="fill">
+                        <mat-form-field appearance="fill" class="w-full">
                             <mat-label>Additional Notes</mat-label>
-                            <textarea matInput formControlName="notes" rows="4" placeholder="Reasons, tx hashes, etc."></textarea>
+                            <textarea matInput formControlName="notes" rows="3"
+                                placeholder="Reasons, tx hashes, etc."></textarea>
                         </mat-form-field>
                     </div>
 
                     <!-- ── ACTIONS ────────────────────────────────────────── -->
                     <div class="action-buttons mt-4">
                         <button mat-button type="button" matStepperPrevious class="text-white mr-auto">Back</button>
-                        <button mat-button type="button" (click)="onCancel()" class="cancel-btn text-white">Cancel</button>
-                        <button mat-raised-button color="primary" type="submit" class="submit-btn" [disabled]="form.invalid || isSubmitting()">
+                        <button mat-button type="button" (click)="onCancel()"
+                            class="cancel-btn text-white">Cancel</button>
+                        <button mat-raised-button color="primary" type="submit" class="submit-btn"
+                            [disabled]="form.invalid || isSubmitting()">
                             @if (isSubmitting()) {
                             Saving...
                             } @else {
