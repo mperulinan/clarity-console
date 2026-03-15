@@ -23,6 +23,14 @@ import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType } from '../../models/transaction';
 import { finalize } from 'rxjs';
 
+const UI_CONFIG: Record<string, any> = {
+    DEPOSIT: { toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited' },
+    WITHDRAWAL: { fromTitle: 'Asset Withdrawn', fromIcon: 'north_east', fromAmount: 'Amount Withdrawn' },
+    SWAP: { fromTitle: 'Asset Sold', fromIcon: 'sell', fromAmount: 'Amount Sold', toTitle: 'Asset Bought', toIcon: 'shopping_cart', toAmount: 'Amount Bought' },
+    REWARD: { toTitle: 'Asset Rewarded', toIcon: 'workspace_premium', toAmount: 'Reward Amount' },
+    DEFAULT: { fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent', toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received' },
+};
+
 @Component({
     selector: 'app-new-transaction',
     standalone: true,
@@ -106,38 +114,11 @@ export class NewTransactionComponent implements OnInit {
 
         this.uiLabels = computed(() => {
             const typeData = this.selectedTypeData();
-            if (!typeData) return {
-                fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent',
-                toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received'
-            };
-
-            switch (typeData.value.toUpperCase()) {
-                case 'DEPOSIT':
-                    return {
-                        toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited',
-                        fromTitle: '', fromIcon: '', fromAmount: ''
-                    };
-                case 'WITHDRAWAL':
-                    return {
-                        fromTitle: 'Asset Withdrawn', fromIcon: 'north_east', fromAmount: 'Amount Withdrawn',
-                        toTitle: '', toIcon: '', toAmount: ''
-                    };
-                case 'SWAP':
-                    return {
-                        fromTitle: 'Asset Sold', fromIcon: 'sell', fromAmount: 'Amount Sold',
-                        toTitle: 'Asset Bought', toIcon: 'shopping_cart', toAmount: 'Amount Bought'
-                    };
-                case 'REWARD':
-                    return {
-                        toTitle: 'Asset Rewarded', toIcon: 'workspace_premium', toAmount: 'Reward Amount',
-                        fromTitle: '', fromIcon: '', fromAmount: ''
-                    };
-                default:
-                    return {
-                        fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent',
-                        toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received'
-                    };
+            if (!typeData) {
+                return UI_CONFIG['DEFAULT'];
             }
+
+            return UI_CONFIG[typeData.value.toUpperCase()] || UI_CONFIG['DEFAULT'];
         });
     }
 
