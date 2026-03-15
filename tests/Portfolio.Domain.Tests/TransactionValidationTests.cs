@@ -1,4 +1,5 @@
 using Portfolio.Domain.Entities;
+using Portfolio.Domain.Enums;
 using Portfolio.Domain.ValueObjects;
 using System;
 using Xunit;
@@ -18,7 +19,7 @@ public class TransactionValidationTests
             TransactionType.Reward,
             null, // FromAssetId
             _assetId, // ToAssetId
-            0, 1, 2000, null, 0, null, null, null, null, null
+            0, 1, 2000, null, 0, null, null, null, null, FiatCurrency.USD, null, null
         );
 
         // Assert
@@ -36,7 +37,7 @@ public class TransactionValidationTests
             TransactionType.Withdrawal,
             _assetId, // FromAssetId
             null, // ToAssetId
-            1, 0, 50000, null, 0, null, null, null, null, null
+            1, 0, 50000, null, 0, null, null, null, null, FiatCurrency.USD, null, null
         );
 
         // Assert
@@ -54,7 +55,7 @@ public class TransactionValidationTests
             TransactionType.Deposit,
             null, // FromAssetId
             _assetId, // ToAssetId
-            0, 100, 1, null, 0, null, null, null, null, null
+            0, 100, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
         );
 
         // Assert
@@ -72,7 +73,7 @@ public class TransactionValidationTests
             TransactionType.Swap,
             _assetId, // FromAssetId
             Guid.NewGuid(), // ToAssetId
-            100, 1, 1, null, 0, null, null, null, null, null
+            100, 1, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
         );
 
         // Assert
@@ -90,7 +91,7 @@ public class TransactionValidationTests
             TransactionType.Swap,
             null, // FromAssetId null
             _assetId,
-            100, 1, 1, null, 0, null, null, null, null, null
+            100, 1, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
         ));
         Assert.Contains("FromAssetId is required", ex.Message);
     }
@@ -104,7 +105,7 @@ public class TransactionValidationTests
             TransactionType.Reward,
             _assetId, // FromAssetId provided
             _assetId,
-            0, 1, 1, null, 0, null, null, null, null, null
+            0, 1, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
         ));
         Assert.Contains("FromAssetId must be null", ex.Message);
     }
@@ -118,8 +119,23 @@ public class TransactionValidationTests
             TransactionType.Withdrawal,
             _assetId,
             _assetId, // ToAssetId provided
-            1, 0, 1, null, 0, null, null, null, null, null
+            1, 0, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
         ));
         Assert.Contains("ToAssetId must be null", ex.Message);
+    }
+    [Fact]
+    public void Constructor_ShouldFail_WhenBothPricesAreNull()
+    {
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentException>(() => new Transaction(
+            DateTime.UtcNow,
+            TransactionType.Swap,
+            _assetId,
+            Guid.NewGuid(),
+            100, 1, 
+            null, null, // Both Prices Null
+            0, null, null, null, null, FiatCurrency.USD, null, null
+        ));
+        Assert.Contains("Either SpotPriceUSD or SpotPriceEUR must logically have a value depending on the Input Currency.", ex.Message);
     }
 }

@@ -15,8 +15,45 @@ public class TransactionRepositoryTests
     public TransactionRepositoryTests()
     {
         _options = new DbContextOptionsBuilder<PortfolioContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Unique DB per test class/run
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
+    }
+
+    private static Transaction CreateTx(
+        DateTime? date = null,
+        TransactionType? type = null,
+        Guid? fromAssetId = null,
+        Guid? toAssetId = null,
+        decimal spent = 100,
+        decimal received = 1,
+        decimal? spotPriceUSD = 1,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0,
+        Guid? feeAssetId = null,
+        decimal? feePriceUSD = null,
+        decimal? feePriceEUR = null,
+        decimal? usdEurRate = null,
+        FiatCurrency? spotCurrency = null,
+        FiatCurrency? feeCurrency = null,
+        string? notes = null)
+    {
+        return new Transaction(
+            date ?? DateTime.UtcNow,
+            type ?? TransactionType.Swap,
+            fromAssetId,
+            toAssetId,
+            spent,
+            received,
+            spotPriceUSD,
+            spotPriceEUR,
+            fee,
+            feeAssetId,
+            feePriceUSD,
+            feePriceEUR,
+            usdEurRate,
+            spotCurrency ?? (spotPriceUSD.HasValue ? FiatCurrency.USD : FiatCurrency.EUR),
+            feeCurrency ?? (feePriceUSD.HasValue ? FiatCurrency.USD : FiatCurrency.EUR),
+            notes);
     }
 
     [Fact]
@@ -31,7 +68,7 @@ public class TransactionRepositoryTests
             await context.SaveChangesAsync();
             
             TransactionRepository repository = new(context);
-            Transaction transaction = new(DateTime.UtcNow, TransactionType.Swap, usdAsset.Id, btcAsset.Id, 100, 1, 1, null, 0, null, null, null, null, null);
+            Transaction transaction = CreateTx(fromAssetId: usdAsset.Id, toAssetId: btcAsset.Id);
 
             await repository.AddAsync(transaction);
         }
@@ -40,6 +77,7 @@ public class TransactionRepositoryTests
         {
             Assert.Equal(1, await assertContext.Transactions.CountAsync());
             var saved = await assertContext.Transactions.Include(t => t.ToAsset).FirstAsync();
+            Assert.NotNull(saved.ToAsset);
             Assert.Equal("BTC", saved.ToAsset.Symbol);
         }
     }
@@ -53,7 +91,7 @@ public class TransactionRepositoryTests
         using (PortfolioContext context = new(_options))
         {
             context.Assets.AddRange(usdAsset, btcAsset);
-            Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, usdAsset.Id, btcAsset.Id, 100, 1, 1, null, 0, null, null, null, null, null);
+            Transaction tx = CreateTx(fromAssetId: usdAsset.Id, toAssetId: btcAsset.Id);
             context.Transactions.Add(tx);
             await context.SaveChangesAsync();
         }
@@ -66,6 +104,7 @@ public class TransactionRepositoryTests
             Transaction? result = await repository.GetByIdAsync(tx.Id);
 
             Assert.NotNull(result);
+            Assert.NotNull(result.ToAsset);
             Assert.Equal("BTC", result.ToAsset.Symbol);
         }
     }
@@ -79,7 +118,7 @@ public class TransactionRepositoryTests
         using (PortfolioContext context = new(_options))
         {
             context.Assets.AddRange(usdAsset, ethAsset);
-            Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, usdAsset.Id, ethAsset.Id, 100, 1, 1, null, 0, null, null, null, null, null);
+            Transaction tx = CreateTx(fromAssetId: usdAsset.Id, toAssetId: ethAsset.Id);
             context.Transactions.Add(tx);
             await context.SaveChangesAsync();
             id = tx.Id;

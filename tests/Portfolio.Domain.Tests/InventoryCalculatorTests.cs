@@ -25,13 +25,45 @@ public class InventoryCalculatorTests
         return id;
     }
 
-    private static Transaction CreateTx(DateTime date, TransactionType type, string? fromAsset, string? toAsset, decimal spent, decimal received, decimal fromAssetPriceUsd, decimal? fromAssetPriceEur, decimal fee, string? feeAsset, decimal? feeUsdPrice, decimal? feeEurPrice, decimal? xr, string? notes)
+    private static Transaction CreateTx(
+        DateTime? date = null,
+        TransactionType? type = null,
+        string? fromAsset = null,
+        string? toAsset = null,
+        decimal spent = 0,
+        decimal received = 0,
+        decimal spotPriceUSD = 0,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0,
+        string? feeAsset = null,
+        decimal? feeUsdPrice = null,
+        decimal? feeEurPrice = null,
+        decimal? xr = null,
+        FiatCurrency? spotCurrency = null,
+        FiatCurrency? feeCurrency = null,
+        string? notes = null)
     {
         var fromAsstId = fromAsset != null ? GetId(fromAsset) : (Guid?)null;
         var toAsstId = toAsset != null ? GetId(toAsset) : (Guid?)null;
         var feeAsstId = feeAsset != null ? GetId(feeAsset) : (Guid?)null;
 
-        var tx = new Transaction(date, type, fromAsstId, toAsstId, spent, received, fromAssetPriceUsd, fromAssetPriceEur, fee, feeAsstId, feeUsdPrice, feeEurPrice, xr, notes);
+        var tx = new Transaction(
+            date ?? DateTime.UtcNow,
+            type ?? TransactionType.Swap,
+            fromAsstId,
+            toAsstId,
+            spent,
+            received,
+            spotPriceUSD,
+            spotPriceEUR,
+            fee,
+            feeAsstId,
+            feeUsdPrice,
+            feeEurPrice,
+            xr,
+            spotCurrency ?? (spotPriceEUR.HasValue && spotPriceUSD == 0 ? FiatCurrency.EUR : FiatCurrency.USD),
+            feeCurrency ?? (feeEurPrice.HasValue && !feeUsdPrice.HasValue ? FiatCurrency.EUR : (feeUsdPrice.HasValue ? FiatCurrency.USD : null)),
+            notes);
         
         if (fromAsset != null)
         {
@@ -60,13 +92,13 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Transfer in 30k USD (Simulating Deposit)
-            CreateTx(new DateTime(2023, 1, 1), TransactionType.Deposit, null, usd, 0, 30000m, 1, 0.9m, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: usd, received: 30000m, spotPriceUSD: 1, spotPriceEUR: 0.9m),
             // Swap $10k to 1 BTC (Simulating Buy)
-            CreateTx(new DateTime(2023, 1, 2), TransactionType.Swap, usd, btc, 10000m, 1, 1, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Swap, fromAsset: usd, toAsset: btc, spent: 10000m, received: 1, spotPriceUSD: 1),
             // Swap $20k to 1 BTC (Simulating Buy)
-            CreateTx(new DateTime(2023, 2, 2), TransactionType.Swap, usd, btc, 20000m, 1, 1, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 2, 2), type: TransactionType.Swap, fromAsset: usd, toAsset: btc, spent: 20000m, received: 1, spotPriceUSD: 1),
             // Swap 1.5 BTC to USD at $30k (Simulating Sell)
-            CreateTx(new DateTime(2023, 3, 3), TransactionType.Swap, btc, usd, 1.5m, 45000m, 30000m, null, 0, null, null, null, null, null)
+            CreateTx(date: new DateTime(2023, 3, 3), type: TransactionType.Swap, fromAsset: btc, toAsset: usd, spent: 1.5m, received: 45000m, spotPriceUSD: 30000m)
         };
 
         // Act
@@ -101,14 +133,11 @@ public class InventoryCalculatorTests
 
         // Reward: Receive 1 ETH when price is $2000. Fee is 0.
         var rewardTx = CreateTx(
-            new DateTime(2023, 1, 1), 
-            TransactionType.Reward, 
-            null,
-            eth, 
-            0m,
-            1m, // AmountReceived
-            2000m, // FromAssetPriceInUsd
-            null, 0, null, null, null, null, null
+            date: new DateTime(2023, 1, 1), 
+            type: TransactionType.Reward, 
+            toAsset: eth, 
+            received: 1m, 
+            spotPriceUSD: 2000m
         );
 
         var txList = new List<Transaction> { rewardTx };
@@ -133,13 +162,13 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 1 BTC @ 30k
-            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 30000m, 1m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 1), fromAsset: usd, toAsset: btc, spent: 30000m, received: 1m, spotPriceUSD: 1m),
             
             // Sell 1 BTC @ 20k (Loss 10k)
-            CreateTx(new DateTime(2023, 1, 15), TransactionType.Swap, btc, usd, 1m, 20000m, 20000m, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 15), fromAsset: btc, toAsset: usd, spent: 1m, received: 20000m, spotPriceUSD: 20000m),
             
             // Buy 1 BTC @ 22k within 2 months -> Wash Sale!
-            CreateTx(new DateTime(2023, 1, 20), TransactionType.Swap, usd, btc, 22000m, 1m, 1m, null, 0, null, null, null, null, null)
+            CreateTx(date: new DateTime(2023, 1, 20), fromAsset: usd, toAsset: btc, spent: 22000m, received: 1m, spotPriceUSD: 1m)
         };
 
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -163,13 +192,13 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 1 BTC @ 30k
-            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 30000m, 1m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 1), fromAsset: usd, toAsset: btc, spent: 30000m, received: 1m, spotPriceUSD: 1m),
             
             // Sell 1 BTC @ 20k (Loss 10k)
-            CreateTx(new DateTime(2023, 1, 15), TransactionType.Swap, btc, usd, 1m, 20000m, 20000m, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 15), fromAsset: btc, toAsset: usd, spent: 1m, received: 20000m, spotPriceUSD: 20000m),
             
             // Buy 1 BTC @ 22k AFTER 2 months
-            CreateTx(new DateTime(2023, 3, 20), TransactionType.Swap, usd, btc, 22000m, 1m, 1m, null, 0, null, null, null, null, null)
+            CreateTx(date: new DateTime(2023, 3, 20), fromAsset: usd, toAsset: btc, spent: 22000m, received: 1m, spotPriceUSD: 1m)
         };
 
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -193,7 +222,7 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 1 BTC @ $10,000 using USD we don't have.
-            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null)
+            CreateTx(date: new DateTime(2023, 1, 1), fromAsset: usd, toAsset: btc, spent: 10000m, received: 1m, spotPriceUSD: 1m)
         };
 
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -213,13 +242,13 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // 1. Seed 10k USD (Deposit)
-            CreateTx(new DateTime(2023, 1, 1), TransactionType.Deposit, null, usd, 0, 10000m, 1m, 1m, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: usd, received: 10000m, spotPriceUSD: 1m),
 
             // 2. Buy 1 BTC @ $10,000. Consumes all 10k USD.
-            CreateTx(new DateTime(2023, 1, 2), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 2), fromAsset: usd, toAsset: btc, spent: 10000m, received: 1m, spotPriceUSD: 1m),
             
             // 3. Sell 2 BTC @ $20,000 each.
-            CreateTx(new DateTime(2023, 1, 3), TransactionType.Swap, btc, usd, 2m, 40000m, 20000m, null, 0, null, null, null, null, null)
+            CreateTx(date: new DateTime(2023, 1, 3), fromAsset: btc, toAsset: usd, spent: 2m, received: 40000m, spotPriceUSD: 20000m)
         };
 
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -243,10 +272,10 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 10 ETH @ $1000 = $10k.
-            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, eth, 10000m, 10m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 1), fromAsset: usd, toAsset: eth, spent: 10000m, received: 10m, spotPriceUSD: 1m),
             
             // Transfer 5 ETH. Fee 0.1 ETH. FeeAsset = ETH.
-            CreateTx(new DateTime(2023, 1, 2), TransactionType.Swap, eth, usd, 5m, 5000m, 1000m, null, 0.1m, eth, 1000m, null, null, null)
+            CreateTx(date: new DateTime(2023, 1, 2), fromAsset: eth, toAsset: usd, spent: 5m, received: 5000m, spotPriceUSD: 1000m, fee: 0.1m, feeAsset: eth, feeUsdPrice: 1000m)
         };
         
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
@@ -278,10 +307,10 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // Buy 1 BTC @ 10k
-            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 1), fromAsset: usd, toAsset: btc, spent: 10000m, received: 1m, spotPriceUSD: 1m),
             
             // Sell 0.5 BTC @ 15k (Proceeds 7.5k)
-            CreateTx(new DateTime(2023, 1, 2), TransactionType.Swap, btc, usd, 0.5m, 7500m, 15000m, null, 0, null, null, null, null, null)
+            CreateTx(date: new DateTime(2023, 1, 2), fromAsset: btc, toAsset: usd, spent: 0.5m, received: 7500m, spotPriceUSD: 15000m)
         };
         
         var btcId = transactions.First(t => t.ToAsset?.Symbol == btc).ToAssetId!.Value;
@@ -309,10 +338,10 @@ public class InventoryCalculatorTests
         var transactions = new List<Transaction>
         {
             // 1. Buy 1 BTC @ 10k
-            CreateTx(new DateTime(2023, 1, 1), TransactionType.Swap, usd, btc, 10000m, 1m, 1m, null, 0, null, null, null, null, null),
+            CreateTx(date: new DateTime(2023, 1, 1), fromAsset: usd, toAsset: btc, spent: 10000m, received: 1m, spotPriceUSD: 1m),
             
             // 2. Withdraw 0.5 BTC. Market price is $15k.
-            CreateTx(new DateTime(2023, 1, 2), TransactionType.Withdrawal, btc, null, 0.5m, 0, 15000m, null, 0, null, null, null, null, null)
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Withdrawal, fromAsset: btc, spent: 0.5m, spotPriceUSD: 15000m)
         };
         
         var btcId = transactions.First(t => t.ToAsset?.Symbol == btc).ToAssetId!.Value;

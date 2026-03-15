@@ -37,12 +37,44 @@ public class PortfolioServiceTests
         );
     }
 
-    private static Transaction CreateTx(DateTime date, TransactionType type, string fromAsset, string toAsset, decimal spent, decimal received, decimal fromAssetPriceUsd, decimal? fromAssetPriceEur, decimal fee, string? feeAsset, decimal? feeUsdPrice, decimal? feeEurPrice, decimal? xr, string? notes)
+    private static Transaction CreateTx(
+        DateTime? date = null,
+        TransactionType? type = null,
+        string? fromAsset = null,
+        string? toAsset = null,
+        decimal spent = 0,
+        decimal received = 0,
+        decimal spotPriceUSD = 1,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0,
+        string? feeAsset = null,
+        decimal? feeUsdPrice = null,
+        decimal? feeEurPrice = null,
+        decimal? xr = null,
+        FiatCurrency? spotCurrency = null,
+        FiatCurrency? feeCurrency = null,
+        string? notes = null)
     {
-        return new Transaction(date, type, Guid.NewGuid(), Guid.NewGuid(), spent, received, fromAssetPriceUsd, fromAssetPriceEur, fee, feeAsset != null ? Guid.NewGuid() : null, feeUsdPrice, feeEurPrice, xr, notes)
+        return new Transaction(
+            date ?? DateTime.UtcNow,
+            type ?? TransactionType.Swap,
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            spent,
+            received,
+            spotPriceUSD,
+            spotPriceEUR,
+            fee,
+            feeAsset != null ? Guid.NewGuid() : null,
+            feeUsdPrice,
+            feeEurPrice,
+            xr,
+            spotCurrency ?? (spotPriceEUR.HasValue && spotPriceUSD == 0 ? FiatCurrency.EUR : FiatCurrency.USD),
+            feeCurrency,
+            notes)
         {
-            FromAsset = new Asset(fromAsset, fromAsset, null, null, AssetType.Fiat),
-            ToAsset = new Asset(toAsset, toAsset, null, null, AssetType.Fiat)
+            FromAsset = new Asset(fromAsset ?? "USD", fromAsset ?? "USD", null, null, AssetType.Fiat),
+            ToAsset = new Asset(toAsset ?? "BTC", toAsset ?? "BTC", null, null, AssetType.Fiat)
         };
     }
 
@@ -57,7 +89,8 @@ public class PortfolioServiceTests
             ToAssetId = Guid.NewGuid(),
             AmountSpent = 10000,
             AmountReceived = 1,
-            SpotPriceInUsd = 1
+            SpotPriceUSD = 1,
+            SpotPriceInputCurrency = "USD"
         };
 
         await _service.AddTransactionAsync(request);
@@ -85,7 +118,29 @@ public class PortfolioServiceTests
 
         await _mockRepo.Received(1).UpdateAsync(Arg.Is<Transaction>(t => 
             t.UsdEurExchangeRate == 0.85m &&
-            t.SpotPriceInEur == 0.85m // 1 * 0.85
+            t.SpotPriceEUR == 0.85m // 1 * 0.85
+        ));
+    }
+
+    [Fact]
+    public async Task CalculateExchangeRatesAsync_ShouldUpdateUsdFromEur_WhenEurIsTruthSource()
+    {
+        var pastDate = DateTime.UtcNow.AddDays(-3);
+        // Start with 100 EUR, Truth source is EUR.
+        Transaction tx = new(pastDate, TransactionType.Swap, Guid.NewGuid(), Guid.NewGuid(), 1, 1, null, 100m, 0, null, null, null, null, FiatCurrency.EUR, null, null)
+        {
+            FromAsset = new Asset("EUR", "Euro", null, null, AssetType.Fiat),
+            ToAsset = new Asset("BTC", "Bitcoin", null, null, AssetType.Crypto)
+        };
+        
+        _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
+        _mockRates.GetUsdEurRateAsync(pastDate).Returns(Task.FromResult(0.8m)); // 1 USD = 0.8 EUR -> 1 EUR = 1.25 USD
+
+        await _service.CalculateExchangeRatesAsync();
+
+        await _mockRepo.Received(1).UpdateAsync(Arg.Is<Transaction>(t => 
+            t.SpotPriceUSD == 125m && // (100 / 0.8)
+            t.SpotPriceEUR == 100m
         ));
     }
 
@@ -93,7 +148,7 @@ public class PortfolioServiceTests
     public async Task GetPortfolioMetrics_ShouldOrchestrateFlowCorrectly()
     {
         Guid btcId = Guid.NewGuid();
-        Transaction tx = new Transaction(DateTime.UtcNow, TransactionType.Swap, Guid.NewGuid(), btcId, 10000, 1, 1, null, 0, null, null, null, null, null)
+        Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, Guid.NewGuid(), btcId, 10000, 1, 1, null, 0, null, null, null, null, null, null, null)
         {
             FromAsset = new Asset("USD", "US Dollar", null, null, AssetType.Fiat),
             ToAsset = new Asset("BTC", "Bitcoin", null, null, AssetType.Crypto)
