@@ -39,11 +39,11 @@ public partial class PortfolioContext : DbContext
             entity.Property(e => e.Date).HasColumnType("datetime");
             entity.Property(e => e.AmountSpent).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.AmountReceived).HasColumnType("decimal(36, 18)");
-            entity.Property(e => e.SpotPriceInUsd).HasColumnType("decimal(36, 18)");
-            entity.Property(e => e.SpotPriceInEur).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.SpotPriceUSD).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.SpotPriceEUR).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.Fee).HasColumnType("decimal(36, 18)");
-            entity.Property(e => e.FeeSpotPriceInUsd).HasColumnType("decimal(36, 18)");
-            entity.Property(e => e.FeeSpotPriceInEur).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.FeePriceUSD).HasColumnType("decimal(36, 18)");
+            entity.Property(e => e.FeePriceEUR).HasColumnType("decimal(36, 18)");
             entity.Property(e => e.UsdEurExchangeRate).HasColumnType("decimal(18, 8)");
             entity.Property(e => e.Notes).HasMaxLength(-1);
 
@@ -71,6 +71,18 @@ public partial class PortfolioContext : DbContext
                 .HasConversion(
                     v => v.Value,
                     v => TransactionType.FromValue(v));
+
+            entity.Property(e => e.SpotPriceInputCurrency)
+                .HasMaxLength(10)
+                .HasConversion(
+                    v => v.Value,
+                    v => FiatCurrency.FromValue(v));
+
+            entity.Property(e => e.FeePriceInputCurrency)
+                .HasMaxLength(10)
+                .HasConversion(
+                    v => v == null ? null : v.Value,
+                    v => v == null ? null : FiatCurrency.FromValue(v));
         });
 
         modelBuilder.Entity<Asset>(entity =>

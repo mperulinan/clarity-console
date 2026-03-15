@@ -15,14 +15,16 @@ public class Transaction
     public Asset? ToAsset { get; set; }
     public decimal AmountSpent { get; private set; }
     public decimal AmountReceived { get; private set; }
-    public decimal SpotPriceInUsd { get; private set; }
-    public decimal? SpotPriceInEur { get; private set; }
+    public decimal? SpotPriceUSD { get; private set; }
+    public decimal? SpotPriceEUR { get; private set; }
     public decimal Fee { get; private set; }
     public Guid? FeeAssetId { get; private set; }
     public Asset? FeeAsset { get; set; }
-    public decimal? FeeSpotPriceInUsd { get; private set; }
-    public decimal? FeeSpotPriceInEur { get; private set; }
+    public decimal? FeePriceUSD { get; private set; }
+    public decimal? FeePriceEUR { get; private set; }
     public decimal? UsdEurExchangeRate { get; private set; }
+    public FiatCurrency SpotPriceInputCurrency { get; private set; } = null!;
+    public FiatCurrency? FeePriceInputCurrency { get; private set; }
     public string? Notes { get; private set; }
 
     // Constructor for EF Core.
@@ -35,13 +37,15 @@ public class Transaction
         Guid? toAssetId,
         decimal amountSpent,
         decimal amountReceived,
-        decimal spotPriceInUsd,
-        decimal? spotPriceInEur,
+        decimal? spotPriceUSD,
+        decimal? spotPriceEUR,
         decimal fee,
         Guid? feeAssetId,
-        decimal? feeSpotPriceInUsd,
-        decimal? feeSpotPriceInEur,
+        decimal? feeSpotPriceUSD,
+        decimal? feeSpotPriceEUR,
         decimal? usdEurExchangeRate,
+        FiatCurrency spotPriceInputCurrency,
+        FiatCurrency? feePriceInputCurrency,
         string? notes)
     {
         Date = date;
@@ -57,30 +61,43 @@ public class Transaction
         if (!Type.RequiresToAsset && toAssetId.HasValue)
             throw new ArgumentException($"ToAssetId must be null for {Type.Name}");
 
+        if (!spotPriceUSD.HasValue && !spotPriceEUR.HasValue)
+            throw new ArgumentException("Either SpotPriceUSD or SpotPriceEUR must logically have a value depending on the Input Currency.");
+
         FromAssetId = fromAssetId;
         ToAssetId = toAssetId;
         AmountSpent = amountSpent;
         AmountReceived = amountReceived;
-        SpotPriceInUsd = spotPriceInUsd;
-        SpotPriceInEur = spotPriceInEur;
+        SpotPriceUSD = spotPriceUSD;
+        SpotPriceEUR = spotPriceEUR;
         Fee = fee;
         FeeAssetId = feeAssetId;
-        FeeSpotPriceInUsd = feeSpotPriceInUsd;
-        FeeSpotPriceInEur = feeSpotPriceInEur;
+        FeePriceUSD = feeSpotPriceUSD;
+        FeePriceEUR = feeSpotPriceEUR;
         UsdEurExchangeRate = usdEurExchangeRate;
+        SpotPriceInputCurrency = spotPriceInputCurrency;
+        FeePriceInputCurrency = feePriceInputCurrency;
         Notes = notes;
     }
 
     public void UpdateExchangeRates(decimal usdEurRate)
     {
-        if (!SpotPriceInEur.HasValue)
+        if (SpotPriceInputCurrency == FiatCurrency.USD && SpotPriceUSD.HasValue)
         {
-            SpotPriceInEur = SpotPriceInUsd * usdEurRate;
+            SpotPriceEUR = SpotPriceUSD.Value * usdEurRate;
+        }
+        else if (SpotPriceInputCurrency == FiatCurrency.EUR && SpotPriceEUR.HasValue && usdEurRate > 0)
+        {
+            SpotPriceUSD ??= SpotPriceEUR.Value / usdEurRate;
         }
 
-        if (!FeeSpotPriceInEur.HasValue && FeeSpotPriceInUsd.HasValue)
+        if (FeePriceInputCurrency == FiatCurrency.USD && FeePriceUSD.HasValue && !FeePriceEUR.HasValue)
         {
-            FeeSpotPriceInEur = FeeSpotPriceInUsd.Value * usdEurRate;
+            FeePriceEUR = FeePriceUSD.Value * usdEurRate;
+        }
+        else if (FeePriceInputCurrency == FiatCurrency.EUR && FeePriceEUR.HasValue && usdEurRate > 0 && !FeePriceUSD.HasValue)
+        {
+            FeePriceUSD = FeePriceEUR.Value / usdEurRate;
         }
 
         UsdEurExchangeRate = usdEurRate;
@@ -90,8 +107,8 @@ public class Transaction
     {
         if (Type == TransactionType.Reward || Type == TransactionType.Deposit) return null;
 
-        if (currency == FiatCurrency.USD) return SpotPriceInUsd;
-        if (currency == FiatCurrency.EUR) return SpotPriceInEur;
+        if (currency == FiatCurrency.USD) return SpotPriceUSD;
+        if (currency == FiatCurrency.EUR) return SpotPriceEUR;
         throw new ArgumentException($"Unsupported currency: {currency.Name}");
     }
 
@@ -99,8 +116,8 @@ public class Transaction
     {
         if (Type == TransactionType.Reward || Type == TransactionType.Deposit)
         {
-            if (currency == FiatCurrency.USD) return SpotPriceInUsd;
-            if (currency == FiatCurrency.EUR) return SpotPriceInEur;
+            if (currency == FiatCurrency.USD) return SpotPriceUSD;
+            if (currency == FiatCurrency.EUR) return SpotPriceEUR;
             return null;
         }
 
@@ -115,8 +132,8 @@ public class Transaction
 
     public decimal? GetFeeAssetPrice(FiatCurrency currency)
     {
-        if (currency == FiatCurrency.USD) return FeeSpotPriceInUsd;
-        if (currency == FiatCurrency.EUR) return FeeSpotPriceInEur;
+        if (currency == FiatCurrency.USD) return FeePriceUSD;
+        if (currency == FiatCurrency.EUR) return FeePriceEUR;
         throw new ArgumentException($"Unsupported currency: {currency.Name}");
     }
 }
