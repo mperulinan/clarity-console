@@ -14,12 +14,12 @@ export interface Transaction {
     toAssetId?: string;
     amountSpent: number;
     amountReceived: number;
-    spotPriceInUsd: number;
-    spotPriceInEur?: number;
+    spotPriceUSD: number;
+    spotPriceEUR?: number;
     fee: number;
     feeAsset?: string;
-    feeSpotPriceInUsd?: number;
-    feeSpotPriceInEur?: number;
+    feePriceUSD?: number;
+    feePriceEUR?: number;
     usdEurExchangeRate?: number;
     notes?: string;
 }

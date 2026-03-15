@@ -51,4 +51,8 @@ export class PortfolioService {
     syncAsset(asset: AssetDto): Observable<AssetDto> {
         return this.http.post<AssetDto>(`${this.apiUrl}/Asset/sync`, asset);
     }
+
+    getFiatCurrencies(): Observable<AssetDto[]> {
+        return this.http.get<AssetDto[]>(`${this.apiUrl}/Asset/fiat-currencies`);
+    }
 }
