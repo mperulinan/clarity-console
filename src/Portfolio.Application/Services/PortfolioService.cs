@@ -111,7 +111,9 @@ public class PortfolioService(
         {
             Id = asset.Id,
             Name = asset.Name,
-            Symbol = asset.Symbol
+            Symbol = asset.Symbol,
+            Type = asset.Type.Name,
+            ImageUrl = asset.ImageUrl
         };
     }
 

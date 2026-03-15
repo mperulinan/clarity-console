@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Observable, debounceTime, switchMap, catchError, of, map, startWith, filter, tap } from 'rxjs';
+import { debounceTime, switchMap, catchError, of, startWith, filter } from 'rxjs';
 
 // Material
 import { MatCardModule } from '@angular/material/card';
@@ -58,6 +58,8 @@ export class NewTransactionComponent implements OnInit {
     filteredToAssets!: WritableSignal<AssetDto[]>;
     filteredFeeAssets!: WritableSignal<AssetDto[]>;
 
+    fiatCurrencies = signal<AssetDto[]>([]);
+
     // Reactive Form to Signal Bridge
     private typeValueChange: () => string;
 
@@ -81,12 +83,12 @@ export class NewTransactionComponent implements OnInit {
                 amountReceived: [null, [Validators.required, Validators.min(0)]]
             }),
             step2: this.fb.group({
-                spotPriceInUsd: [null, Validators.required],
-                spotPriceInEur: [null],
+                spotPrice: [null, [Validators.required, Validators.min(0)]],
+                spotPriceCurrency: ['USD', Validators.required],
                 fee: [0],
                 feeAssetId: [''],
-                feeSpotPriceInUsd: [null],
-                feeSpotPriceInEur: [null]
+                feeSpotPrice: [null, Validators.min(0)],
+                feeSpotPriceCurrency: ['USD']
             }),
             step3: this.fb.group({
                 notes: ['']
@@ -173,7 +175,7 @@ export class NewTransactionComponent implements OnInit {
                 })
             ).subscribe({
                 next: (syncedAsset) => {
-                    this.form.get(controlPath)?.setValue(syncedAsset, { emitEvent: false });
+                    this.form.get(controlPath)?.setValue(syncedAsset);
                 },
                 error: (err) => {
                     console.error('Failed to sync asset', err);
@@ -208,6 +210,16 @@ export class NewTransactionComponent implements OnInit {
                 }
             });
 
+        // Fetch Fiat Currencies
+        this.portfolioService.getFiatCurrencies().subscribe({
+            next: (fiats) => {
+                this.fiatCurrencies.set(fiats);
+            },
+            error: (err) => {
+                console.error('Failed to load fiat currencies', err);
+            }
+        });
+
         // Setup Autocomplete pipelines
         this.filteredFromAssets = signal<AssetDto[]>([]);
         this.filteredToAssets = signal<AssetDto[]>([]);
@@ -225,6 +237,62 @@ export class NewTransactionComponent implements OnInit {
                 this.updateValidators(typeData);
             }
         });
+
+        // Listen for Fiat Asset Selections to Auto-lock pricing
+        this.form.get('step1')?.valueChanges.subscribe(step1Value => {
+            this.updateReactiveLocks(step1Value);
+        });
+
+        this.form.get('step2.feeAssetId')?.valueChanges.subscribe(feeAsset => {
+            this.updateFeeLocks(feeAsset);
+        });
+    }
+
+    private updateReactiveLocks(step1Value: any) {
+        const spotPriceControl = this.form.get('step2.spotPrice');
+        const spotPriceCurrencyControl = this.form.get('step2.spotPriceCurrency');
+
+        const fromAsset = step1Value.fromAssetId;
+        const toAsset = step1Value.toAssetId;
+
+        // Dynamically check if either selected asset matches a known fiat currency
+        const matchedFiat =
+            this.fiatCurrencies().find(f => f.id === fromAsset?.id) ??
+            this.fiatCurrencies().find(f => f.id === toAsset?.id);
+
+        if (matchedFiat) {
+            spotPriceControl?.setValue(1, { emitEvent: false });
+            spotPriceControl?.disable({ emitEvent: false });
+            spotPriceCurrencyControl?.setValue(matchedFiat.symbol);
+            spotPriceCurrencyControl?.disable({ emitEvent: false });
+        } else {
+            if (spotPriceControl?.disabled) {
+                spotPriceControl?.enable({ emitEvent: false });
+                spotPriceControl?.setValue(null, { emitEvent: false });
+                spotPriceCurrencyControl?.enable({ emitEvent: false });
+            }
+        }
+    }
+
+    private updateFeeLocks(feeAsset: any) {
+        const feePriceControl = this.form.get('step2.feeSpotPrice');
+        const feePriceCurrencyControl = this.form.get('step2.feeSpotPriceCurrency');
+
+        // Dynamically check if the fee asset matches a known fiat currency
+        const matchedFiat = this.fiatCurrencies().find(f => f.id === feeAsset?.id);
+
+        if (matchedFiat) {
+            feePriceControl?.setValue(1, { emitEvent: false });
+            feePriceControl?.disable({ emitEvent: false });
+            feePriceCurrencyControl?.setValue(matchedFiat.symbol);
+            feePriceCurrencyControl?.disable({ emitEvent: false });
+        } else {
+            if (feePriceControl?.disabled) {
+                feePriceControl?.enable({ emitEvent: false });
+                feePriceControl?.setValue(null, { emitEvent: false });
+                feePriceCurrencyControl?.enable({ emitEvent: false });
+            }
+        }
     }
 
     private updateValidators(typeData: TransactionType) {
@@ -272,7 +340,8 @@ export class NewTransactionComponent implements OnInit {
 
         this.isSubmitting.set(true);
         const step1Value = this.form.get('step1')?.value;
-        const step2Value = this.form.get('step2')?.value;
+        // getRawValue gets disabled control values too
+        const step2Value = this.form.get('step2')?.getRawValue();
         const step3Value = this.form.get('step3')?.value;
 
         const request: NewTransactionRequest = {
@@ -282,12 +351,14 @@ export class NewTransactionComponent implements OnInit {
             toAssetId: step1Value.toAssetId?.id || undefined,
             amountSpent: Number(step1Value.amountSpent || 0),
             amountReceived: Number(step1Value.amountReceived || 0),
-            spotPriceInUsd: Number(step2Value.spotPriceInUsd),
-            spotPriceInEur: step2Value.spotPriceInEur ? Number(step2Value.spotPriceInEur) : undefined,
+            spotPriceInUsd: step2Value.spotPriceCurrency === 'USD' ? Number(step2Value.spotPrice) : undefined,
+            spotPriceInEur: step2Value.spotPriceCurrency === 'EUR' ? Number(step2Value.spotPrice) : undefined,
+            spotPriceInputCurrency: step2Value.spotPriceCurrency,
             fee: Number(step2Value.fee || 0),
             feeAssetId: step2Value.feeAssetId?.id || undefined,
-            feeSpotPriceInUsd: step2Value.feeSpotPriceInUsd ? Number(step2Value.feeSpotPriceInUsd) : undefined,
-            feeSpotPriceInEur: step2Value.feeSpotPriceInEur ? Number(step2Value.feeSpotPriceInEur) : undefined,
+            feeSpotPriceInUsd: step2Value.feeSpotPriceCurrency === 'USD' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
+            feeSpotPriceInEur: step2Value.feeSpotPriceCurrency === 'EUR' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
+            feePriceInputCurrency: step2Value.feeSpotPrice && step2Value.feeSpotPriceCurrency ? step2Value.feeSpotPriceCurrency : undefined,
             notes: step3Value.notes
         };
 
