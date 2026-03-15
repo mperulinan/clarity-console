@@ -4,6 +4,7 @@ using Portfolio.Domain.Interfaces;
 using Portfolio.Application.Interfaces;
 using Portfolio.Domain.ValueObjects;
 using Portfolio.Domain.Entities;
+using Portfolio.Domain.Enums;
 
 namespace Portfolio.API.Controllers;
 
@@ -24,6 +25,20 @@ public class AssetController(IAssetRepository assetRepository, IAssetSearchProvi
             ImageUrl = a.ImageUrl,
             Type = a.Type.Value
         }));
+    }
+
+    [HttpGet("fiat-currencies")]
+    public ActionResult<IEnumerable<AssetDto>> GetFiatCurrencies()
+    {
+        var fiats = FiatCurrency.List.Select(f => new AssetDto
+        {
+            Id = f.Id,
+            Symbol = f.Name,
+            Name = f.Name,
+            ImageUrl = f.ImageUrl,
+            Type = AssetType.Fiat.Value
+        });
+        return Ok(fiats);
     }
 
     [HttpGet("search")]

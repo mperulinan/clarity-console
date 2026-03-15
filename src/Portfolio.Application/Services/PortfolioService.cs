@@ -94,12 +94,12 @@ public class PortfolioService(
             ToAsset = transaction.ToAsset != null ? MapToDto(transaction.ToAsset) : null,
             AmountSpent = transaction.AmountSpent,
             AmountReceived = transaction.AmountReceived,
-            SpotPriceInUsd = transaction.SpotPriceInUsd,
-            SpotPriceInEur = transaction.SpotPriceInEur,
+            SpotPriceUSD = transaction.SpotPriceUSD,
+            SpotPriceEUR = transaction.SpotPriceEUR,
             Fee = transaction.Fee,
             FeeAsset = transaction.FeeAsset != null ? MapToDto(transaction.FeeAsset) : null,
-            FeeSpotPriceInUsd = transaction.FeeSpotPriceInUsd,
-            FeeSpotPriceInEur = transaction.FeeSpotPriceInEur,
+            FeePriceUSD = transaction.FeePriceUSD,
+            FeePriceEUR = transaction.FeePriceEUR,
             UsdEurExchangeRate = transaction.UsdEurExchangeRate,
             Notes = transaction.Notes
         };
@@ -119,7 +119,13 @@ public class PortfolioService(
     {
         // Store USD prices immediately, EUR prices will be calculated lazily
         // when the Transactions page is loaded (only for past-day transactions)
-        
+
+        var spotCurrency = FiatCurrency.FromValue(request.SpotPriceInputCurrency.ToLowerInvariant());
+
+        var feeCurrency = !string.IsNullOrEmpty(request.FeePriceInputCurrency) 
+            ? FiatCurrency.FromValue(request.FeePriceInputCurrency.ToLowerInvariant()) 
+            : null;
+
         Transaction newTransaction = new(
             request.Date.ToUniversalTime(),
             request.TransactionTypeCode,
@@ -127,13 +133,15 @@ public class PortfolioService(
             request.ToAssetId,
             request.AmountSpent,
             request.AmountReceived,
-            request.SpotPriceInUsd,
-            request.SpotPriceInEur,
+            request.SpotPriceUSD,
+            request.SpotPriceEUR,
             request.Fee,
             request.FeeAssetId,
-            request.FeeSpotPriceInUsd,
-            request.FeeSpotPriceInEur,
+            request.FeePriceUSD,
+            request.FeePriceEUR,
             null, // UsdEurExchangeRate - will be set when EUR prices are calculated
+            spotCurrency,
+            feeCurrency,
             request.Notes
         );
 
@@ -148,11 +156,13 @@ public class PortfolioService(
         var transactions = await transactionRepository.GetAllAsync();
         var today = DateTime.UtcNow.Date;
         
-        // Find transactions that need EUR calculation
+        // Find transactions that need EUR/USD calculation natively
         var transactionsNeedingRates = transactions.Where(t => 
             t.Date.Date < today && // Only past transactions
             (
-                (!t.SpotPriceInEur.HasValue) || (t.FeeSpotPriceInUsd.HasValue && !t.FeeSpotPriceInEur.HasValue)
+                (!t.SpotPriceEUR.HasValue || !t.SpotPriceUSD.HasValue) || 
+                (t.FeePriceUSD.HasValue && !t.FeePriceEUR.HasValue) ||
+                (t.FeePriceEUR.HasValue && !t.FeePriceUSD.HasValue)
             )
         ).ToList();
 
