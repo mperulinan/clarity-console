@@ -66,6 +66,13 @@ export class NewTransactionComponent implements OnInit {
     filteredToAssets!: WritableSignal<AssetDto[]>;
     filteredFeeAssets!: WritableSignal<AssetDto[]>;
 
+    // Selected asset state for chip display
+    selectedFromAsset = signal<AssetDto | null>(null);
+    selectedToAsset = signal<AssetDto | null>(null);
+    selectedFeeAsset = signal<AssetDto | null>(null);
+
+    private readonly assetSignalMap: Record<string, WritableSignal<AssetDto | null>> = {};
+
     fiatCurrencies = signal<AssetDto[]>([]);
 
     // Reactive Form to Signal Bridge
@@ -157,13 +164,22 @@ export class NewTransactionComponent implements OnInit {
             ).subscribe({
                 next: (syncedAsset) => {
                     this.form.get(controlPath)?.setValue(syncedAsset);
+                    this.assetSignalMap[controlPath]?.set(syncedAsset);
                 },
                 error: (err) => {
                     console.error('Failed to sync asset', err);
-                    this.form.get(controlPath)?.setValue(null); // Clear on fail
+                    this.form.get(controlPath)?.setValue(null);
+                    this.assetSignalMap[controlPath]?.set(null);
                 }
             });
+        } else {
+            this.assetSignalMap[controlPath]?.set(asset);
         }
+    }
+
+    clearAsset(controlPath: string) {
+        this.form.get(controlPath)?.setValue(null);
+        this.assetSignalMap[controlPath]?.set(null);
     }
 
     onAssetInputBlur(controlPath: string) {
@@ -205,6 +221,11 @@ export class NewTransactionComponent implements OnInit {
         this.filteredFromAssets = signal<AssetDto[]>([]);
         this.filteredToAssets = signal<AssetDto[]>([]);
         this.filteredFeeAssets = signal<AssetDto[]>([]);
+
+        // Register signal map for chip management
+        (this.assetSignalMap as any)['step1.fromAssetId'] = this.selectedFromAsset;
+        (this.assetSignalMap as any)['step1.toAssetId'] = this.selectedToAsset;
+        (this.assetSignalMap as any)['step2.feeAssetId'] = this.selectedFeeAsset;
 
         this.setupAutocomplete('step1.fromAssetId', this.filteredFromAssets);
         this.setupAutocomplete('step1.toAssetId', this.filteredToAssets);
