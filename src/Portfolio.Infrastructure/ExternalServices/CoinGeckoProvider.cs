@@ -97,14 +97,15 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("symbol")] string Symbol,
-        [property: JsonPropertyName("large")] string? ImageUrl
+        [property: JsonPropertyName("large")] string? ImageUrl,
+        [property: JsonPropertyName("market_cap_rank")] int? MarketCapRank
     );
 
     public record CoinGeckoSearchResponseDto(
         [property: JsonPropertyName("coins")] List<CoinGeckoSearchItemDto> Coins
     );
 
-    public async Task<IEnumerable<Asset>> SearchAssetsAsync(AssetType type, string query)
+    public async Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(AssetType type, string query)
     {
         if (type != AssetType.Crypto || string.IsNullOrWhiteSpace(query)) return [];
 
@@ -115,12 +116,15 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
             var response = await _httpClient.GetFromJsonAsync<CoinGeckoSearchResponseDto>(url);
             if (response?.Coins == null) return [];
 
-            return response.Coins.Select(c => new Asset(
-                c.Symbol.ToUpper(),
-                c.Name,
-                c.Id,
-                c.ImageUrl,
-                AssetType.Crypto
+            return response.Coins.Select(c => new SearchAssetResult(
+                new Asset(
+                    c.Symbol.ToUpper(),
+                    c.Name,
+                    c.Id,
+                    c.ImageUrl,
+                    AssetType.Crypto
+                ),
+                c.MarketCapRank
             ));
         }
         catch (Exception)

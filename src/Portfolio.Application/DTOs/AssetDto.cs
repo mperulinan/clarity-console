@@ -1,4 +1,4 @@
-﻿using Portfolio.Domain.ValueObjects;
+using Portfolio.Domain.ValueObjects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,5 +13,7 @@ namespace Portfolio.Application.DTOs
         public string? ExternalId { get; set; }
         public string? ImageUrl { get; set; }
         public string Type { get; set; } = string.Empty;
+        public int TransactionCount { get; set; }
+        public int? MarketCapRank { get; set; }
     }
 }

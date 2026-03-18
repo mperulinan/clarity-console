@@ -14,6 +14,8 @@ export interface AssetDto {
     externalId?: string;
     imageUrl?: string;
     type: string;
+    transactionCount: number;
+    marketCapRank?: number;
 }
 
 @Injectable({

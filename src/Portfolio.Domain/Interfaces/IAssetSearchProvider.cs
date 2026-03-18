@@ -5,5 +5,5 @@ namespace Portfolio.Domain.Interfaces;
 
 public interface IAssetSearchProvider
 {
-    Task<IEnumerable<Asset>> SearchAssetsAsync(AssetType type, string query);
+    Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(AssetType type, string query);
 }
