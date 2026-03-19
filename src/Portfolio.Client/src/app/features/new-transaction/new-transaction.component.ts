@@ -95,11 +95,11 @@ export class NewTransactionComponent implements OnInit {
                 fromAssetId: ['', Validators.required],
                 toAssetId: ['', Validators.required],
                 amountSpent: [null, [Validators.required, Validators.min(0)]],
-                amountReceived: [null, [Validators.required, Validators.min(0)]]
+                amountReceived: [null, [Validators.required, Validators.min(0)]],
+                spotPrice: [null, [Validators.required, Validators.min(0)]],
+                spotPriceCurrency: ['USD', Validators.required]
             }),
             step2: this.fb.group({
-                spotPrice: [null, [Validators.required, Validators.min(0)]],
-                spotPriceCurrency: ['USD', Validators.required],
                 fee: [0],
                 feeAssetId: [''],
                 feeSpotPrice: [null, Validators.min(0)],
@@ -251,8 +251,8 @@ export class NewTransactionComponent implements OnInit {
     }
 
     private updateReactiveLocks(step1Value: any) {
-        const spotPriceControl = this.form.get('step2.spotPrice');
-        const spotPriceCurrencyControl = this.form.get('step2.spotPriceCurrency');
+        const spotPriceControl = this.form.get('step1.spotPrice');
+        const spotPriceCurrencyControl = this.form.get('step1.spotPriceCurrency');
 
         const fromAsset = step1Value.fromAssetId;
         const toAsset = step1Value.toAssetId;
@@ -341,7 +341,7 @@ export class NewTransactionComponent implements OnInit {
         if (this.form.invalid || this.isSubmitting()) return;
 
         this.isSubmitting.set(true);
-        const step1Value = this.form.get('step1')?.value;
+        const step1Value = this.form.get('step1')?.getRawValue();
         // getRawValue gets disabled control values too
         const step2Value = this.form.get('step2')?.getRawValue();
         const step3Value = this.form.get('step3')?.value;
@@ -353,9 +353,9 @@ export class NewTransactionComponent implements OnInit {
             toAssetId: step1Value.toAssetId?.id || undefined,
             amountSpent: Number(step1Value.amountSpent || 0),
             amountReceived: Number(step1Value.amountReceived || 0),
-            spotPriceInUsd: step2Value.spotPriceCurrency === 'USD' ? Number(step2Value.spotPrice) : undefined,
-            spotPriceInEur: step2Value.spotPriceCurrency === 'EUR' ? Number(step2Value.spotPrice) : undefined,
-            spotPriceInputCurrency: step2Value.spotPriceCurrency,
+            spotPriceInUsd: step1Value.spotPriceCurrency === 'USD' ? Number(step1Value.spotPrice) : undefined,
+            spotPriceInEur: step1Value.spotPriceCurrency === 'EUR' ? Number(step1Value.spotPrice) : undefined,
+            spotPriceInputCurrency: step1Value.spotPriceCurrency,
             fee: Number(step2Value.fee || 0),
             feeAssetId: step2Value.feeAssetId?.id || undefined,
             feeSpotPriceInUsd: step2Value.feeSpotPriceCurrency === 'USD' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
