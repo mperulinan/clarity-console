@@ -388,6 +388,14 @@ export class NewTransactionComponent implements OnInit {
         return this.form.get('step2');
     }
 
+    get step1Value(): any {
+        return this.step1Group?.getRawValue() || {};
+    }
+
+    get step2Value(): any {
+        return this.step2Group?.getRawValue() || {};
+    }
+
     get isStep1Valid(): boolean {
         return this.form.get('step1')?.valid ?? false;
     }
