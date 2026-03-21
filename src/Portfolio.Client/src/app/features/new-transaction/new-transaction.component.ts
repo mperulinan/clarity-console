@@ -151,6 +151,8 @@ export class NewTransactionComponent implements OnInit {
         const asset = event.option.value as AssetDto;
         if (!asset) return;
 
+        this.clearPrices(controlPath);
+
         if (!asset.id || asset.id === '00000000-0000-0000-0000-000000000000') {
             // Need to sync external asset first
             this.isSyncingAsset.set(true);
@@ -180,6 +182,15 @@ export class NewTransactionComponent implements OnInit {
     clearAsset(controlPath: string) {
         this.form.get(controlPath)?.setValue(null);
         this.assetSignalMap[controlPath]?.set(null);
+        this.clearPrices(controlPath);
+    }
+
+    clearPrices(controlPath: string) {
+        if (controlPath === 'step1.fromAssetId' || controlPath === 'step1.toAssetId') {
+            this.form.get('step2.spotPrice')?.setValue(null);
+        } else if (controlPath === 'step2.feeAssetId') {
+            this.form.get('step2.feeSpotPrice')?.setValue(null);
+        }
     }
 
     onAssetInputBlur(controlPath: string) {
@@ -236,6 +247,7 @@ export class NewTransactionComponent implements OnInit {
             const types = this.transactionTypes();
             const typeData = types.find(t => t.value === typeValue);
             if (typeData) {
+                this.migrateValuesOnTypeChange(typeData);
                 this.updateValidators(typeData);
             }
         });
@@ -277,6 +289,31 @@ export class NewTransactionComponent implements OnInit {
             if (feePriceControl?.disabled) {
                 feePriceControl?.enable({ emitEvent: false });
                 feePriceCurrencyControl?.enable({ emitEvent: false });
+            }
+        }
+    }
+
+    private migrateValuesOnTypeChange(newType: TransactionType) {
+        const step1 = this.form.get('step1');
+        const fromAsset = step1?.get('fromAssetId')?.value;
+        const toAsset = step1?.get('toAssetId')?.value;
+        const fromAmount = step1?.get('amountSpent')?.value;
+        const toAmount = step1?.get('amountReceived')?.value;
+
+        // If new type ONLY needs FROM, and FROM is empty, and TO has a value
+        if (newType.requiresFromAsset && !newType.requiresToAsset && !fromAsset && toAsset) {
+            step1?.get('fromAssetId')?.setValue(toAsset);
+            this.selectedFromAsset.set(toAsset);
+            if (!fromAmount && toAmount > 0) {
+                step1?.get('amountSpent')?.setValue(toAmount);
+            }
+        }
+        // If new type ONLY needs TO, and TO is empty, and FROM has a value
+        else if (newType.requiresToAsset && !newType.requiresFromAsset && !toAsset && fromAsset) {
+            step1?.get('toAssetId')?.setValue(fromAsset);
+            this.selectedToAsset.set(fromAsset);
+            if (!toAmount && fromAmount > 0) {
+                step1?.get('amountReceived')?.setValue(fromAmount);
             }
         }
     }
