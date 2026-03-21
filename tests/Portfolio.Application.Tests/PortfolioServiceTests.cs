@@ -148,7 +148,7 @@ public class PortfolioServiceTests
     public async Task GetPortfolioMetrics_ShouldOrchestrateFlowCorrectly()
     {
         Guid btcId = Guid.NewGuid();
-        Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, Guid.NewGuid(), btcId, 10000, 1, 1, null, 0, null, null, null, null, null, null, null)
+        Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, FiatCurrency.USD.Id, btcId, 10000, 1, 1, null, 0, null, null, null, null, null, null, null)
         {
             FromAsset = new Asset("USD", "US Dollar", null, null, AssetType.Fiat),
             ToAsset = new Asset("BTC", "Bitcoin", null, null, AssetType.Crypto)

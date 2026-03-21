@@ -25,4 +25,9 @@ public class FiatCurrency : SmartEnum<FiatCurrency, string>
 
         throw new ArgumentException($"Unknown fiat currency: {symbol}");
     }
+
+    public static FiatCurrency? FromIdOrDefault(Guid? id)
+    {
+        return id.HasValue ? List.FirstOrDefault(f => f.Id == id.Value) : null;
+    }
 }

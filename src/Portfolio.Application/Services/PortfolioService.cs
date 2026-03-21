@@ -122,7 +122,9 @@ public class PortfolioService(
         // Store USD prices immediately, EUR prices will be calculated lazily
         // when the Transactions page is loaded (only for past-day transactions)
 
-        var spotCurrency = FiatCurrency.FromValue(request.SpotPriceInputCurrency.ToLowerInvariant());
+        var spotCurrency = !string.IsNullOrEmpty(request.SpotPriceInputCurrency) 
+            ? FiatCurrency.FromValue(request.SpotPriceInputCurrency.ToLowerInvariant()) 
+            : null;
 
         var feeCurrency = !string.IsNullOrEmpty(request.FeePriceInputCurrency) 
             ? FiatCurrency.FromValue(request.FeePriceInputCurrency.ToLowerInvariant()) 

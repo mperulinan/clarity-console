@@ -44,7 +44,7 @@ public class Transaction
         decimal? feeSpotPriceUSD,
         decimal? feeSpotPriceEUR,
         decimal? usdEurExchangeRate,
-        FiatCurrency spotPriceInputCurrency,
+        FiatCurrency? spotPriceInputCurrency,
         FiatCurrency? feePriceInputCurrency,
         string? notes)
     {
@@ -61,23 +61,67 @@ public class Transaction
         if (!Type.RequiresToAsset && toAssetId.HasValue)
             throw new ArgumentException($"ToAssetId must be null for {Type.Name}");
 
-        if (!spotPriceUSD.HasValue && !spotPriceEUR.HasValue)
-            throw new ArgumentException("Either SpotPriceUSD or SpotPriceEUR must logically have a value depending on the Input Currency.");
-
         FromAssetId = fromAssetId;
         ToAssetId = toAssetId;
         AmountSpent = amountSpent;
         AmountReceived = amountReceived;
-        SpotPriceUSD = spotPriceUSD;
-        SpotPriceEUR = spotPriceEUR;
         Fee = fee;
         FeeAssetId = feeAssetId;
+
+        ProcessFiatDerivations(ref spotPriceUSD, ref spotPriceEUR, ref spotPriceInputCurrency);
+        ProcessFeeFiatDerivations(ref feeSpotPriceUSD, ref feeSpotPriceEUR, ref feePriceInputCurrency);
+
+        if (spotPriceInputCurrency == null)
+            throw new ArgumentException("SpotPriceInputCurrency must be provided if the transaction does not implicitly involve a Fiat currency.");
+
+        if (!spotPriceUSD.HasValue && !spotPriceEUR.HasValue)
+            throw new ArgumentException("Either SpotPriceUSD or SpotPriceEUR must logically have a value depending on the Input Currency.");
+
+        SpotPriceUSD = spotPriceUSD;
+        SpotPriceEUR = spotPriceEUR;
         FeePriceUSD = feeSpotPriceUSD;
         FeePriceEUR = feeSpotPriceEUR;
         UsdEurExchangeRate = usdEurExchangeRate;
         SpotPriceInputCurrency = spotPriceInputCurrency;
         FeePriceInputCurrency = feePriceInputCurrency;
         Notes = notes;
+    }
+
+    private void ProcessFiatDerivations(ref decimal? spotPriceUSD, ref decimal? spotPriceEUR, ref FiatCurrency? spotPriceInputCurrency)
+    {
+        bool pricesFromAsset = Type.RequiresFromAsset;
+        Guid? pricedAssetId = pricesFromAsset ? FromAssetId : ToAssetId;
+
+        var pricedFiat = FiatCurrency.FromIdOrDefault(pricedAssetId);
+        if (pricedFiat != null)
+        {
+            spotPriceInputCurrency = pricedFiat;
+            if (pricedFiat == FiatCurrency.USD) spotPriceUSD = 1m;
+            if (pricedFiat == FiatCurrency.EUR) spotPriceEUR = 1m;
+        }
+        else if (pricesFromAsset && ToAssetId.HasValue)
+        {
+            var toFiat = FiatCurrency.FromIdOrDefault(ToAssetId);
+            if (toFiat != null)
+            {
+                spotPriceInputCurrency = toFiat;
+                decimal derivedPrice = AmountSpent > 0 ? AmountReceived / AmountSpent : 0m;
+                
+                if (toFiat == FiatCurrency.USD) spotPriceUSD = derivedPrice;
+                if (toFiat == FiatCurrency.EUR) spotPriceEUR = derivedPrice;
+            }
+        }
+    }
+
+    private void ProcessFeeFiatDerivations(ref decimal? feeSpotPriceUSD, ref decimal? feeSpotPriceEUR, ref FiatCurrency? feePriceInputCurrency)
+    {
+        var feeFiat = FiatCurrency.FromIdOrDefault(FeeAssetId);
+        if (feeFiat != null)
+        {
+            feePriceInputCurrency = feeFiat;
+            feeSpotPriceUSD = feeFiat == FiatCurrency.USD ? 1m : feeSpotPriceUSD;
+            feeSpotPriceEUR = feeFiat == FiatCurrency.EUR ? 1m : feeSpotPriceEUR;
+        }
     }
 
     public void UpdateExchangeRates(decimal usdEurRate)

@@ -27,7 +27,7 @@ const UI_CONFIG: Record<string, any> = {
     DEPOSIT: { toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited' },
     WITHDRAWAL: { fromTitle: 'Asset Withdrawn', fromIcon: 'north_east', fromAmount: 'Amount Withdrawn' },
     SWAP: { fromTitle: 'Asset Sold', fromIcon: 'sell', fromAmount: 'Amount Sold', toTitle: 'Asset Bought', toIcon: 'shopping_cart', toAmount: 'Amount Bought' },
-    REWARD: { toTitle: 'Asset Rewarded', toIcon: 'workspace_premium', toAmount: 'Reward Amount' },
+    REWARD: { toTitle: 'Asset Rewarded', toIcon: 'workspace_premium', toAmount: 'Amount Rewarded' },
     DEFAULT: { fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent', toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received' },
 };
 
@@ -95,11 +95,11 @@ export class NewTransactionComponent implements OnInit {
                 fromAssetId: ['', Validators.required],
                 toAssetId: ['', Validators.required],
                 amountSpent: [null, [Validators.required, Validators.min(0)]],
-                amountReceived: [null, [Validators.required, Validators.min(0)]],
-                spotPrice: [null, [Validators.required, Validators.min(0)]],
-                spotPriceCurrency: ['USD', Validators.required]
+                amountReceived: [null, [Validators.required, Validators.min(0)]]
             }),
             step2: this.fb.group({
+                spotPrice: [null, [Validators.required, Validators.min(0)]],
+                spotPriceCurrency: ['USD', Validators.required],
                 fee: [0],
                 feeAssetId: [''],
                 feeSpotPrice: [null, Validators.min(0)],
@@ -251,26 +251,15 @@ export class NewTransactionComponent implements OnInit {
     }
 
     private updateReactiveLocks(step1Value: any) {
-        const spotPriceControl = this.form.get('step1.spotPrice');
-        const spotPriceCurrencyControl = this.form.get('step1.spotPriceCurrency');
+        const spotPriceControl = this.form.get('step2.spotPrice');
+        const spotPriceCurrencyControl = this.form.get('step2.spotPriceCurrency');
 
-        const fromAsset = step1Value.fromAssetId;
-        const toAsset = step1Value.toAssetId;
-
-        // Dynamically check if either selected asset matches a known fiat currency
-        const matchedFiat =
-            this.fiatCurrencies().find(f => f.id === fromAsset?.id) ??
-            this.fiatCurrencies().find(f => f.id === toAsset?.id);
-
-        if (matchedFiat) {
-            spotPriceControl?.setValue(1, { emitEvent: false });
+        if (this.hasFiatLeg) {
             spotPriceControl?.disable({ emitEvent: false });
-            spotPriceCurrencyControl?.setValue(matchedFiat.symbol);
             spotPriceCurrencyControl?.disable({ emitEvent: false });
         } else {
             if (spotPriceControl?.disabled) {
                 spotPriceControl?.enable({ emitEvent: false });
-                spotPriceControl?.setValue(null, { emitEvent: false });
                 spotPriceCurrencyControl?.enable({ emitEvent: false });
             }
         }
@@ -280,18 +269,12 @@ export class NewTransactionComponent implements OnInit {
         const feePriceControl = this.form.get('step2.feeSpotPrice');
         const feePriceCurrencyControl = this.form.get('step2.feeSpotPriceCurrency');
 
-        // Dynamically check if the fee asset matches a known fiat currency
-        const matchedFiat = this.fiatCurrencies().find(f => f.id === feeAsset?.id);
-
-        if (matchedFiat) {
-            feePriceControl?.setValue(1, { emitEvent: false });
+        if (this.hasFiatFee) {
             feePriceControl?.disable({ emitEvent: false });
-            feePriceCurrencyControl?.setValue(matchedFiat.symbol);
             feePriceCurrencyControl?.disable({ emitEvent: false });
         } else {
             if (feePriceControl?.disabled) {
                 feePriceControl?.enable({ emitEvent: false });
-                feePriceControl?.setValue(null, { emitEvent: false });
                 feePriceCurrencyControl?.enable({ emitEvent: false });
             }
         }
@@ -311,19 +294,27 @@ export class NewTransactionComponent implements OnInit {
         receivedControl?.clearValidators();
 
         if (typeData.requiresFromAsset) {
+            fromControl?.enable();
+            spentControl?.enable();
             fromControl?.setValidators([Validators.required, this.requireAssetObject]);
             spentControl?.setValidators([Validators.required, Validators.min(0)]);
         } else {
             spentControl?.setValue(0);
-            fromControl?.setValue('');
+            fromControl?.setValue(null);
+            spentControl?.disable();
+            fromControl?.disable();
         }
 
         if (typeData.requiresToAsset) {
+            toControl?.enable();
+            receivedControl?.enable();
             toControl?.setValidators([Validators.required, this.requireAssetObject]);
             receivedControl?.setValidators([Validators.required, Validators.min(0)]);
         } else {
             receivedControl?.setValue(0);
-            toControl?.setValue('');
+            toControl?.setValue(null);
+            receivedControl?.disable();
+            toControl?.disable();
         }
 
         fromControl?.updateValueAndValidity();
@@ -353,9 +344,9 @@ export class NewTransactionComponent implements OnInit {
             toAssetId: step1Value.toAssetId?.id || undefined,
             amountSpent: Number(step1Value.amountSpent || 0),
             amountReceived: Number(step1Value.amountReceived || 0),
-            spotPriceInUsd: step1Value.spotPriceCurrency === 'USD' ? Number(step1Value.spotPrice) : undefined,
-            spotPriceInEur: step1Value.spotPriceCurrency === 'EUR' ? Number(step1Value.spotPrice) : undefined,
-            spotPriceInputCurrency: step1Value.spotPriceCurrency,
+            spotPriceInUsd: step2Value.spotPriceCurrency === 'USD' ? Number(step2Value.spotPrice) : undefined,
+            spotPriceInEur: step2Value.spotPriceCurrency === 'EUR' ? Number(step2Value.spotPrice) : undefined,
+            spotPriceInputCurrency: step2Value.spotPriceCurrency,
             fee: Number(step2Value.fee || 0),
             feeAssetId: step2Value.feeAssetId?.id || undefined,
             feeSpotPriceInUsd: step2Value.feeSpotPriceCurrency === 'USD' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
@@ -394,6 +385,35 @@ export class NewTransactionComponent implements OnInit {
 
     get step2Value(): any {
         return this.step2Group?.getRawValue() || {};
+    }
+
+    get pricedAssetSymbol(): string {
+        let defaultSymbol = 'Coin';
+        const typeData = this.selectedTypeData();
+        if (!typeData) return defaultSymbol;
+
+        // Swap (both true) and Withdrawal (from true) price the From Asset
+        if (typeData.requiresFromAsset) {
+            return this.step1Value?.fromAssetId?.symbol || defaultSymbol;
+        }
+
+        // Deposit and Reward price the To Asset
+        return this.step1Value?.toAssetId?.symbol || defaultSymbol;
+    }
+
+    get feeAssetSymbol(): string {
+        return this.step2Value?.feeAssetId?.symbol || 'Coin';
+    }
+
+    get hasFiatLeg(): boolean {
+        const fromAsset = this.step1Value?.fromAssetId;
+        const toAsset = this.step1Value?.toAssetId;
+        return this.fiatCurrencies().some(f => f.id === fromAsset?.id || f.id === toAsset?.id);
+    }
+
+    get hasFiatFee(): boolean {
+        const feeAsset = this.step2Value?.feeAssetId;
+        return this.fiatCurrencies().some(f => f.id === feeAsset?.id);
     }
 
     get isStep1Valid(): boolean {

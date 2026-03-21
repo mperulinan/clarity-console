@@ -12,7 +12,7 @@ public class NewTransactionRequest
     public decimal AmountReceived { get; set; }
     public decimal? SpotPriceUSD { get; set; }
     public decimal? SpotPriceEUR { get; set; }
-    public string SpotPriceInputCurrency { get; set; } = null!;
+    public string? SpotPriceInputCurrency { get; set; }
     public decimal Fee { get; set; }
     public Guid? FeeAssetId { get; set; }
     public decimal? FeePriceUSD { get; set; }
