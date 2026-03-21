@@ -216,19 +216,38 @@ export class NewTransactionComponent implements OnInit {
     }
 
     private updateFeeLocks() {
+        const feeAssetControl = this.form.controls.step2.controls.feeAssetId;
+        const feeControl = this.form.controls.step2.controls.fee;
         const feePriceControl = this.form.controls.step2.controls.feeSpotPrice;
         const feePriceCurrencyControl = this.form.controls.step2.controls.feeSpotPriceCurrency;
+
+        const hasFeeAsset = !!feeAssetControl.value;
+        const hasFeeAmount = !!feeControl.value && feeControl.value > 0;
+
+        // Ensure Fee Amount is explicitly required if an Asset is selected
+        if (hasFeeAsset || hasFeeAmount) {
+            feeControl.setValidators([Validators.required, this.requireGreaterThanZero]);
+        } else {
+            feeControl.clearValidators();
+        }
+        feeControl.updateValueAndValidity({ emitEvent: false });
 
         if (!this.showFeeFiatValuation) {
             feePriceControl.disable({ emitEvent: false });
             feePriceCurrencyControl.disable({ emitEvent: false });
+            feePriceControl.clearValidators();
+            feePriceCurrencyControl.clearValidators();
             feePriceControl.setValue(null, { emitEvent: false });
         } else {
             if (feePriceControl.disabled) {
                 feePriceControl.enable({ emitEvent: false });
                 feePriceCurrencyControl.enable({ emitEvent: false });
             }
+            feePriceControl.setValidators([Validators.required, this.requireGreaterThanZero]);
+            feePriceCurrencyControl.setValidators([Validators.required]);
         }
+        feePriceControl.updateValueAndValidity({ emitEvent: false });
+        feePriceCurrencyControl.updateValueAndValidity({ emitEvent: false });
     }
 
     private migrateValuesOnTypeChange(newType: TransactionType) {
@@ -395,9 +414,8 @@ export class NewTransactionComponent implements OnInit {
     }
 
     get showFeeFiatValuation(): boolean {
-        const feeAmount = this.step2Value?.fee || 0;
         const hasAsset = !!this.step2Value?.feeAssetId;
-        return feeAmount > 0 && hasAsset && !this.hasFiatFee;
+        return hasAsset && !this.hasFiatFee;
     }
 
     get isStep1Valid(): boolean {
