@@ -1,0 +1,35 @@
+@if (selectedAsset()) {
+<div [class]="chipClass">
+    @if (selectedAsset()!.imageUrl) {
+    <img [src]="selectedAsset()!.imageUrl" alt="icon" class="asset-chip__img">
+    }
+    <span class="asset-chip__name">{{ selectedAsset()!.name }}</span>
+    <span class="asset-chip__symbol">{{ selectedAsset()!.symbol }}</span>
+    <button type="button" class="asset-chip__clear" (click)="clearAsset($event)" title="Change asset">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+} @else {
+<mat-form-field appearance="fill" class="w-full">
+    <mat-label>{{ label }}</mat-label>
+    <input matInput [formControl]="searchControl" [placeholder]="placeholder" [matAutocomplete]="auto"
+        (blur)="onAssetInputBlur()">
+    <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayAssetFn"
+        (optionSelected)="onAssetSelected($event)">
+        @for (asset of filteredAssets(); track asset.externalId || asset.id) {
+        <mat-option [value]="asset">
+            <div class="flex items-center gap-2">
+                @if (asset.imageUrl) {
+                <img [src]="asset.imageUrl" alt="Icon" class="w-5 h-5 rounded-full bg-black">
+                }
+                <span class="text-sm font-semibold">{{ asset.name }}</span>
+                <span class="text-sm">{{ asset.symbol }}</span>
+            </div>
+        </mat-option>
+        }
+    </mat-autocomplete>
+    @if (isSyncingAsset()) {
+    <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
+    }
+</mat-form-field>
+}
