@@ -94,11 +94,11 @@ export class NewTransactionComponent implements OnInit {
                 type: ['', Validators.required],
                 fromAssetId: ['', Validators.required],
                 toAssetId: ['', Validators.required],
-                amountSpent: [null, [Validators.required, Validators.min(0)]],
-                amountReceived: [null, [Validators.required, Validators.min(0)]]
+                amountSpent: [null, [Validators.required, this.requireGreaterThanZero]],
+                amountReceived: [null, [Validators.required, this.requireGreaterThanZero]]
             }),
             step2: this.fb.group({
-                spotPrice: [null, [Validators.required, Validators.min(0)]],
+                spotPrice: [null, [Validators.required, this.requireGreaterThanZero]],
                 spotPriceCurrency: ['USD', Validators.required],
                 fee: [0],
                 feeAssetId: [''],
@@ -298,7 +298,7 @@ export class NewTransactionComponent implements OnInit {
             fromControl?.enable();
             spentControl?.enable();
             fromControl?.setValidators([Validators.required, this.requireAssetObject]);
-            spentControl?.setValidators([Validators.required, Validators.min(0)]);
+            spentControl?.setValidators([Validators.required, this.requireGreaterThanZero]);
         } else {
             spentControl?.setValue(0);
             fromControl?.setValue(null);
@@ -310,7 +310,7 @@ export class NewTransactionComponent implements OnInit {
             toControl?.enable();
             receivedControl?.enable();
             toControl?.setValidators([Validators.required, this.requireAssetObject]);
-            receivedControl?.setValidators([Validators.required, Validators.min(0)]);
+            receivedControl?.setValidators([Validators.required, this.requireGreaterThanZero]);
         } else {
             receivedControl?.setValue(0);
             toControl?.setValue(null);
@@ -327,6 +327,11 @@ export class NewTransactionComponent implements OnInit {
     private requireAssetObject(control: AbstractControl): { [key: string]: boolean } | null {
         if (!control.value) return null;
         return typeof control.value === 'string' ? { 'requireMatch': true } : null;
+    }
+
+    private requireGreaterThanZero(control: AbstractControl): { [key: string]: boolean } | null {
+        if (control.value === null || control.value === undefined || control.value === '') return null;
+        return Number(control.value) > 0 ? null : { 'minExclusive': true };
     }
 
     onSubmit() {
