@@ -245,8 +245,8 @@ export class NewTransactionComponent implements OnInit {
             this.updateReactiveLocks(step1Value);
         });
 
-        this.form.get('step2.feeAssetId')?.valueChanges.subscribe(feeAsset => {
-            this.updateFeeLocks(feeAsset);
+        this.form.get('step2')?.valueChanges.subscribe(() => {
+            this.updateFeeLocks();
         });
     }
 
@@ -265,13 +265,14 @@ export class NewTransactionComponent implements OnInit {
         }
     }
 
-    private updateFeeLocks(feeAsset: any) {
+    private updateFeeLocks() {
         const feePriceControl = this.form.get('step2.feeSpotPrice');
         const feePriceCurrencyControl = this.form.get('step2.feeSpotPriceCurrency');
 
-        if (this.hasFiatFee) {
+        if (!this.showFeeFiatValuation) {
             feePriceControl?.disable({ emitEvent: false });
             feePriceCurrencyControl?.disable({ emitEvent: false });
+            feePriceControl?.setValue(null, { emitEvent: false });
         } else {
             if (feePriceControl?.disabled) {
                 feePriceControl?.enable({ emitEvent: false });
@@ -414,6 +415,12 @@ export class NewTransactionComponent implements OnInit {
     get hasFiatFee(): boolean {
         const feeAsset = this.step2Value?.feeAssetId;
         return this.fiatCurrencies().some(f => f.id === feeAsset?.id);
+    }
+
+    get showFeeFiatValuation(): boolean {
+        const feeAmount = this.step2Value?.fee || 0;
+        const hasAsset = !!this.step2Value?.feeAssetId;
+        return feeAmount > 0 && hasAsset && !this.hasFiatFee;
     }
 
     get isStep1Valid(): boolean {
