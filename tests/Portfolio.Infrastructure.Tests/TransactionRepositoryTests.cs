@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
-using Portfolio.Domain.ValueObjects;
 using Portfolio.Infrastructure.Persistence;
 using Portfolio.Infrastructure.Persistence.Repositories;
 using Xunit;

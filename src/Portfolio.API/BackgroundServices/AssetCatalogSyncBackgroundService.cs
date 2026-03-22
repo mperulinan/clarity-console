@@ -1,6 +1,6 @@
 using Portfolio.Domain.Interfaces;
 using Portfolio.Application.Interfaces;
-using Portfolio.Domain.ValueObjects;
+using Portfolio.Domain.Enums;
 
 namespace Portfolio.API.BackgroundServices;
 

@@ -1,6 +1,5 @@
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
-using Portfolio.Domain.ValueObjects;
 using Xunit;
 
 namespace Portfolio.Domain.Tests;

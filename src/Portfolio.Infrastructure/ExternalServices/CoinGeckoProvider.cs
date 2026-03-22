@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
-using Portfolio.Domain.ValueObjects;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 

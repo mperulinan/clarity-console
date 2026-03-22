@@ -4,7 +4,6 @@ using Portfolio.Application.Interfaces;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
-using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.API.Controllers;
 

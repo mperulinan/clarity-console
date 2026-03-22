@@ -1,5 +1,5 @@
 using Portfolio.Domain.Entities;
-using Portfolio.Domain.ValueObjects;
+using Portfolio.Domain.Enums;
 
 namespace Portfolio.Domain.Interfaces;
 

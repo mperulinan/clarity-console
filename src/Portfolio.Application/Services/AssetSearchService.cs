@@ -1,7 +1,7 @@
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
+using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
-using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Application.Services;
 

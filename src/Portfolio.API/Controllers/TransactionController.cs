@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Portfolio.Application.Interfaces;
 using Portfolio.Infrastructure.Persistence;
 using Portfolio.Application.DTOs;
-using Portfolio.Domain.ValueObjects;
+using Portfolio.Domain.Enums;
 
 namespace Portfolio.API.Controllers;
 

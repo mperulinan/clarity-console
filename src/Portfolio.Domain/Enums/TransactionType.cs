@@ -1,6 +1,6 @@
 using Ardalis.SmartEnum;
 
-namespace Portfolio.Domain.ValueObjects;
+namespace Portfolio.Domain.Enums;
 
 public class TransactionType : SmartEnum<TransactionType, string>
 {

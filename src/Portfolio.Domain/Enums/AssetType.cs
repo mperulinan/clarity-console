@@ -1,7 +1,6 @@
 using Ardalis.SmartEnum;
-using Portfolio.Domain.Entities;
 
-namespace Portfolio.Domain.ValueObjects;
+namespace Portfolio.Domain.Enums;
 
 public class AssetType : SmartEnum<AssetType, string>
 {

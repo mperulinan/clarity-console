@@ -1,6 +1,4 @@
 using Portfolio.Domain.Enums;
-using Portfolio.Domain.ValueObjects;
-using System;
 
 namespace Portfolio.Domain.Entities;
 
