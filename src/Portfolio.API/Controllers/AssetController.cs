@@ -36,7 +36,7 @@ public class AssetController(
         var fiats = FiatCurrency.List.Select(f => new AssetDto
         {
             Id = f.Id,
-            Symbol = f.Name,
+            Symbol = f.Symbol,
             Name = f.Name,
             ImageUrl = f.ImageUrl,
             Type = AssetType.Fiat.Value
