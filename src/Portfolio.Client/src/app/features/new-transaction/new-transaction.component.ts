@@ -238,6 +238,10 @@ export class NewTransactionComponent implements OnInit {
         feeAssetControl.updateValueAndValidity({ emitEvent: false });
 
         if (!this.showFeeFiatValuation) {
+            // Auto-align the disabled pricing currency with the chosen Fiat fee asset
+            if (this.hasFiatFee && feeAssetControl.value?.symbol) {
+                feePriceCurrencyControl.setValue(feeAssetControl.value.symbol, { emitEvent: false });
+            }
             feePriceControl.disable({ emitEvent: false });
             feePriceCurrencyControl.disable({ emitEvent: false });
             feePriceControl.clearValidators();
@@ -346,13 +350,13 @@ export class NewTransactionComponent implements OnInit {
             toAssetId: typeof step1Value.toAssetId === 'object' ? step1Value.toAssetId?.id : undefined,
             amountSpent: Number(step1Value.amountSpent || 0),
             amountReceived: Number(step1Value.amountReceived || 0),
-            spotPriceInUsd: step2Value.spotPriceCurrency === 'USD' ? Number(step2Value.spotPrice) : undefined,
-            spotPriceInEur: step2Value.spotPriceCurrency === 'EUR' ? Number(step2Value.spotPrice) : undefined,
+            spotPriceUSD: step2Value.spotPriceCurrency === 'USD' ? Number(step2Value.spotPrice) : undefined,
+            spotPriceEUR: step2Value.spotPriceCurrency === 'EUR' ? Number(step2Value.spotPrice) : undefined,
             spotPriceInputCurrency: step2Value.spotPriceCurrency,
             fee: (step2Value.feeAssetId && step2Value.feeAssetId.id) ? Number(step2Value.fee || 0) : 0,
             feeAssetId: typeof step2Value.feeAssetId === 'object' ? step2Value.feeAssetId?.id : undefined,
-            feeSpotPriceInUsd: step2Value.feeSpotPriceCurrency === 'USD' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
-            feeSpotPriceInEur: step2Value.feeSpotPriceCurrency === 'EUR' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
+            feePriceUSD: step2Value.feeSpotPriceCurrency === 'USD' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
+            feePriceEUR: step2Value.feeSpotPriceCurrency === 'EUR' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
             feePriceInputCurrency: step2Value.feeSpotPrice && step2Value.feeSpotPriceCurrency ? step2Value.feeSpotPriceCurrency : undefined,
             notes: step3Value.notes ?? undefined
         };

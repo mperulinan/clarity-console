@@ -5,13 +5,13 @@ export interface NewTransactionRequest {
     toAssetId?: string;
     amountSpent: number;
     amountReceived: number;
-    spotPriceInUsd?: number;
-    spotPriceInEur?: number;
+    spotPriceUSD?: number;
+    spotPriceEUR?: number;
     spotPriceInputCurrency: string;
     fee: number;
     feeAssetId?: string;
-    feeSpotPriceInUsd?: number;
-    feeSpotPriceInEur?: number;
+    feePriceUSD?: number;
+    feePriceEUR?: number;
     feePriceInputCurrency?: string;
     notes?: string;
 }
