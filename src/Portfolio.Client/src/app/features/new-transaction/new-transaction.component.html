@@ -311,7 +311,7 @@
                             </div>
 
                             <!-- ── FEE FINANCIALS TILE ─────────────── -->
-                            @if (step2Value?.fee && step2Value.fee > 0) {
+                            @if (step2Value?.fee && step2Value.fee > 0 && step2Value?.feeAssetId) {
                             <div
                                 class="bg-red-500/5 border border-red-500/10 rounded-xl p-3 relative overflow-hidden mt-3">
                                 <div class="absolute top-0 left-0 w-1 h-full bg-red-500/50"></div>

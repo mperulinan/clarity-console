@@ -226,13 +226,16 @@ export class NewTransactionComponent implements OnInit {
         const hasFeeAsset = !!feeAssetControl.value;
         const hasFeeAmount = !!feeControl.value && feeControl.value > 0;
 
-        // Ensure Fee Amount is explicitly required if an Asset is selected
+        // Ensure strict symmetry: Fee Amount needs Asset, Asset needs Fee Amount
         if (hasFeeAsset || hasFeeAmount) {
             feeControl.setValidators([Validators.required, this.requireGreaterThanZero]);
+            feeAssetControl.setValidators([Validators.required, this.requireAssetObject]);
         } else {
             feeControl.clearValidators();
+            feeAssetControl.clearValidators();
         }
         feeControl.updateValueAndValidity({ emitEvent: false });
+        feeAssetControl.updateValueAndValidity({ emitEvent: false });
 
         if (!this.showFeeFiatValuation) {
             feePriceControl.disable({ emitEvent: false });
@@ -346,7 +349,7 @@ export class NewTransactionComponent implements OnInit {
             spotPriceInUsd: step2Value.spotPriceCurrency === 'USD' ? Number(step2Value.spotPrice) : undefined,
             spotPriceInEur: step2Value.spotPriceCurrency === 'EUR' ? Number(step2Value.spotPrice) : undefined,
             spotPriceInputCurrency: step2Value.spotPriceCurrency,
-            fee: Number(step2Value.fee || 0),
+            fee: (step2Value.feeAssetId && step2Value.feeAssetId.id) ? Number(step2Value.fee || 0) : 0,
             feeAssetId: typeof step2Value.feeAssetId === 'object' ? step2Value.feeAssetId?.id : undefined,
             feeSpotPriceInUsd: step2Value.feeSpotPriceCurrency === 'USD' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
             feeSpotPriceInEur: step2Value.feeSpotPriceCurrency === 'EUR' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
