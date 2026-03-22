@@ -130,11 +130,8 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <app-interactive-price-input
-                                    class="flex-grow"
-                                    formControlName="spotPrice"
-                                    [assetSymbol]="pricedAssetSymbol"
-                                    [assetAmount]="pricedAssetAmount"
+                                <app-interactive-price-input class="flex-grow" formControlName="spotPrice"
+                                    [assetSymbol]="pricedAssetSymbol" [assetAmount]="pricedAssetAmount"
                                     [fiatCurrency]="step2Value.spotPriceCurrency">
                                 </app-interactive-price-input>
                             </div>
@@ -183,11 +180,8 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <app-interactive-price-input
-                                    class="flex-grow"
-                                    formControlName="feeSpotPrice"
-                                    [assetSymbol]="feeAssetSymbol"
-                                    [assetAmount]="step2Value.fee"
+                                <app-interactive-price-input class="flex-grow" formControlName="feeSpotPrice"
+                                    [assetSymbol]="feeAssetSymbol" [assetAmount]="step2Value.fee"
                                     [fiatCurrency]="step2Value.feeSpotPriceCurrency">
                                 </app-interactive-price-input>
                             </div>
@@ -213,17 +207,23 @@
                                 <mat-icon>summarize</mat-icon> Transaction Summary
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm text-gray-300">
-                                <div>
+                            <div class="grid grid-cols-2 gap-3 mb-4 text-sm text-gray-300">
+                                <div
+                                    class="p-2 bg-black/20 rounded-md border border-white/5 flex flex-col justify-center">
                                     <span
-                                        class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Type</span>
-                                    <span class="font-medium text-white">{{ selectedTypeData()?.label || '-' }}</span>
+                                        class="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
+                                        Type
+                                    </span>
+                                    <span class="font-medium text-white/90">{{ selectedTypeData()?.label || '-'
+                                        }}</span>
                                 </div>
-                                <div>
+                                <div
+                                    class="p-2 bg-black/20 rounded-md border border-white/5 flex flex-col justify-center">
                                     <span
-                                        class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Date
-                                        & Time</span>
-                                    <span class="font-medium text-white">{{ step1Value?.date | date:'dd/MM/yyyy
+                                        class="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
+                                        Date & Time
+                                    </span>
+                                    <span class="font-medium text-white/90">{{ step1Value?.date | date:'dd/MM/yyyy
                                         HH:mm:ss' }}</span>
                                 </div>
 
@@ -268,45 +268,109 @@
                                 }
                             </div>
 
-                            <hr class="border-white/10 my-4">
+                            <hr class="border-white/10 my-6">
 
-                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-300">
-                                <div>
-                                    <span class="block text-xs text-gray-500 mb-1">Price per {{ pricedAssetSymbol
-                                        }}</span>
-                                    <div class="flex items-center gap-1 font-medium text-white">
-                                        {{ step2Value?.spotPrice || '-' }}
+                            <!-- ── MAIN FINANCIALS TILE ────────────── -->
+                            <div class="bg-black/20 border border-white/5 rounded-xl p-5 mb-4 relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-accent"></div>
+
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <!-- Unit Price -->
+                                    <div>
                                         <span
-                                            class="text-xs text-indigo-300 uppercase px-1.5 py-0.5 rounded-sm bg-indigo-500/20 border border-indigo-500/30">{{
-                                            step2Value?.spotPriceCurrency }}</span>
+                                            class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                                            Price per {{ pricedAssetSymbol }}
+                                        </span>
+                                        <div class="flex items-center gap-2 font-medium text-white">
+                                            <span class="text-xl">{{ step2Value?.spotPrice || '-' }}</span>
+                                            @if (step2Value?.spotPrice) {
+                                            <span
+                                                class="text-xs text-accent uppercase px-1.5 py-0.5 rounded-sm bg-accent/10 border border-accent/20">
+                                                {{ step2Value?.spotPriceCurrency }}
+                                            </span>
+                                            }
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-span-full hidden border-none p-0 mt-0 m-0"></div>
-                                <div>
-                                    <span class="block text-xs text-gray-500 mb-1">Fee Amount</span>
-                                    <div class="flex items-center gap-1 font-medium text-white">
-                                        {{ step2Value?.fee || '0' }}
-                                        @if (step2Value?.feeAssetId) {
+
+                                    <!-- Total Fiat Value -->
+                                    @if (step2Value?.spotPrice) {
+                                    <div class="sm:text-right">
                                         <span
-                                            class="text-xs text-indigo-300 uppercase px-1.5 py-0.5 rounded-sm bg-indigo-500/20 border border-indigo-500/30">{{
-                                            step2Value?.feeAssetId?.symbol || step2Value?.feeAssetId
-                                            }}</span>
-                                        }
+                                            class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                                            Total Fiat Value
+                                        </span>
+                                        <div class="flex items-center sm:justify-end gap-2 text-white">
+                                            <span class="text-3xl font-bold tracking-tight">
+                                                {{ (pricedAssetAmount * (step2Value?.spotPrice || 0)) |
+                                                currency:step2Value.spotPriceCurrency:'symbol' }}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <span class="block text-xs text-gray-500 mb-1">Fee price per {{ feeAssetSymbol
-                                        }}</span>
-                                    <div class="flex items-center gap-1 font-medium text-white">
-                                        {{ step2Value?.feeSpotPrice || '-' }}
-                                        @if (step2Value?.feeSpotPrice) {
-                                        <span
-                                            class="text-xs text-indigo-300 uppercase px-1.5 py-0.5 rounded-sm bg-indigo-500/20 border border-indigo-500/30">{{
-                                            step2Value?.feeSpotPriceCurrency }}</span>
-                                        }
-                                    </div>
+                                    }
                                 </div>
                             </div>
+
+                            <!-- ── FEE FINANCIALS TILE ─────────────── -->
+                            @if (step2Value?.fee && step2Value.fee > 0) {
+                            <div
+                                class="bg-red-500/5 border border-red-500/10 rounded-xl p-3 relative overflow-hidden mt-3">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-red-500/50"></div>
+
+                                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                                    <!-- Fee Elements -->
+                                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-6">
+                                        <div>
+                                            <span
+                                                class="block text-xs font-semibold text-red-400/70 uppercase tracking-wider mb-1">
+                                                Fee Amount
+                                            </span>
+                                            <div class="flex items-center gap-2 font-medium text-white">
+                                                <span>{{ step2Value?.fee }}</span>
+                                                @if (step2Value?.feeAssetId) {
+                                                <span
+                                                    class="text-[10px] text-red-300 uppercase px-1.5 py-0.5 rounded-sm bg-red-500/20 border border-red-500/30">
+                                                    {{ step2Value?.feeAssetId?.symbol || step2Value?.feeAssetId }}
+                                                </span>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        @if (step2Value?.feeSpotPrice) {
+                                        <div class="hidden sm:block border-l border-white/5 mx-1"></div>
+                                        <div>
+                                            <span
+                                                class="block text-xs font-semibold text-red-400/70 uppercase tracking-wider mb-1">
+                                                Fee Price per {{ feeAssetSymbol }}
+                                            </span>
+                                            <div class="flex items-center gap-2 font-medium text-white">
+                                                <span>{{ step2Value?.feeSpotPrice }}</span>
+                                                <span
+                                                    class="text-[10px] text-red-300 uppercase px-1.5 py-0.5 rounded-sm bg-red-500/20 border border-red-500/30">
+                                                    {{ step2Value?.feeSpotPriceCurrency }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        }
+                                    </div>
+
+                                    <!-- Total Fee Value -->
+                                    @if (step2Value?.feeSpotPrice) {
+                                    <div class="lg:text-right mt-1 lg:mt-0">
+                                        <span
+                                            class="block text-xs font-semibold text-red-400/70 uppercase tracking-wider mb-1">
+                                            Total Fiat Fee
+                                        </span>
+                                        <div class="flex items-center lg:justify-end gap-2 text-red-400">
+                                            <span class="text-xl font-bold tracking-tight">
+                                                {{ (step2Value.fee * (step2Value?.feeSpotPrice || 0)) |
+                                                currency:step2Value.feeSpotPriceCurrency:'symbol' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+                            }
                         </div>
 
                         <!-- ── NOTES ──────────────────────────────────────────── -->
