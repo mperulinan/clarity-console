@@ -130,10 +130,13 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <mat-form-field appearance="fill" class="flex-grow">
-                                    <mat-label>Price per {{ pricedAssetSymbol }}</mat-label>
-                                    <input matInput type="number" formControlName="spotPrice" placeholder="Price">
-                                </mat-form-field>
+                                <app-interactive-price-input
+                                    class="flex-grow"
+                                    formControlName="spotPrice"
+                                    [assetSymbol]="pricedAssetSymbol"
+                                    [assetAmount]="pricedAssetAmount"
+                                    [fiatCurrency]="step2Value.spotPriceCurrency">
+                                </app-interactive-price-input>
                             </div>
                         </div>
                         }
@@ -180,10 +183,13 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <mat-form-field appearance="fill" class="flex-grow">
-                                    <mat-label>Price per {{ feeAssetSymbol }}</mat-label>
-                                    <input matInput type="number" formControlName="feeSpotPrice" placeholder="Value">
-                                </mat-form-field>
+                                <app-interactive-price-input
+                                    class="flex-grow"
+                                    formControlName="feeSpotPrice"
+                                    [assetSymbol]="feeAssetSymbol"
+                                    [assetAmount]="step2Value.fee"
+                                    [fiatCurrency]="step2Value.feeSpotPriceCurrency">
+                                </app-interactive-price-input>
                             </div>
                             }
                         </div>

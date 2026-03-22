@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
 import { AssetSelectorComponent } from '../../shared/components/asset-selector/asset-selector.component';
+import { InteractivePriceInputComponent } from '../../shared/components/interactive-price-input/interactive-price-input.component';
 import { PortfolioService, AssetDto } from '../../services/portfolio.service';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType } from '../../models/transaction';
@@ -71,7 +72,8 @@ const UI_CONFIG: Record<string, any> = {
         MatIconModule,
         MatButtonToggleModule,
         MatStepperModule,
-        AssetSelectorComponent
+        AssetSelectorComponent,
+        InteractivePriceInputComponent
     ],
     templateUrl: './new-transaction.component.html',
     styleUrl: './new-transaction.component.scss',
@@ -191,8 +193,8 @@ export class NewTransactionComponent implements OnInit {
         });
 
         // Listen for Fiat Asset Selections to Auto-lock pricing
-        this.form.controls.step1.valueChanges.subscribe(step1Value => {
-            this.updateReactiveLocks(step1Value);
+        this.form.controls.step1.valueChanges.subscribe(() => {
+            this.updateReactiveLocks();
         });
 
         this.form.controls.step2.valueChanges.subscribe(() => {
@@ -200,7 +202,7 @@ export class NewTransactionComponent implements OnInit {
         });
     }
 
-    private updateReactiveLocks(step1Value: any) {
+    private updateReactiveLocks() {
         const spotPriceControl = this.form.controls.step2.controls.spotPrice;
         const spotPriceCurrencyControl = this.form.controls.step2.controls.spotPriceCurrency;
 
@@ -396,6 +398,15 @@ export class NewTransactionComponent implements OnInit {
 
         // Deposit and Reward price the To Asset
         return this.step1Value?.toAssetId?.symbol || defaultSymbol;
+    }
+
+    get pricedAssetAmount(): number {
+        const typeData = this.selectedTypeData();
+        if (!typeData) return 0;
+        if (typeData.requiresFromAsset) {
+            return this.step1Value?.amountSpent || 0;
+        }
+        return this.step1Value?.amountReceived || 0;
     }
 
     get feeAssetSymbol(): string {
