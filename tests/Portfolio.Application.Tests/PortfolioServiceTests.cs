@@ -6,6 +6,7 @@ using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 using Portfolio.Domain.Services;
 using Portfolio.Domain.ValueObjects;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Portfolio.Application.Tests;
 
@@ -33,7 +34,8 @@ public class PortfolioServiceTests
             _inventoryCalculator,
             _mockRates,
             _mockMarketData,
-            _mockMetrics
+            _mockMetrics,
+            NullLogger<PortfolioService>.Instance
         );
     }
 

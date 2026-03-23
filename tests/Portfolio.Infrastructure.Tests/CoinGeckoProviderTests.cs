@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Portfolio.Domain.Enums;
 using Portfolio.Infrastructure.ExternalServices;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Net;
 using System.Text;
 using Xunit;
@@ -47,7 +48,7 @@ public class CoinGeckoProviderTests
         };
 
         HttpClient httpClient = new(fakeHandler);
-        CoinGeckoProvider provider = new(httpClient, BuildConfig());
+        CoinGeckoProvider provider = new(httpClient, BuildConfig(), NullLogger<CoinGeckoProvider>.Instance);
 
         var data = await provider.GetPricesAsync(["bitcoin", "ethereum"], FiatCurrency.USD);
 
@@ -64,7 +65,7 @@ public class CoinGeckoProviderTests
         };
 
         HttpClient httpClient = new(fakeHandler);
-        CoinGeckoProvider provider = new(httpClient, BuildConfig());
+        CoinGeckoProvider provider = new(httpClient, BuildConfig(), NullLogger<CoinGeckoProvider>.Instance);
 
         var data = await provider.GetPricesAsync(["bitcoin"], FiatCurrency.USD);
 

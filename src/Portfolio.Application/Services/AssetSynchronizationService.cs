@@ -1,19 +1,25 @@
+using Microsoft.Extensions.Logging;
 using Portfolio.Application.Interfaces;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Interfaces;
 
 namespace Portfolio.Application.Services;
 
-public class AssetSynchronizationService(IAssetRepository assetRepository) : IAssetSynchronizationService
+public class AssetSynchronizationService(
+    IAssetRepository assetRepository,
+    ILogger<AssetSynchronizationService> logger) : IAssetSynchronizationService
 {
     public async Task<int> SynchronizeCatalogAsync(IEnumerable<Asset> externalAssets)
     {
         var externalList = externalAssets.ToList();
         if (externalList.Count == 0)
         {
+            logger.LogDebug("SynchronizeCatalogAsync called with empty list. Skipping.");
             return 0;
         }
 
+        logger.LogInformation("Starting catalog synchronization for {Count} external assets...", externalList.Count);
+        
         var externalIds = externalList.Select(a => a.ExternalId!).ToList();
         
         var existingAssets = await assetRepository.GetByExternalIdsAsync(externalIds);
@@ -39,6 +45,7 @@ public class AssetSynchronizationService(IAssetRepository assetRepository) : IAs
             }
         }
         
+        logger.LogInformation("Catalog synchronization complete. {UpdatedOrInserted} assets were updated or inserted.", updatedOrInserted);
         return updatedOrInserted;
     }
 }

@@ -41,7 +41,8 @@ builder.Services.AddScoped<CoinGeckoProvider>();
 builder.Services.AddScoped<IAssetPriceProvider, AssetPriceCacheService>(sp => 
     new AssetPriceCacheService(
         sp.GetRequiredService<CoinGeckoProvider>(), 
-        sp.GetRequiredService<IMemoryCache>()
+        sp.GetRequiredService<IMemoryCache>(),
+        sp.GetRequiredService<ILogger<AssetPriceCacheService>>()
     ));
 builder.Services.AddScoped<IAssetCatalogProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
 builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());

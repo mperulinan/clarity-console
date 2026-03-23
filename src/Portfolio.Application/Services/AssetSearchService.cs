@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Mappers;
@@ -9,10 +10,13 @@ namespace Portfolio.Application.Services;
 public class AssetSearchService(
     IAssetRepository assetRepository,
     IAssetSearchProvider searchProvider,
-    ITransactionRepository transactionRepository) : IAssetSearchService
+    ITransactionRepository transactionRepository,
+    ILogger<AssetSearchService> logger) : IAssetSearchService
 {
     public async Task<IEnumerable<AssetDto>> SearchAsync(string query, string? type = null)
     {
+        logger.LogInformation("Asset search requested: '{Query}' (Filter: {Type})", query ?? "", type ?? "None");
+
         // 1. Search local DB
         var allLocalAssets = await assetRepository.GetAllAsync();
         var localAssets = allLocalAssets.Where(a =>
@@ -22,12 +26,16 @@ public class AssetSearchService(
             (string.IsNullOrEmpty(type) || a.Type.Value.Equals(type, StringComparison.OrdinalIgnoreCase))
         ).ToList();
 
+        logger.LogDebug("Found {Count} local matches.", localAssets.Count);
+
         // 2. Search external provider (CoinGecko), only when query is long enough
         IEnumerable<SearchAssetResult> externalResults = [];
         if (!string.IsNullOrWhiteSpace(query) && query.Length >= 2)
         {
+            logger.LogDebug("Query length {Length} qualifies for external search.", query.Length);
             var assetType = string.IsNullOrEmpty(type) ? AssetType.Crypto : AssetType.FromValue(type);
             externalResults = await searchProvider.SearchAssetsAsync(assetType, query);
+            logger.LogDebug("Found {Count} external matches.", externalResults.Count());
         }
 
         // 3. Compute per-asset transaction counts (counts appearances across From, To, and Fee)
@@ -72,15 +80,18 @@ public class AssetSearchService(
             });
 
         // 5. Three-tier sort:
-        //    Tier 1 — DB assets with transactions, most-used first
-        //    Tier 2 — DB assets with 0 transactions, alphabetical by name
-        //    Tier 3 — CoinGecko-only assets, ascending market_cap_rank (nulls last)
-        return localDtos
+        //    Tier 1 - DB assets with transactions, most-used first
+        //    Tier 2 - DB assets with 0 transactions, alphabetical by name
+        //    Tier 3 - CoinGecko-only assets, ascending market_cap_rank (nulls last)
+        var results = localDtos
             .OrderByDescending(a => a.TransactionCount > 0)
             .ThenByDescending(a => a.TransactionCount)
             .ThenBy(a => a.Name)
             .Concat(externalDtos
                 .OrderBy(a => a.MarketCapRank ?? int.MaxValue)
-            );
+            ).ToList();
+
+        logger.LogInformation("Search complete. Returning {TotalCount} total assets.", results.Count);
+        return results;
     }
 }

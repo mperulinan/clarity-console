@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
@@ -7,7 +8,10 @@ using System.Text.Json.Serialization;
 
 namespace Portfolio.Infrastructure.ExternalServices;
 
-public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configuration)
+public class CoinGeckoProvider(
+    HttpClient httpClient, 
+    IConfiguration configuration,
+    ILogger<CoinGeckoProvider> logger)
     : IAssetPriceProvider, IAssetCatalogProvider, IAssetSearchProvider
 {
     private readonly HttpClient _httpClient = httpClient;
@@ -25,8 +29,13 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
 
         try
         {
+            logger.LogDebug("Fetching prices for {Count} assets from CoinGecko...", ids.Count);
             var response = await _httpClient.GetFromJsonAsync<Dictionary<string, Dictionary<string, decimal>>>(url);
-            if (response == null) return [];
+            if (response == null) 
+            {
+                logger.LogWarning("CoinGecko simple/price returned null for context {Ids}", idsParam);
+                return [];
+            }
 
             var prices = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in response)
@@ -38,8 +47,9 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
             }
             return prices;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Failed to fetch prices from CoinGecko for assets: {Ids}", idsParam);
             return [];
         }
     }
@@ -75,8 +85,13 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
     {
         try
         {
+            logger.LogDebug("Fetching market assets from: {Url}", url);
             var dtos = await _httpClient.GetFromJsonAsync<List<CoinGeckoMarketDto>>(url);
-            if (dtos == null) return [];
+            if (dtos == null) 
+            {
+                logger.LogWarning("CoinGecko markets returned null result.");
+                return [];
+            }
 
             return dtos.Select(d => new Asset(
                 d.Symbol.ToUpper(),
@@ -86,8 +101,9 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
                 AssetType.Crypto
             ));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Error fetching market assets from CoinGecko.");
             return [];
         }
     }
@@ -112,8 +128,13 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
 
         try
         {
+            logger.LogInformation("Searching for asset '{Query}' on CoinGecko...", query);
             var response = await _httpClient.GetFromJsonAsync<CoinGeckoSearchResponseDto>(url);
-            if (response?.Coins == null) return [];
+            if (response?.Coins == null) 
+            {
+                logger.LogWarning("CoinGecko search returned empty result for '{Query}'", query);
+                return [];
+            }
 
             return response.Coins.Select(c => new SearchAssetResult(
                 new Asset(
@@ -126,8 +147,9 @@ public class CoinGeckoProvider(HttpClient httpClient, IConfiguration configurati
                 c.MarketCapRank
             ));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Asset Search failed on CoinGecko for query '{Query}'", query);
             return [];
         }
     }

@@ -1,11 +1,15 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 
 namespace Portfolio.Infrastructure.ExternalServices;
 
-public class FrankfurterExchangeRateProvider(HttpClient httpClient, IConfiguration configuration) : IExchangeRateProvider
+public class FrankfurterExchangeRateProvider(
+    HttpClient httpClient, 
+    IConfiguration configuration,
+    ILogger<FrankfurterExchangeRateProvider> logger) : IExchangeRateProvider
 {
     private readonly string _baseUrl = (configuration["Frankfurter:BaseUrl"] ?? "https://api.frankfurter.app/").TrimEnd('/') + "/";
 
@@ -26,17 +30,21 @@ public class FrankfurterExchangeRateProvider(HttpClient httpClient, IConfigurati
 
         try
         {
+            logger.LogDebug("Fetching exchange rate {From}->{To} for {Path} from Frankfurter...", from, to, path);
             var response = await httpClient.GetFromJsonAsync<FrankfurterResponse>(url);
             
             if (response?.Rates != null && response.Rates.TryGetValue(to.ToUpper(), out var rate))
             {
+                logger.LogInformation("Exchange rate {From}->{To} for {Date} is {Rate}", from, to, response.Date, rate);
                 return rate;
             }
 
+            logger.LogWarning("Frankfurter response for {Url} did not contain the expected rate.", url);
             throw new InvalidOperationException($"{to} rate not found in Frankfurter response.");
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Failed to fetch exchange rate {From}->{To} for {Path} from Frankfurter.", from, to, path);
             throw new InvalidOperationException($"Failed to fetch exchange rate {from}->{to} for {path}: {ex.Message}", ex);
         }
     }
