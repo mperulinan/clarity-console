@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
+using Portfolio.Application.Mappers;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
@@ -18,29 +19,13 @@ public class AssetController(
     public async Task<ActionResult<IEnumerable<AssetDto>>> GetAssets()
     {
         var assets = await assetRepository.GetAllAsync();
-        return Ok(assets.Select(a => new AssetDto
-        {
-            Id = a.Id,
-            Symbol = a.Symbol,
-            Name = a.Name,
-            ExternalId = a.ExternalId,
-            ImageUrl = a.ImageUrl,
-            Type = a.Type.Value
-        }));
+        return Ok(assets.Select(AssetMapper.ToDto));
     }
 
     [HttpGet("fiat-currencies")]
     public ActionResult<IEnumerable<AssetDto>> GetFiatCurrencies()
     {
-        var fiats = FiatCurrency.List.Select(f => new AssetDto
-        {
-            Id = f.Id,
-            Symbol = f.Symbol,
-            Name = f.Name,
-            ImageUrl = f.ImageUrl,
-            Type = AssetType.Fiat.Value
-        });
-        return Ok(fiats);
+        return Ok(FiatCurrency.List.Select(AssetMapper.ToDto));
     }
 
     [HttpGet("search")]
@@ -58,15 +43,7 @@ public class AssetController(
 
         if (existingAsset != null)
         {
-            return Ok(new AssetDto
-            {
-                Id = existingAsset.Id,
-                Symbol = existingAsset.Symbol,
-                Name = existingAsset.Name,
-                ExternalId = existingAsset.ExternalId,
-                ImageUrl = existingAsset.ImageUrl,
-                Type = existingAsset.Type.Value
-            });
+            return Ok(existingAsset.ToDto());
         }
 
         var assetType = string.IsNullOrEmpty(request.Type) ? AssetType.Crypto : AssetType.FromValue(request.Type);
@@ -80,14 +57,6 @@ public class AssetController(
         if (syncedAsset == null)
             return StatusCode(500, "Failed to synchronize asset.");
 
-        return Ok(new AssetDto
-        {
-            Id = syncedAsset.Id,
-            Symbol = syncedAsset.Symbol,
-            Name = syncedAsset.Name,
-            ExternalId = syncedAsset.ExternalId,
-            ImageUrl = syncedAsset.ImageUrl,
-            Type = syncedAsset.Type.Value
-        });
+        return Ok(syncedAsset.ToDto());
     }
 }

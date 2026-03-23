@@ -1,5 +1,6 @@
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
+using Portfolio.Application.Mappers;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 
@@ -54,30 +55,20 @@ public class AssetSearchService(
             .Select(a => a.ExternalId!)
             .ToHashSet();
 
-        var localDtos = localAssets.Select(a => new AssetDto
+        var localDtos = localAssets.Select(a =>
         {
-            Id = a.Id,
-            Symbol = a.Symbol,
-            Name = a.Name,
-            ExternalId = a.ExternalId,
-            ImageUrl = a.ImageUrl,
-            Type = a.Type.Value,
-            TransactionCount = transactionCounts.GetValueOrDefault(a.Id, 0),
-            MarketCapRank = null
+            var dto = a.ToDto();
+            dto.TransactionCount = transactionCounts.GetValueOrDefault(a.Id, 0);
+            return dto;
         }).ToList();
 
         var externalDtos = externalResults
             .Where(r => string.IsNullOrEmpty(r.Asset.ExternalId) || !localExternalIds.Contains(r.Asset.ExternalId))
-            .Select(r => new AssetDto
+            .Select(r =>
             {
-                Id = Guid.Empty,
-                Symbol = r.Asset.Symbol,
-                Name = r.Asset.Name,
-                ExternalId = r.Asset.ExternalId,
-                ImageUrl = r.Asset.ImageUrl,
-                Type = r.Asset.Type.Value,
-                TransactionCount = 0,
-                MarketCapRank = r.MarketCapRank
+                var dto = r.Asset.ToDto();
+                dto.MarketCapRank = r.MarketCapRank;
+                return dto;
             });
 
         // 5. Three-tier sort:

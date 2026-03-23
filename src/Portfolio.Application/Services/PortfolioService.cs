@@ -1,5 +1,6 @@
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
+using Portfolio.Application.Mappers;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
@@ -90,30 +91,18 @@ public class PortfolioService(
             Id = transaction.Id,
             Date = transaction.Date,
             Type = transaction.Type,
-            FromAsset = transaction.FromAsset != null ? MapToDto(transaction.FromAsset) : null,
-            ToAsset = transaction.ToAsset != null ? MapToDto(transaction.ToAsset) : null,
+            FromAsset = transaction.FromAsset != null ? transaction.FromAsset.ToDto() : null,
+            ToAsset = transaction.ToAsset != null ? transaction.ToAsset.ToDto() : null,
             AmountSpent = transaction.AmountSpent,
             AmountReceived = transaction.AmountReceived,
             SpotPriceUSD = transaction.SpotPriceUSD,
             SpotPriceEUR = transaction.SpotPriceEUR,
             Fee = transaction.Fee,
-            FeeAsset = transaction.FeeAsset != null ? MapToDto(transaction.FeeAsset) : null,
+            FeeAsset = transaction.FeeAsset != null ? transaction.FeeAsset.ToDto() : null,
             FeePriceUSD = transaction.FeePriceUSD,
             FeePriceEUR = transaction.FeePriceEUR,
             UsdEurExchangeRate = transaction.UsdEurExchangeRate,
             Notes = transaction.Notes
-        };
-    }
-
-    private static AssetDto MapToDto(Asset asset)
-    {
-        return new AssetDto
-        {
-            Id = asset.Id,
-            Name = asset.Name,
-            Symbol = asset.Symbol,
-            Type = asset.Type.Name,
-            ImageUrl = asset.ImageUrl
         };
     }
 
