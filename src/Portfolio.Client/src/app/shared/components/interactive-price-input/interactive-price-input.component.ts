@@ -7,11 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-export const CURRENCY_SYMBOLS: Record<string, string> = {
-    'USD': '$',
-    'EUR': '€',
-    'GBP': '£'
-};
+import { FIAT_CURRENCY_SYMBOLS, DEFAULT_FIAT_CURRENCY } from '../../constants/currency.constants';
 
 export enum PriceInputMode {
     Unit = 'UNIT',
@@ -43,7 +39,7 @@ export enum PriceInputMode {
 export class InteractivePriceInputComponent implements ControlValueAccessor, OnChanges {
     @Input() assetSymbol: string = '';
     @Input() assetAmount: number | null = 0;
-    @Input() fiatCurrency: string = 'USD';
+    @Input() fiatCurrency: string = DEFAULT_FIAT_CURRENCY;
 
     mode: PriceInputMode = PriceInputMode.Unit;
     readonly PriceInputMode = PriceInputMode;
@@ -56,7 +52,7 @@ export class InteractivePriceInputComponent implements ControlValueAccessor, OnC
     private currentUnitPrice: number | null = null;
 
     get currencyPrefix(): string {
-        return CURRENCY_SYMBOLS[this.fiatCurrency] || '';
+        return FIAT_CURRENCY_SYMBOLS[this.fiatCurrency as keyof typeof FIAT_CURRENCY_SYMBOLS] || this.fiatCurrency;
     }
 
     get safeAmount(): number {

@@ -20,6 +20,7 @@ import { InteractivePriceInputComponent } from '../../shared/components/interact
 import { PortfolioService, AssetDto } from '../../services/portfolio.service';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType } from '../../models/transaction';
+import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
 
 export interface Step1Form {
     date: FormControl<string>;
@@ -112,11 +113,11 @@ export class NewTransactionComponent implements OnInit {
             }),
             step2: new FormGroup<Step2Form>({
                 spotPrice: new FormControl<number | null>(null, [Validators.required, this.requireGreaterThanZero]),
-                spotPriceCurrency: new FormControl<string>('USD', { nonNullable: true, validators: Validators.required }),
+                spotPriceCurrency: new FormControl<string>(DEFAULT_FIAT_CURRENCY, { nonNullable: true, validators: Validators.required }),
                 fee: new FormControl<number | null>(0),
                 feeAssetId: new FormControl<AssetDto | null>(null),
                 feeSpotPrice: new FormControl<number | null>(null, Validators.min(0)),
-                feeSpotPriceCurrency: new FormControl<string>('USD', { nonNullable: true })
+                feeSpotPriceCurrency: new FormControl<string>(DEFAULT_FIAT_CURRENCY, { nonNullable: true })
             }),
             step3: new FormGroup<Step3Form>({
                 notes: new FormControl<string | null>(null)

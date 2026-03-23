@@ -10,6 +10,7 @@ import { PortfolioMetrics } from '../../models/portfolio-metrics';
 import { finalize } from 'rxjs';
 import { mapToDashboardRows } from './dashboard.mapper';
 import { DashboardRow } from './dashboard-row';
+import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
 
 @Component({
     selector: 'app-dashboard',
@@ -20,6 +21,9 @@ import { DashboardRow } from './dashboard-row';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements OnInit {
+    /** Base currency for all monetary displays — sourced from the global constant. */
+    readonly baseCurrency = DEFAULT_FIAT_CURRENCY;
+
     // Signals for state
     private metrics = signal<PortfolioMetrics | null>(null);
     isLoading = signal<boolean>(true);

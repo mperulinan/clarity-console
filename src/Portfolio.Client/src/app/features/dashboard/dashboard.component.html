@@ -53,8 +53,8 @@
                 <span class="hero-dot dot-blue"></span>
                 Portfolio Value
             </div>
-            <div class="hero-amount">{{ totalValue() | currency:'USD':'symbol':'1.2-2' }}</div>
-            <div class="hero-sub">Cost Basis: {{ totalCost() | currency:'USD':'symbol':'1.2-2' }}</div>
+            <div class="hero-amount">{{ totalValue() | currency:baseCurrency:'symbol':'1.2-2' }}</div>
+            <div class="hero-sub">Cost Basis: {{ totalCost() | currency:baseCurrency:'symbol':'1.2-2' }}</div>
         </div>
 
         <!-- Open P/L — THE STAR ★ -->
@@ -67,7 +67,7 @@
             </div>
             <div class="hero-amount openpl-amount" [class.positive]="totalUnrealizedPL() >= 0"
                 [class.negative]="totalUnrealizedPL() < 0">
-                {{ totalUnrealizedPL() >= 0 ? '+' : '' }}{{ totalUnrealizedPL() | currency:'USD':'symbol':'1.2-2' }}
+                {{ totalUnrealizedPL() >= 0 ? '+' : '' }}{{ totalUnrealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
             </div>
             <div class="hero-badge" [class.badge-green]="totalUnrealizedPL() >= 0"
                 [class.badge-red]="totalUnrealizedPL() < 0">
@@ -83,11 +83,11 @@
                 Realized P/L <span class="label-tag tag-purple">LOCKED IN</span>
             </div>
             <div class="hero-amount" [class.positive]="totalRealizedPL() >= 0" [class.negative]="totalRealizedPL() < 0">
-                {{ totalRealizedPL() >= 0 ? '+' : '' }}{{ totalRealizedPL() | currency:'USD':'symbol':'1.2-2' }}
+                {{ totalRealizedPL() >= 0 ? '+' : '' }}{{ totalRealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
             </div>
             <div class="hero-sub">
                 Total P/L: <span [class.positive]="totalPL() >= 0" [class.negative]="totalPL() < 0">
-                    {{ totalPL() >= 0 ? '+' : '' }}{{ totalPL() | currency:'USD':'symbol':'1.2-2' }}
+                    {{ totalPL() >= 0 ? '+' : '' }}{{ totalPL() | currency:baseCurrency:'symbol':'1.2-2' }}
                 </span>
             </div>
         </div>
@@ -140,18 +140,18 @@
 
                     <!-- Price -->
                     <td class="col-num">
-                        <span class="cell-primary">{{ row.price | currency:'USD':'symbol':'1.2-6' }}</span>
+                        <span class="cell-primary">{{ row.price | currency:baseCurrency:'symbol':'1.2-6' }}</span>
                     </td>
 
                     <!-- Holdings -->
                     <td class="col-num">
-                        <span class="cell-primary">{{ row.holdingsPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+                        <span class="cell-primary">{{ row.holdingsPrice | currency:baseCurrency:'symbol':'1.2-2' }}</span>
                         <span class="cell-secondary">{{ row.holdingsAmount | number:'1.4-8' }} {{ row.symbol }}</span>
                     </td>
 
                     <!-- Avg Cost -->
                     <td class="col-num">
-                        <span class="cell-primary">{{ row.avgBuyPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+                        <span class="cell-primary">{{ row.avgBuyPrice | currency:baseCurrency:'symbol':'1.2-2' }}</span>
                     </td>
 
                     <!-- Open P/L — highlighted column -->
@@ -160,7 +160,7 @@
                             [class.negative]="row.unrealizedPL < 0">
                             <span class="pl-amount">
                                 {{ row.unrealizedPL >= 0 ? '+' : '' }}{{ row.unrealizedPL |
-                                currency:'USD':'symbol':'1.2-2' }}
+                                currency:baseCurrency:'symbol':'1.2-2' }}
                             </span>
                             <span class="pl-pct">
                                 <mat-icon class="pl-icon">{{ row.unrealizedPL >= 0 ? 'arrow_drop_up' : 'arrow_drop_down'
@@ -175,7 +175,7 @@
                         <div class="pl-cell" [class.positive]="row.realizedPL >= 0"
                             [class.negative]="row.realizedPL < 0">
                             <span class="pl-amount">
-                                {{ row.realizedPL >= 0 ? '+' : '' }}{{ row.realizedPL | currency:'USD':'symbol':'1.2-2'
+                                {{ row.realizedPL >= 0 ? '+' : '' }}{{ row.realizedPL | currency:baseCurrency:'symbol':'1.2-2'
                                 }}
                             </span>
                         </div>
