@@ -19,7 +19,10 @@ public class PortfolioService(
     IPortfolioMetricsCalculator portfolioMetricsCalculator,
     ILogger<PortfolioService> logger) : IPortfolioService
 {
+    // Metrics are calculated in USD for international performance tracking.
     private static readonly FiatCurrency DefaultDisplayCurrency = FiatCurrency.USD;
+
+    // Reports are generated in EUR for local financial/tax compliance.
     private static readonly FiatCurrency FinancialReportingCurrency = FiatCurrency.EUR;
 
     public async Task<PortfolioMetrics> GetPortfolioMetricsAsync()
@@ -27,7 +30,6 @@ public class PortfolioService(
         var sw = Stopwatch.StartNew();
         logger.LogInformation("Calculating portfolio metrics...");
 
-        // 1. Calculate inventory in USD (explicit).
         var transactions = await transactionRepository.GetAllAsync();
         if (!transactions.Any())
         {
@@ -35,24 +37,16 @@ public class PortfolioService(
             return new();
         }
 
-        // Metrics are calculated in USD for international performance tracking.
         var report = inventoryCalculator.CalculateInventory(transactions, DefaultDisplayCurrency);
-
-        // 2. Get current market data.
         var assetIds = report.Holdings.Select(h => h.Id).Distinct().ToList();
         var marketData = await assetMarketDataService.GetMarketDataAsync(assetIds, DefaultDisplayCurrency);
-
-        // Extract just prices for the metrics calculator.
         var priceMap = marketData.ToDictionary(x => x.Key, x => x.Value.Price);
-
-        // 3. Calculate metrics.
         var metrics = portfolioMetricsCalculator.CalculateMetrics([.. report.Holdings], priceMap);
 
-        // 4. Enrich holdings with image URLs (from the same market data).
         EnrichHoldingsMetadata(metrics.Holdings, marketData);
 
         sw.Stop();
-        logger.LogInformation("Portfolio metrics calculated in {ElapsedMs}ms for {HoldingsCount} holdings.", 
+        logger.LogInformation("Portfolio metrics calculated in {ElapsedMs}ms for {HoldingsCount} holdings.",
             sw.ElapsedMilliseconds, metrics.Holdings.Count());
 
         return metrics;
@@ -71,26 +65,16 @@ public class PortfolioService(
         }
     }
 
-    public async Task<PortfolioReportDto> GetPortfolioReportAsync() 
+    public async Task<PortfolioReportDto> GetPortfolioReportAsync()
     {
         logger.LogInformation("Generating portfolio report ({Currency})...", FinancialReportingCurrency.Value);
+
         var transactions = await transactionRepository.GetAllAsync();
-        
-        // Report is generated in EUR for local financial/tax compliance.
         var report = inventoryCalculator.CalculateInventory(transactions, FinancialReportingCurrency);
-        
+
         var dto = new PortfolioReportDto
         {
-            Transactions = report.Transactions.Select(pt => new ProcessedTransactionDto
-            {
-                Transaction = MapToDto(pt.Transaction),
-                ProfitLoss = pt.ProfitLoss,
-                TotalLossAmount = pt.TotalLossAmount,
-                IsLossDisallowed = pt.IsLossDisallowed,
-                DisallowedByTransactionId = pt.DisallowedByTransactionId,
-                DisallowsPreviousLosses = pt.DisallowsPreviousLosses,
-                Error = pt.Error
-            }),
+            Transactions = report.Transactions.Select(pt => pt.ToDto()),
             Holdings = report.Holdings.Select(h => new AssetHoldingDto
             {
                 Id = h.Id,
@@ -101,51 +85,29 @@ public class PortfolioService(
             })
         };
 
-        logger.LogInformation("Portfolio report generated with {TransactionCount} processed transactions.", 
+        logger.LogInformation("Portfolio report generated with {TransactionCount} processed transactions.",
             dto.Transactions.Count());
 
         return dto;
     }
 
-    private static TransactionDto MapToDto(Transaction transaction)
-    {
-        return new TransactionDto
-        {
-            Id = transaction.Id,
-            Date = transaction.Date,
-            Type = transaction.Type,
-            FromAsset = transaction.FromAsset != null ? transaction.FromAsset.ToDto() : null,
-            ToAsset = transaction.ToAsset != null ? transaction.ToAsset.ToDto() : null,
-            AmountSpent = transaction.AmountSpent,
-            AmountReceived = transaction.AmountReceived,
-            SpotPriceUSD = transaction.SpotPriceUSD,
-            SpotPriceEUR = transaction.SpotPriceEUR,
-            Fee = transaction.Fee,
-            FeeAsset = transaction.FeeAsset != null ? transaction.FeeAsset.ToDto() : null,
-            FeePriceUSD = transaction.FeePriceUSD,
-            FeePriceEUR = transaction.FeePriceEUR,
-            UsdEurExchangeRate = transaction.UsdEurExchangeRate,
-            Notes = transaction.Notes
-        };
-    }
-
     public async Task AddTransactionAsync(NewTransactionRequest request)
     {
-        logger.LogInformation("Adding new {TransactionType} transaction dated {Date}...", 
+        logger.LogInformation("Adding new {TransactionType} transaction dated {Date}...",
             request.TransactionTypeCode, request.Date.ToString("dd-MM-yyyy"));
 
-        // Store USD prices immediately, EUR prices will be calculated lazily
-        // when the Transactions page is loaded (only for past-day transactions)
+        var transaction = BuildTransaction(request);
+        await transactionRepository.AddAsync(transaction);
 
-        var spotCurrency = !string.IsNullOrEmpty(request.SpotPriceInputCurrency) 
-            ? FiatCurrency.FromValue(request.SpotPriceInputCurrency.ToLowerInvariant()) 
-            : null;
+        logger.LogInformation("Successfully added transaction {TransactionId}.", transaction.Id);
+    }
 
-        var feeCurrency = !string.IsNullOrEmpty(request.FeePriceInputCurrency) 
-            ? FiatCurrency.FromValue(request.FeePriceInputCurrency.ToLowerInvariant()) 
-            : null;
+    private static Transaction BuildTransaction(NewTransactionRequest request)
+    {
+        var spotCurrency = ParseCurrency(request.SpotPriceInputCurrency);
+        var feeCurrency = ParseCurrency(request.FeePriceInputCurrency);
 
-        Transaction newTransaction = new(
+        return new Transaction(
             date: request.Date.ToUniversalTime(),
             transactionType: request.TransactionTypeCode,
             fromAssetId: request.FromAssetId,
@@ -163,47 +125,41 @@ public class PortfolioService(
             feePriceInputCurrency: feeCurrency,
             notes: request.Notes
         );
-
-        await transactionRepository.AddAsync(newTransaction);
-        logger.LogInformation("Successfully added transaction {TransactionId}.", newTransaction.Id);
     }
+
+    private static FiatCurrency? ParseCurrency(string? currencyCode) =>
+        !string.IsNullOrEmpty(currencyCode)
+            ? FiatCurrency.FromValue(currencyCode.ToLowerInvariant())
+            : null;
 
     public async Task CalculateExchangeRatesAsync()
     {
-        // This will be called from the Transactions page
-        // Only calculates rates for past-day transactions (date < today)
-        
         var transactions = await transactionRepository.GetAllAsync();
-        var today = DateTime.UtcNow.Date;
-        
-        // Find transactions that need EUR/USD calculation natively
-        var transactionsNeedingRates = transactions.Where(t => 
-            t.Date.Date < today && // Only past transactions
-            (
-                (!t.SpotPriceEUR.HasValue || !t.SpotPriceUSD.HasValue) || 
-                (t.FeePriceUSD.HasValue && !t.FeePriceEUR.HasValue) ||
-                (t.FeePriceEUR.HasValue && !t.FeePriceUSD.HasValue)
-            )
-        ).ToList();
+        var pending = transactions.Where(t => t.Date.Date < DateTime.UtcNow.Date && t.HasIncompleteExchangeRates).ToList();
 
-        foreach (var transaction in transactionsNeedingRates)
+        logger.LogInformation("Found {Count} transactions pending exchange rate calculation.", pending.Count);
+
+        foreach (var transaction in pending)
         {
-            try
-            {
-                var rate = await exchangeRateProvider.GetUsdEurRateAsync(transaction.Date);
-                
-                transaction.UpdateExchangeRates(rate);
-                
-                await transactionRepository.UpdateAsync(transaction);
-            }
-            catch (Exception ex)
-            {
-                // Rate might not be available yet for very recent transactions — non-fatal.
-                logger.LogWarning(ex,
-                    "Failed to fetch USD/EUR exchange rate for transaction {TransactionId} dated {Date}. It will be retried on the next load.",
-                    transaction.Id,
-                    transaction.Date.ToString("dd-MM-yyyy"));
-            }
+            await TryUpdateExchangeRateAsync(transaction);
+        }
+    }
+
+    private async Task TryUpdateExchangeRateAsync(Transaction transaction)
+    {
+        try
+        {
+            var rate = await exchangeRateProvider.GetUsdEurRateAsync(transaction.Date);
+            transaction.UpdateExchangeRates(rate);
+            await transactionRepository.UpdateAsync(transaction);
+        }
+        catch (Exception ex)
+        {
+            // Rate might not be available yet for very recent transactions — non-fatal.
+            logger.LogWarning(ex,
+                "Failed to fetch USD/EUR rate for transaction {TransactionId} on {Date}. Will retry on next load.",
+                transaction.Id,
+                transaction.Date.ToString("dd-MM-yyyy"));
         }
     }
 }

@@ -25,6 +25,11 @@ public class Transaction
     public FiatCurrency? FeePriceInputCurrency { get; private set; }
     public string? Notes { get; private set; }
 
+    public bool HasIncompleteExchangeRates =>
+        !SpotPriceEUR.HasValue || !SpotPriceUSD.HasValue ||
+        (FeePriceUSD.HasValue && !FeePriceEUR.HasValue) ||
+        (FeePriceEUR.HasValue && !FeePriceUSD.HasValue);
+
     // Constructor for EF Core.
     private Transaction() { }
 
