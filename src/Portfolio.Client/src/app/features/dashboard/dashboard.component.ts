@@ -36,10 +36,12 @@ export class DashboardComponent implements OnInit {
 
     totalValue = computed(() => this.metrics()?.totalPortfolioValueUsd ?? 0);
     totalCost = computed(() => this.metrics()?.totalCostBasisUsd ?? 0);
+    netDeposits = computed(() => this.metrics()?.netDepositsUsd ?? 0);
     totalUnrealizedPL = computed(() => this.metrics()?.totalUnrealizedProfitLossUsd ?? 0);
     totalRealizedPL = computed(() => this.metrics()?.totalRealizedProfitLossUsd ?? 0);
     totalPL = computed(() => this.metrics()?.totalProfitLossUsd ?? 0);
-    totalPLPercentage = computed(() => this.metrics()?.totalProfitLossPercentage ?? 0);
+    unrealizedPLPercentage = computed(() => this.metrics()?.unrealizedProfitLossPercentage ?? 0);
+    totalReturn = computed(() => this.metrics()?.totalReturn ?? 0);
 
     constructor(
         private portfolioService: PortfolioService,

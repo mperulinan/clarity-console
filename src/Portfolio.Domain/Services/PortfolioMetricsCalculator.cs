@@ -18,10 +18,12 @@ public class PortfolioMetricsCalculator : IPortfolioMetricsCalculator
             Holdings = enriched,
             TotalPortfolioValueUsd = totals.TotalValue,
             TotalCostBasisUsd = totals.TotalCost,
+            NetDepositsUsd = totals.NetDeposits,
             TotalUnrealizedProfitLossUsd = totals.TotalUnrealized,
             TotalRealizedProfitLossUsd = totals.TotalRealized,
             TotalProfitLossUsd = totals.TotalPL,
-            TotalProfitLossPercentage = totals.TotalReturn
+            UnrealizedProfitLossPercentage = totals.UnrealizedReturn,
+            TotalReturn = totals.TotalReturn
         };
     }
     
@@ -57,18 +59,18 @@ public class PortfolioMetricsCalculator : IPortfolioMetricsCalculator
                 RealizedPL = h.RealizedPL,
                 RealizedReturn = realizedReturn,
                 TotalPL = totalPL,
-                TotalReturn = totalReturn,
                 AllocationPercentage = 0
             };
         })];
     }
-    
     private record PortfolioTotals(
         decimal TotalValue,
         decimal TotalCost,
+        decimal NetDeposits,
         decimal TotalUnrealized,
         decimal TotalRealized,
         decimal TotalPL,
+        decimal UnrealizedReturn,
         decimal TotalReturn);
     
     private static PortfolioTotals CalculateTotals(List<EnrichedAssetHolding> holdings)
@@ -77,14 +79,21 @@ public class PortfolioMetricsCalculator : IPortfolioMetricsCalculator
         decimal totalCost = holdings.Sum(h => h.TotalCostBasis);
         decimal totalUnrealized = holdings.Sum(h => h.OpenPL);
         decimal totalRealized = holdings.Sum(h => h.RealizedPL);
+        
+        // Exact accounting identity for closed-system Net Deposits (Total Fiat In - Total Fiat Out)
+        // Since TotalCost = TotalIn - CostOfSold, and RealizedPL = TotalOut - CostOfSold,
+        // NetDeposits (TotalIn - TotalOut) = TotalCost - RealizedPL.
+        decimal netDeposits = totalCost - totalRealized;
+        
         decimal totalPL = totalUnrealized + totalRealized;
 
-        decimal totalCostBasisOfSold = holdings.Sum(h => h.CostBasisOfSold);
-        decimal totalInvested = totalCost + totalCostBasisOfSold;
+        // Unrealized Return: open gain vs. remaining cost basis (what you still hold)
+        decimal unrealizedReturn = totalCost > 0 ? totalUnrealized / totalCost * 100 : 0;
         
-        decimal totalReturn = totalInvested > 0 ? totalPL / totalInvested * 100 : 0;
-        
-        return new PortfolioTotals(totalValue, totalCost, totalUnrealized, totalRealized, totalPL, totalReturn);
+        // Total Return: all gains vs. net deposited capital (all time)
+        decimal totalReturn = netDeposits > 0 ? totalPL / netDeposits * 100 : 0;
+
+        return new PortfolioTotals(totalValue, totalCost, netDeposits, totalUnrealized, totalRealized, totalPL, unrealizedReturn, totalReturn);
     }
     
     private static void ApplyAllocations(List<EnrichedAssetHolding> holdings, decimal totalValue)

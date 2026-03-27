@@ -63,8 +63,8 @@ $accent: #7c6cfc;
 /* ── HERO STATS ─────────────────────────────── */
 .hero-stats {
     display: grid;
-    grid-template-columns: 1fr 1.4fr 1fr;
-    gap: 18px;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 24px;
     margin-bottom: 28px;
 
     @media (max-width: 900px) {
@@ -628,8 +628,8 @@ $skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
 
 .skeleton-hero {
     display: grid;
-    grid-template-columns: 1fr 1.4fr 1fr;
-    gap: 18px;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 24px;
 }
 
 .skel-card {

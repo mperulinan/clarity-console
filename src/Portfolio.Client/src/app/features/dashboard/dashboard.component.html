@@ -12,10 +12,7 @@
                 <div class="skel-line w50"></div>
                 <div class="skel-line w80 tall"></div>
                 <div class="skel-line w30"></div>
-            </div>
-            <div class="skel-card glass">
-                <div class="skel-line w40"></div>
-                <div class="skel-line w60 tall"></div>
+                <div class="skel-line w60"></div>
             </div>
         </div>
         <div class="skel-table glass">
@@ -47,48 +44,56 @@
     <!-- ── HERO STATS ─────────────────────────────────────────── -->
     <div class="hero-stats">
 
-        <!-- Total Portfolio Value -->
+        <!-- Portfolio Value -->
         <div class="hero-card value-card glass">
             <div class="hero-label">
                 <span class="hero-dot dot-blue"></span>
                 Portfolio Value
             </div>
             <div class="hero-amount">{{ totalValue() | currency:baseCurrency:'symbol':'1.2-2' }}</div>
-            <div class="hero-sub">Cost Basis: {{ totalCost() | currency:baseCurrency:'symbol':'1.2-2' }}</div>
-        </div>
-
-        <!-- Open P/L — THE STAR ★ -->
-        <div class="hero-card openpl-card glass" [class.pl-pos]="totalUnrealizedPL() >= 0"
-            [class.pl-neg]="totalUnrealizedPL() < 0">
-            <div class="hero-label">
-                <span class="hero-dot" [class.dot-green]="totalUnrealizedPL() >= 0"
-                    [class.dot-red]="totalUnrealizedPL() < 0"></span>
-                Open P/L <span class="label-tag">UNREALIZED</span>
-            </div>
-            <div class="hero-amount openpl-amount" [class.positive]="totalUnrealizedPL() >= 0"
-                [class.negative]="totalUnrealizedPL() < 0">
-                {{ totalUnrealizedPL() >= 0 ? '+' : '' }}{{ totalUnrealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
-            </div>
-            <div class="hero-badge" [class.badge-green]="totalUnrealizedPL() >= 0"
-                [class.badge-red]="totalUnrealizedPL() < 0">
-                <mat-icon class="badge-icon">{{ totalUnrealizedPL() >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
-                {{ totalPLPercentage() >= 0 ? '+' : '' }}{{ totalPLPercentage() | number:'1.2-2' }}% all time
+            <div class="hero-sub" style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="opacity: 0.8; font-size: 12px; width: 85px;">Net Deposits:</span>
+                    <span style="font-weight: 600; color: #fff;">{{ netDeposits() | currency:baseCurrency:'symbol':'1.0-0' }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="opacity: 0.8; font-size: 12px; width: 85px;">Cost Basis:</span>
+                    <span style="font-weight: 600; color: #fff;">{{ totalCost() | currency:baseCurrency:'symbol':'1.0-0' }}</span>
+                </div>
             </div>
         </div>
 
-        <!-- Realized P/L -->
-        <div class="hero-card realized-card glass">
+        <!-- Profit & Loss -->
+        <div class="hero-card openpl-card glass" [class.pl-pos]="totalPL() >= 0" [class.pl-neg]="totalPL() < 0">
             <div class="hero-label">
-                <span class="hero-dot dot-purple"></span>
-                Realized P/L <span class="label-tag tag-purple">LOCKED IN</span>
+                <span class="hero-dot" [class.dot-green]="totalPL() >= 0" [class.dot-red]="totalPL() < 0"></span>
+                Profit & Loss
             </div>
-            <div class="hero-amount" [class.positive]="totalRealizedPL() >= 0" [class.negative]="totalRealizedPL() < 0">
-                {{ totalRealizedPL() >= 0 ? '+' : '' }}{{ totalRealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
+            
+            <div class="hero-amount openpl-amount" [class.positive]="totalPL() >= 0" [class.negative]="totalPL() < 0">
+                {{ totalPL() >= 0 ? '+' : '' }}{{ totalPL() | currency:baseCurrency:'symbol':'1.2-2' }}
             </div>
-            <div class="hero-sub">
-                Total P/L: <span [class.positive]="totalPL() >= 0" [class.negative]="totalPL() < 0">
-                    {{ totalPL() >= 0 ? '+' : '' }}{{ totalPL() | currency:baseCurrency:'symbol':'1.2-2' }}
+            
+            <div class="hero-sub" style="margin-bottom: 12px;">
+                <span class="hero-badge" [class.badge-green]="totalReturn() >= 0" [class.badge-red]="totalReturn() < 0" style="padding: 2px 8px; font-size: 11px;">
+                    <mat-icon class="badge-icon" style="font-size: 14px; width: 14px; height: 14px; line-height: 14px;">{{ totalReturn() >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
+                    {{ totalReturn() >= 0 ? '+' : '' }}{{ totalReturn() | number:'1.2-2' }}%
                 </span>
+            </div>
+
+            <div class="hero-sub" style="display: flex; gap: 16px; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 12px; margin-top: auto;">
+                <div>
+                    <span style="opacity: 0.7; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Unrealized:</span>
+                    <span [class.positive]="totalUnrealizedPL() >= 0" [class.negative]="totalUnrealizedPL() < 0" style="font-weight: 600;">
+                        {{ totalUnrealizedPL() >= 0 ? '+' : '' }}{{ totalUnrealizedPL() | currency:baseCurrency:'symbol':'1.0-0' }}
+                    </span>
+                </div>
+                <div>
+                    <span style="opacity: 0.7; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Realized:</span>
+                    <span [class.positive]="totalRealizedPL() >= 0" [class.negative]="totalRealizedPL() < 0" style="font-weight: 600;">
+                        {{ totalRealizedPL() >= 0 ? '+' : '' }}{{ totalRealizedPL() | currency:baseCurrency:'symbol':'1.0-0' }}
+                    </span>
+                </div>
             </div>
         </div>
 

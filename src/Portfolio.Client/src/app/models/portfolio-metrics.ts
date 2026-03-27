@@ -4,8 +4,10 @@ export interface PortfolioMetrics {
     holdings: EnrichedAssetHolding[];
     totalPortfolioValueUsd: number;
     totalCostBasisUsd: number;
+    netDepositsUsd: number;
     totalUnrealizedProfitLossUsd: number;
     totalRealizedProfitLossUsd: number;
     totalProfitLossUsd: number;
-    totalProfitLossPercentage: number;
+    unrealizedProfitLossPercentage: number;
+    totalReturn: number;
 }
