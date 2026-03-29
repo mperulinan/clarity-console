@@ -244,6 +244,52 @@ $accent: #7c6cfc;
     }
 }
 
+/* ── HERO DEFINITION LIST ────────────────────── */
+.hero-dl {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 6px 0 0;
+}
+
+.hero-dl-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.hero-dt {
+    font-size: 12px;
+    font-weight: 500;
+    color: $text-muted;
+    flex-shrink: 0;
+    min-width: 90px;   // prevents wrapping label when value grows
+    margin: 0;
+}
+
+.hero-dd {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-primary;
+    margin: 0;
+
+    &.positive { color: $green; }
+    &.negative { color: $red; }
+}
+
+/* ── HERO DIVIDER ────────────────────────────── */
+.hero-divider {
+    border: none;
+    border-top: 1px solid $border;
+    margin: 12px 0 0;
+}
+
+.hero-pl-split {
+    display: flex;
+    gap: 24px;
+    padding-top: 12px;
+}
+
 /* ── COLOR CLASSES ───────────────────────────── */
 .positive {
     color: $green !important;

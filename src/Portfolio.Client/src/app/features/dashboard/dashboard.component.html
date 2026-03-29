@@ -51,53 +51,73 @@
                 Portfolio Value
             </div>
             <div class="hero-amount">{{ totalValue() | currency:baseCurrency:'symbol':'1.2-2' }}</div>
-            <div class="hero-sub" style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="opacity: 0.8; font-size: 12px; width: 85px;">Net Deposits:</span>
-                    <span style="font-weight: 600; color: #fff;">{{ netDeposits() | currency:baseCurrency:'symbol':'1.0-0' }}</span>
+
+            <dl class="hero-dl">
+                <div class="hero-dl-row">
+                    <dt class="hero-dt">Net Deposits:</dt>
+                    <dd class="hero-dd">{{ netDeposits() | currency:baseCurrency:'symbol':'1.2-2' }}</dd>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="opacity: 0.8; font-size: 12px; width: 85px;">Cost Basis:</span>
-                    <span style="font-weight: 600; color: #fff;">{{ totalCost() | currency:baseCurrency:'symbol':'1.0-0' }}</span>
+                <div class="hero-dl-row">
+                    <dt class="hero-dt">Cost Basis:</dt>
+                    <dd class="hero-dd">{{ totalCost() | currency:baseCurrency:'symbol':'1.2-2' }}</dd>
                 </div>
-            </div>
+            </dl>
         </div>
 
         <!-- Profit & Loss -->
-        <div class="hero-card openpl-card glass" [class.pl-pos]="totalPL() >= 0" [class.pl-neg]="totalPL() < 0">
+        <div class="hero-card openpl-card glass"
+             [class.pl-pos]="isPlPositive()"
+             [class.pl-neg]="!isPlPositive()">
             <div class="hero-label">
-                <span class="hero-dot" [class.dot-green]="totalPL() >= 0" [class.dot-red]="totalPL() < 0"></span>
-                Profit & Loss
+                <span class="hero-dot"
+                      [class.dot-green]="isPlPositive()"
+                      [class.dot-red]="!isPlPositive()"></span>
+                Profit &amp; Loss
             </div>
-            
-            <div class="hero-amount openpl-amount" [class.positive]="totalPL() >= 0" [class.negative]="totalPL() < 0">
-                {{ totalPL() >= 0 ? '+' : '' }}{{ totalPL() | currency:baseCurrency:'symbol':'1.2-2' }}
+
+            <div class="hero-amount openpl-amount"
+                 [class.positive]="isPlPositive()"
+                 [class.negative]="!isPlPositive()">
+                {{ plSign() }}{{ totalPL() | currency:baseCurrency:'symbol':'1.2-2' }}
             </div>
-            
-            <div class="hero-sub" style="margin-bottom: 12px;">
-                <span class="hero-badge" [class.badge-green]="totalReturn() >= 0" [class.badge-red]="totalReturn() < 0" style="padding: 2px 8px; font-size: 11px;">
-                    <mat-icon class="badge-icon" style="font-size: 14px; width: 14px; height: 14px; line-height: 14px;">{{ totalReturn() >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
-                    {{ totalReturn() >= 0 ? '+' : '' }}{{ totalReturn() | number:'1.2-2' }}%
+
+            <div class="hero-sub">
+                <span class="hero-badge"
+                      [class.badge-green]="isReturnPositive()"
+                      [class.badge-red]="!isReturnPositive()">
+                    <mat-icon class="badge-icon" aria-hidden="true">
+                        {{ isReturnPositive() ? 'trending_up' : 'trending_down' }}
+                    </mat-icon>
+                    {{ returnSign() }}{{ totalReturn() | number:'1.2-2' }}%
                 </span>
             </div>
 
-            <div class="hero-sub" style="display: flex; gap: 16px; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 12px; margin-top: auto;">
-                <div>
-                    <span style="opacity: 0.7; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Unrealized:</span>
-                    <span [class.positive]="totalUnrealizedPL() >= 0" [class.negative]="totalUnrealizedPL() < 0" style="font-weight: 600;">
-                        {{ totalUnrealizedPL() >= 0 ? '+' : '' }}{{ totalUnrealizedPL() | currency:baseCurrency:'symbol':'1.0-0' }}
-                    </span>
-                </div>
-                <div>
-                    <span style="opacity: 0.7; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">Realized:</span>
-                    <span [class.positive]="totalRealizedPL() >= 0" [class.negative]="totalRealizedPL() < 0" style="font-weight: 600;">
-                        {{ totalRealizedPL() >= 0 ? '+' : '' }}{{ totalRealizedPL() | currency:baseCurrency:'symbol':'1.0-0' }}
-                    </span>
-                </div>
+            <hr class="hero-divider" aria-hidden="true" />
+
+            <div class="hero-pl-split">
+                <dl class="hero-dl">
+                    <div class="hero-dl-row">
+                        <dt class="hero-dt">Unrealized:</dt>
+                        <dd class="hero-dd"
+                            [class.positive]="isUnrealizedPositive()"
+                            [class.negative]="!isUnrealizedPositive()">
+                            {{ unrealizedSign() }}{{ totalUnrealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
+                        </dd>
+                    </div>
+                    <div class="hero-dl-row">
+                        <dt class="hero-dt">Realized:</dt>
+                        <dd class="hero-dd"
+                            [class.positive]="isRealizedPositive()"
+                            [class.negative]="!isRealizedPositive()">
+                            {{ realizedSign() }}{{ totalRealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
+                        </dd>
+                    </div>
+                </dl>
             </div>
         </div>
 
     </div><!-- /hero-stats -->
+
 
     <!-- ── ADD TRANSACTION ────────────────────────────────────── -->
     <div class="toolbar">
