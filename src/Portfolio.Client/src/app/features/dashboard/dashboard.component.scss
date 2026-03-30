@@ -50,178 +50,156 @@ $accent: #7c6cfc;
     }
 }
 
-.hero-card, .table-wrap, .toolbar {
+.bento-grid, .table-wrap, .toolbar {
     animation: fadeInUp 0.5s ease backwards;
 }
 
-.hero-card:nth-child(1) { animation-delay: 0.1s; }
-.hero-card:nth-child(2) { animation-delay: 0.2s; }
-.hero-card:nth-child(3) { animation-delay: 0.3s; }
-.toolbar { animation-delay: 0.4s; }
-.table-wrap { animation-delay: 0.5s; }
+.bento-grid { animation-delay: 0.1s; }
+.toolbar    { animation-delay: 0.3s; }
+.table-wrap { animation-delay: 0.4s; }
 
-/* ── HERO STATS ─────────────────────────────── */
-.hero-stats {
+/* ── BENTO GRID ──────────────────────────────── */
+.bento-grid {
     display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        'value value  pl   pl'
+        'dep   cost   unr  real';
+    gap: 1px;                              // gap reveals bg = 1px border
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    overflow: hidden;
     margin-bottom: 28px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
 
     @media (max-width: 900px) {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            'value value'
+            'pl    pl'
+            'dep   cost'
+            'unr   real';
+    }
+
+    @media (max-width: 480px) {
         grid-template-columns: 1fr;
+        grid-template-areas: 'value' 'pl' 'dep' 'cost' 'unr' 'real';
     }
 }
 
-.hero-card {
-    position: relative;
+/* ── CELL BASE ───────────────────────────────── */
+.bento-cell {
     background: $bg-card;
-    border: 1px solid $border;
-    border-radius: 16px;
     padding: 24px 28px;
-    overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
 
+/* ── GRID AREA ASSIGNMENTS ───────────────────── */
+.bento-value { grid-area: value; }
+.bento-pl    { grid-area: pl; }
+.bento-dep   { grid-area: dep; }
+.bento-cost  { grid-area: cost; }
+.bento-unr   { grid-area: unr; }
+.bento-real  { grid-area: real; }
+
+/* ── VALUE CELL ──────────────────────────────── */
+.bento-value {
+    background: linear-gradient(150deg, $bg-card 65%, $bg-card-alt 100%);
+}
+
+/* ── P&L CELL ────────────────────────────────── */
+.bento-pl {
+    transition: background 0.3s ease;
+
+    // Glowing left-edge accent bar signals P&L sign at a glance
     &::before {
         content: '';
         position: absolute;
-        inset: 0;
-        border-radius: 16px;
-        pointer-events: none;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+        left: 0;
+        top: 20px;
+        bottom: 20px;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
     }
+
+    &.bento-pos {
+        background: linear-gradient(150deg, $bg-card 50%, rgba(0, 230, 118, 0.05) 100%);
+        &::before {
+            background: $green;
+            box-shadow: 0 0 20px rgba(0, 230, 118, 0.45);
+        }
+    }
+
+    &.bento-neg {
+        background: linear-gradient(150deg, $bg-card 50%, rgba(255, 82, 82, 0.05) 100%);
+        &::before {
+            background: $red;
+            box-shadow: 0 0 20px rgba(255, 82, 82, 0.45);
+        }
+    }
+}
+
+/* ── STAT CELLS (bottom row) ─────────────────── */
+.bento-stat {
+    padding: 16px 22px;
+    background: rgba(14, 19, 34, 0.8);   // darker than top row = depth
+    transition: background 0.15s ease;
 
     &:hover {
-        transform: translateY(-4px) scale(1.01);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        border-color: rgba(255, 255, 255, 0.15) !important;
+        background: rgba(255, 255, 255, 0.025);
     }
 }
 
-/* ── Open P/L hero card ─ */
-.openpl-card {
-    border-width: 1px;
-    border-style: solid;
-
-    &.pl-pos {
-        border-color: rgba(0, 230, 118, 0.35);
-        background: linear-gradient(145deg, #16213e 60%, rgba(0, 230, 118, 0.06) 100%);
-        box-shadow: 0 0 40px rgba(0, 230, 118, 0.08), 0 8px 32px rgba(0, 0, 0, 0.4);
-
-        &::before {
-            background: radial-gradient(ellipse at top right, rgba(0, 230, 118, 0.06), transparent 70%);
-        }
-    }
-
-    &.pl-neg {
-        border-color: rgba(255, 82, 82, 0.35);
-        background: linear-gradient(145deg, #16213e 60%, rgba(255, 82, 82, 0.06) 100%);
-        box-shadow: 0 0 40px rgba(255, 82, 82, 0.08), 0 8px 32px rgba(0, 0, 0, 0.4);
-
-        &::before {
-            background: radial-gradient(ellipse at top right, rgba(255, 82, 82, 0.06), transparent 70%);
-        }
-    }
-}
-
-/* value card */
-.value-card {
-    background: linear-gradient(145deg, $bg-card, $bg-card-alt);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-}
-
-/* realized card */
-.realized-card {
-    background: linear-gradient(145deg, $bg-card, $bg-card-alt);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-}
-
-.hero-label {
+/* ── CELL LABEL ──────────────────────────────── */
+.bento-label {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: $text-muted;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
-.hero-dot {
-    width: 8px;
-    height: 8px;
+/* ── STATUS DOT ──────────────────────────────── */
+.bento-dot {
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
 
-    &.dot-blue {
-        background: $blue;
-        box-shadow: 0 0 8px $blue;
-    }
-
-    &.dot-green {
-        background: $green;
-        box-shadow: 0 0 8px $green;
-    }
-
-    &.dot-red {
-        background: $red;
-        box-shadow: 0 0 8px $red;
-    }
-
-    &.dot-purple {
-        background: $purple;
-        box-shadow: 0 0 8px $purple;
-    }
+    &.dot-blue  { background: $blue;  box-shadow: 0 0 7px $blue; }
+    &.dot-green { background: $green; box-shadow: 0 0 7px $green; }
+    &.dot-red   { background: $red;   box-shadow: 0 0 7px $red; }
 }
 
-.label-tag {
-    font-size: 9px;
+/* ── PRIMARY AMOUNT ──────────────────────────── */
+.bento-amount {
+    font-size: 34px;
     font-weight: 700;
-    letter-spacing: 0.12em;
-    padding: 2px 7px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.08);
-    color: $text-muted;
-
-    &.tag-purple {
-        background: rgba(179, 136, 255, 0.12);
-        color: $purple;
-    }
-}
-
-.hero-amount {
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
     color: $text-primary;
     line-height: 1.1;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
 
-    &.openpl-amount {
-        font-size: 38px;
-    }
+    &.bento-pl-amount { font-size: 40px; }
 }
 
-.hero-sub {
-    font-size: 13px;
-    color: $text-muted;
-
-    .positive {
-        color: $green;
-    }
-
-    .negative {
-        color: $red;
-    }
-}
-
-.hero-badge {
+/* ── RETURN BADGE ────────────────────────────── */
+.bento-return-badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     font-size: 13px;
     font-weight: 600;
-    padding: 4px 12px;
+    padding: 5px 12px;
     border-radius: 20px;
 
     &.badge-green {
@@ -237,58 +215,34 @@ $accent: #7c6cfc;
     }
 
     .badge-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-        line-height: 16px;
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+        line-height: 15px;
     }
 }
 
-/* ── HERO DEFINITION LIST ────────────────────── */
-.hero-dl {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 6px 0 0;
-}
-
-.hero-dl-row {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.hero-dt {
-    font-size: 12px;
-    font-weight: 500;
-    color: $text-muted;
-    flex-shrink: 0;
-    min-width: 90px;   // prevents wrapping label when value grows
-    margin: 0;
-}
-
-.hero-dd {
-    font-size: 13px;
+/* ── STAT CELL TYPOGRAPHY ────────────────────── */
+.bento-stat-label {
+    display: block;
+    font-size: 10px;
     font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $text-muted;
+    margin-bottom: 6px;
+}
+
+.bento-stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
     color: $text-primary;
-    margin: 0;
-
-    &.positive { color: $green; }
-    &.negative { color: $red; }
+    letter-spacing: -0.01em;
+    line-height: 1.2;
 }
 
-/* ── HERO DIVIDER ────────────────────────────── */
-.hero-divider {
-    border: none;
-    border-top: 1px solid $border;
-    margin: 12px 0 0;
-}
 
-.hero-pl-split {
-    display: flex;
-    gap: 24px;
-    padding-top: 12px;
-}
 
 /* ── COLOR CLASSES ───────────────────────────── */
 .positive {
@@ -672,20 +626,52 @@ $skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
     gap: 24px;
 }
 
-.skeleton-hero {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: 24px;
+.skel-bento {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.06);  // gap color = border
 }
 
-.skel-card {
-    background: $bg-card;
-    border: 1px solid $border;
-    border-radius: 16px;
-    padding: 24px 28px;
+.skel-bento-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: rgba(255, 255, 255, 0.06);
 
-    &.glow {
-        border-color: rgba(0, 230, 118, 0.2);
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.skel-bento-cell {
+    background: $bg-card;
+    padding: 24px 28px;
+}
+
+.skel-bento-bottom {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.skel-bento-stat {
+    background: rgba(14, 19, 34, 0.8);
+    padding: 16px 22px;
+
+    .skel-line {
+        margin-bottom: 6px;
+        &:last-child { margin-bottom: 0; }
     }
 }
 

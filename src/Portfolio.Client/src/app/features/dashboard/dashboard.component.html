@@ -3,16 +3,27 @@
     @if (isLoading()) {
     <!-- ── SKELETON ───────────────────────────────────────────── -->
     <div class="skeleton-wrap">
-        <div class="skeleton-hero">
-            <div class="skel-card glass">
-                <div class="skel-line w40"></div>
-                <div class="skel-line w70 tall"></div>
+        <div class="skel-bento">
+            <!-- Top row: Value | P&L -->
+            <div class="skel-bento-top">
+                <div class="skel-bento-cell">
+                    <div class="skel-line w40"></div>
+                    <div class="skel-line w60 tall"></div>
+                </div>
+                <div class="skel-bento-cell">
+                    <div class="skel-line w50"></div>
+                    <div class="skel-line w70 tall"></div>
+                    <div class="skel-line w30"></div>
+                </div>
             </div>
-            <div class="skel-card glass glow">
-                <div class="skel-line w50"></div>
-                <div class="skel-line w80 tall"></div>
-                <div class="skel-line w30"></div>
-                <div class="skel-line w60"></div>
+            <!-- Bottom row: 4 stat cells -->
+            <div class="skel-bento-bottom">
+                @for (i of [1,2,3,4]; track $index) {
+                <div class="skel-bento-stat">
+                    <div class="skel-line w50 sm"></div>
+                    <div class="skel-line w70"></div>
+                </div>
+                }
             </div>
         </div>
         <div class="skel-table glass">
@@ -41,82 +52,77 @@
 
     @if (!isLoading()) {
 
-    <!-- ── HERO STATS ─────────────────────────────────────────── -->
-    <div class="hero-stats">
+    <!-- ── BENTO GRID ─────────────────────────────────────────── -->
+    <div class="bento-grid" role="region" aria-label="Portfolio overview">
 
-        <!-- Portfolio Value -->
-        <div class="hero-card value-card glass">
-            <div class="hero-label">
-                <span class="hero-dot dot-blue"></span>
+        <!-- ① Portfolio Value -->
+        <div class="bento-cell bento-value">
+            <div class="bento-label">
+                <span class="bento-dot dot-blue" aria-hidden="true"></span>
                 Portfolio Value
             </div>
-            <div class="hero-amount">{{ totalValue() | currency:baseCurrency:'symbol':'1.2-2' }}</div>
-
-            <dl class="hero-dl">
-                <div class="hero-dl-row">
-                    <dt class="hero-dt">Net Deposits:</dt>
-                    <dd class="hero-dd">{{ netDeposits() | currency:baseCurrency:'symbol':'1.2-2' }}</dd>
-                </div>
-                <div class="hero-dl-row">
-                    <dt class="hero-dt">Cost Basis:</dt>
-                    <dd class="hero-dd">{{ totalCost() | currency:baseCurrency:'symbol':'1.2-2' }}</dd>
-                </div>
-            </dl>
+            <div class="bento-amount">{{ totalValue() | currency:baseCurrency:'symbol':'1.2-2' }}</div>
         </div>
 
-        <!-- Profit & Loss -->
-        <div class="hero-card openpl-card glass"
-             [class.pl-pos]="isPlPositive()"
-             [class.pl-neg]="!isPlPositive()">
-            <div class="hero-label">
-                <span class="hero-dot"
+        <!-- ② Profit & Loss -->
+        <div class="bento-cell bento-pl"
+             [class.bento-pos]="isPlPositive()"
+             [class.bento-neg]="!isPlPositive()">
+            <div class="bento-label">
+                <span class="bento-dot"
                       [class.dot-green]="isPlPositive()"
-                      [class.dot-red]="!isPlPositive()"></span>
+                      [class.dot-red]="!isPlPositive()"
+                      aria-hidden="true"></span>
                 Profit &amp; Loss
             </div>
-
-            <div class="hero-amount openpl-amount"
+            <div class="bento-amount bento-pl-amount"
                  [class.positive]="isPlPositive()"
                  [class.negative]="!isPlPositive()">
                 {{ plSign() }}{{ totalPL() | currency:baseCurrency:'symbol':'1.2-2' }}
             </div>
-
-            <div class="hero-sub">
-                <span class="hero-badge"
-                      [class.badge-green]="isReturnPositive()"
-                      [class.badge-red]="!isReturnPositive()">
-                    <mat-icon class="badge-icon" aria-hidden="true">
-                        {{ isReturnPositive() ? 'trending_up' : 'trending_down' }}
-                    </mat-icon>
-                    {{ returnSign() }}{{ totalReturn() | number:'1.2-2' }}%
-                </span>
-            </div>
-
-            <hr class="hero-divider" aria-hidden="true" />
-
-            <div class="hero-pl-split">
-                <dl class="hero-dl">
-                    <div class="hero-dl-row">
-                        <dt class="hero-dt">Unrealized:</dt>
-                        <dd class="hero-dd"
-                            [class.positive]="isUnrealizedPositive()"
-                            [class.negative]="!isUnrealizedPositive()">
-                            {{ unrealizedSign() }}{{ totalUnrealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
-                        </dd>
-                    </div>
-                    <div class="hero-dl-row">
-                        <dt class="hero-dt">Realized:</dt>
-                        <dd class="hero-dd"
-                            [class.positive]="isRealizedPositive()"
-                            [class.negative]="!isRealizedPositive()">
-                            {{ realizedSign() }}{{ totalRealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
-                        </dd>
-                    </div>
-                </dl>
-            </div>
+            <span class="bento-return-badge"
+                  [class.badge-green]="isReturnPositive()"
+                  [class.badge-red]="!isReturnPositive()">
+                <mat-icon class="badge-icon" aria-hidden="true">
+                    {{ isReturnPositive() ? 'trending_up' : 'trending_down' }}
+                </mat-icon>
+                {{ returnSign() }}{{ totalReturn() | number:'1.2-2' }}%
+            </span>
         </div>
 
-    </div><!-- /hero-stats -->
+        <!-- ③ Net Deposits -->
+        <div class="bento-cell bento-stat bento-dep">
+            <span class="bento-stat-label">Net Deposits</span>
+            <span class="bento-stat-value">{{ netDeposits() | currency:baseCurrency:'symbol':'1.2-2' }}</span>
+        </div>
+
+        <!-- ④ Cost Basis -->
+        <div class="bento-cell bento-stat bento-cost">
+            <span class="bento-stat-label">Cost Basis</span>
+            <span class="bento-stat-value">{{ totalCost() | currency:baseCurrency:'symbol':'1.2-2' }}</span>
+        </div>
+
+        <!-- ⑤ Unrealized P/L -->
+        <div class="bento-cell bento-stat bento-unr">
+            <span class="bento-stat-label">Unrealized P/L</span>
+            <span class="bento-stat-value"
+                  [class.positive]="isUnrealizedPositive()"
+                  [class.negative]="!isUnrealizedPositive()">
+                {{ unrealizedSign() }}{{ totalUnrealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
+            </span>
+        </div>
+
+        <!-- ⑥ Realized P/L -->
+        <div class="bento-cell bento-stat bento-real">
+            <span class="bento-stat-label">Realized P/L</span>
+            <span class="bento-stat-value"
+                  [class.positive]="isRealizedPositive()"
+                  [class.negative]="!isRealizedPositive()">
+                {{ realizedSign() }}{{ totalRealizedPL() | currency:baseCurrency:'symbol':'1.2-2' }}
+            </span>
+        </div>
+
+    </div><!-- /bento-grid -->
 
 
     <!-- ── ADD TRANSACTION ────────────────────────────────────── -->
