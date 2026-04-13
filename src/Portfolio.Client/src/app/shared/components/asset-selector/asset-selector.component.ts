@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, forwardRef, signal, WritableSignal } from '@angular/core';
+import { Component, input, OnInit, forwardRef, signal, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,7 @@ import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/ma
 import { MatOptionModule } from '@angular/material/core';
 import { PortfolioService, AssetDto } from '../../../services/portfolio.service';
 import { debounceTime, switchMap, catchError, of, startWith, filter, finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-asset-selector',
@@ -29,22 +30,25 @@ import { debounceTime, switchMap, catchError, of, startWith, filter, finalize } 
             useExisting: forwardRef(() => AssetSelectorComponent),
             multi: true
         }
-    ]
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
-    @Input() label: string = 'Asset';
-    @Input() placeholder: string = 'e.g. BTC, ETH';
-    @Input() chipClass: string = 'asset-chip';
+    readonly label = input<string>('Asset');
+    readonly placeholder = input<string>('e.g. BTC, ETH');
+    readonly chipClass = input<string>('asset-chip');
 
     searchControl = new FormControl<string | AssetDto | null>('');
     selectedAsset = signal<AssetDto | null>(null);
     filteredAssets = signal<AssetDto[]>([]);
     isSyncingAsset = signal<boolean>(false);
 
-    onChange: any = () => {};
-    onTouched: any = () => {};
+    onChange: any = () => { };
+    onTouched: any = () => { };
 
-    constructor(private portfolioService: PortfolioService) {}
+    private readonly destroyRef = inject(DestroyRef);
+
+    constructor(private portfolioService: PortfolioService) { }
 
     ngOnInit() {
         this.searchControl.valueChanges.pipe(
@@ -56,7 +60,8 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
                 return this.portfolioService.searchAssets(value).pipe(
                     catchError(() => of([]))
                 );
-            })
+            }),
+            takeUntilDestroyed(this.destroyRef)
         ).subscribe(assets => this.filteredAssets.set(assets));
     }
 
@@ -78,9 +83,7 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
                     this.searchControl.enable({ emitEvent: false });
                 })
             ).subscribe({
-                next: (syncedAsset: AssetDto) => {
-                    this.setInternalValue(syncedAsset);
-                },
+                next: (syncedAsset: AssetDto) => this.setInternalValue(syncedAsset),
                 error: (err: any) => {
                     console.error('Failed to sync asset', err);
                     this.clearSelection();
@@ -93,8 +96,6 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
 
     onAssetInputBlur() {
         this.onTouched();
-        
-        // If string remains, it means they didn't pick an autocomplete option
         if (typeof this.searchControl.value === 'string') {
             this.clearSelection();
         }
@@ -119,25 +120,18 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
         this.onChange(null);
     }
 
-    // ControlValueAccessor methods
+    // ── ControlValueAccessor ─────────────────────────────────────────────
     writeValue(value: AssetDto | null): void {
         this.selectedAsset.set(value);
         this.searchControl.setValue(value, { emitEvent: false });
     }
 
-    registerOnChange(fn: any): void {
-        this.onChange = fn;
-    }
+    registerOnChange(fn: any): void { this.onChange = fn; }
+    registerOnTouched(fn: any): void { this.onTouched = fn; }
 
-    registerOnTouched(fn: any): void {
-        this.onTouched = fn;
-    }
-
-    setDisabledState?(isDisabled: boolean): void {
-        if (isDisabled) {
-            this.searchControl.disable({ emitEvent: false });
-        } else {
-            this.searchControl.enable({ emitEvent: false });
-        }
+    setDisabledState(isDisabled: boolean): void {
+        isDisabled
+            ? this.searchControl.disable({ emitEvent: false })
+            : this.searchControl.enable({ emitEvent: false });
     }
 }

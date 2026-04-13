@@ -1,9 +1,12 @@
-import { Component, OnInit, signal, computed, ChangeDetectionStrategy, WritableSignal } from '@angular/core';
+import {
+    Component, OnInit, signal, computed, Signal,
+    effect, untracked, inject, DestroyRef, ChangeDetectionStrategy
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize, map } from 'rxjs';
 
 // Material
 import { MatCardModule } from '@angular/material/card';
@@ -53,9 +56,15 @@ export interface TransactionForm {
 const UI_CONFIG: Record<string, any> = {
     DEPOSIT: { toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited' },
     WITHDRAWAL: { fromTitle: 'Asset Withdrawn', fromIcon: 'north_east', fromAmount: 'Amount Withdrawn' },
-    SWAP: { fromTitle: 'Asset Sold', fromIcon: 'sell', fromAmount: 'Amount Sold', toTitle: 'Asset Bought', toIcon: 'shopping_cart', toAmount: 'Amount Bought' },
+    SWAP: {
+        fromTitle: 'Asset Sold', fromIcon: 'sell', fromAmount: 'Amount Sold',
+        toTitle: 'Asset Bought', toIcon: 'shopping_cart', toAmount: 'Amount Bought'
+    },
     REWARD: { toTitle: 'Asset Rewarded', toIcon: 'workspace_premium', toAmount: 'Amount Rewarded' },
-    DEFAULT: { fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent', toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received' },
+    DEFAULT: {
+        fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent',
+        toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received'
+    },
 };
 
 @Component({
@@ -83,19 +92,29 @@ const UI_CONFIG: Record<string, any> = {
 export class NewTransactionComponent implements OnInit {
     form: FormGroup<TransactionForm>;
 
-    // State using Signals
+    // ── Writable state signals ───────────────────────────────────────────
     isSubmitting = signal<boolean>(false);
     isLoadingTypes = signal<boolean>(true);
     transactionTypes = signal<TransactionType[]>([]);
-
     fiatCurrencies = signal<AssetDto[]>([]);
 
-    // Reactive Form to Signal Bridge
-    private typeValueChange: () => string;
+    // ── Form-value signals (initialized in constructor after form is built)
+    private step1Raw!: Signal<any>;
+    private step2Raw!: Signal<any>;
+    private typeValueChange!: Signal<string>;
 
-    // Computed state
-    selectedTypeData: () => TransactionType | undefined;
-    uiLabels: () => any;
+    // ── Computed signals ─────────────────────────────────────────────────
+    selectedTypeData!: Signal<TransactionType | undefined>;
+    uiLabels!: Signal<any>;
+    hasFiatLeg!: Signal<boolean>;
+    hasFiatFee!: Signal<boolean>;
+    showFeeFiatValuation!: Signal<boolean>;
+    isFeeAssetSameAsSpotAsset!: Signal<boolean>;
+    pricedAssetSymbol!: Signal<string>;
+    pricedAssetAmount!: Signal<number>;
+    feeAssetSymbol!: Signal<string>;
+
+    private readonly destroyRef = inject(DestroyRef);
 
     constructor(
         private portfolioService: PortfolioService,
@@ -103,7 +122,6 @@ export class NewTransactionComponent implements OnInit {
     ) {
         this.form = new FormGroup<TransactionForm>({
             step1: new FormGroup<Step1Form>({
-                // Format to YYYY-MM-DDThh:mm for datetime-local
                 date: new FormControl<string>(new Date().toISOString().slice(0, 16), { nonNullable: true, validators: Validators.required }),
                 type: new FormControl<string>('', { nonNullable: true, validators: Validators.required }),
                 fromAssetId: new FormControl<AssetDto | null>(null, Validators.required),
@@ -124,13 +142,27 @@ export class NewTransactionComponent implements OnInit {
             })
         });
 
-        // Initialize signals that depend on form
-        this.typeValueChange = toSignal(this.form.get('step1.type')!.valueChanges, { initialValue: '' });
+        // ── Signal bridges: form value changes → signals ─────────────────
+        // pipe(map(() => getRawValue())) ensures disabled controls are included
+        this.step1Raw = toSignal(
+            this.form.controls.step1.valueChanges.pipe(map(() => this.form.controls.step1.getRawValue())),
+            { initialValue: this.form.controls.step1.getRawValue() }
+        );
 
+        this.step2Raw = toSignal(
+            this.form.controls.step2.valueChanges.pipe(map(() => this.form.controls.step2.getRawValue())),
+            { initialValue: this.form.controls.step2.getRawValue() }
+        );
+
+        this.typeValueChange = toSignal(
+            this.form.controls.step1.controls.type.valueChanges,
+            { initialValue: '' }
+        );
+
+        // ── Computed signals ─────────────────────────────────────────────
         this.selectedTypeData = computed(() => {
             const typeValue = this.typeValueChange();
-            const types = this.transactionTypes();
-            return types.find(t => t.value === typeValue);
+            return this.transactionTypes().find(t => t.value === typeValue);
         });
 
         this.uiLabels = computed(() => {
@@ -141,6 +173,65 @@ export class NewTransactionComponent implements OnInit {
 
             return UI_CONFIG[typeData.value.toUpperCase()] || UI_CONFIG['DEFAULT'];
         });
+
+        this.hasFiatLeg = computed(() => {
+            const { fromAssetId, toAssetId } = this.step1Raw();
+            return this.fiatCurrencies().some(f => f.id === fromAssetId?.id || f.id === toAssetId?.id);
+        });
+
+        this.hasFiatFee = computed(() => {
+            const { feeAssetId } = this.step2Raw();
+            return this.fiatCurrencies().some(f => f.id === feeAssetId?.id);
+        });
+
+        this.showFeeFiatValuation = computed(() => {
+            const { feeAssetId } = this.step2Raw();
+            return !!feeAssetId && !this.hasFiatFee();
+        });
+
+        this.isFeeAssetSameAsSpotAsset = computed(() => {
+            const { feeAssetId } = this.step2Raw();
+            if (!feeAssetId) return false;
+            const { fromAssetId, toAssetId } = this.step1Raw();
+            const spotAsset = fromAssetId || toAssetId;
+            return !!spotAsset && feeAssetId.id === spotAsset.id;
+        });
+
+        this.pricedAssetSymbol = computed(() => {
+            const typeData = this.selectedTypeData();
+            if (!typeData) return 'Coin';
+            const { fromAssetId, toAssetId } = this.step1Raw();
+            return typeData.requiresFromAsset
+                ? (fromAssetId?.symbol || 'Coin')
+                : (toAssetId?.symbol || 'Coin');
+        });
+
+        this.pricedAssetAmount = computed(() => {
+            const typeData = this.selectedTypeData();
+            if (!typeData) return 0;
+            const { amountSpent, amountReceived } = this.step1Raw();
+            return typeData.requiresFromAsset ? (amountSpent || 0) : (amountReceived || 0);
+        });
+
+        this.feeAssetSymbol = computed(() => {
+            const { feeAssetId } = this.step2Raw();
+            return feeAssetId?.symbol || 'Coin';
+        });
+
+        // ── Effects: replace form.valueChanges subscriptions ────────────
+        // hasFiatLeg depends on step1Raw + fiatCurrencies — effect tracks both
+        effect(() => {
+            this.hasFiatLeg();
+            untracked(() => this.updateReactiveLocks());
+        });
+
+        // Fee locks depend on everything that can change fee price state
+        effect(() => {
+            this.showFeeFiatValuation();      // tracks step2Raw + hasFiatFee
+            this.isFeeAssetSameAsSpotAsset(); // tracks step1Raw + step2Raw
+            this.step2Raw();                  // also tracks raw step2 for spotPrice & fee amount
+            untracked(() => this.updateFeeLocks());
+        });
     }
 
     ngOnInit() {
@@ -150,80 +241,56 @@ export class NewTransactionComponent implements OnInit {
                 next: (types) => {
                     this.transactionTypes.set(types);
                     if (types.length > 0) {
-                        const firstType = types[0].value;
-                        this.form.controls.step1.controls.type.setValue(firstType);
+                        this.form.controls.step1.controls.type.setValue(types[0].value);
                         this.updateValidators(types[0]);
                     }
                 },
-                error: (err) => {
-                    console.error('Failed to load transaction types', err);
-                }
+                error: (err) => console.error('Failed to load transaction types', err)
             });
 
-        // Fetch Fiat Currencies
         this.portfolioService.getFiatCurrencies().subscribe({
-            next: (fiats) => {
-                this.fiatCurrencies.set(fiats);
-            },
-            error: (err) => {
-                console.error('Failed to load fiat currencies', err);
-            }
+            next: (fiats) => this.fiatCurrencies.set(fiats),
+            error: (err) => console.error('Failed to load fiat currencies', err)
         });
 
-        // Wire up auto-clearing for Spot Prices when Asset controls change
-        this.form.controls.step1.controls.fromAssetId.valueChanges.subscribe(() => {
-            this.form.controls.step2.controls.spotPrice.setValue(null);
-        });
+        // Clear spot price when the spot asset changes
+        this.form.controls.step1.controls.fromAssetId.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.form.controls.step2.controls.spotPrice.setValue(null));
 
-        this.form.controls.step1.controls.toAssetId.valueChanges.subscribe(() => {
-            this.form.controls.step2.controls.spotPrice.setValue(null);
-        });
+        this.form.controls.step1.controls.toAssetId.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.form.controls.step2.controls.spotPrice.setValue(null));
 
-        this.form.controls.step2.controls.feeAssetId.valueChanges.subscribe(() => {
-            this.form.controls.step2.controls.feeSpotPrice.setValue(null);
-        });
+        // Clear fee spot price when the fee asset changes
+        this.form.controls.step2.controls.feeAssetId.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.form.controls.step2.controls.feeSpotPrice.setValue(null));
 
-        // Listen to form type changes to update validators
-        this.form.controls.step1.controls.type.valueChanges.subscribe(typeValue => {
-            const types = this.transactionTypes();
-            const typeData = types.find(t => t.value === typeValue);
-            if (typeData) {
-                this.migrateValuesOnTypeChange(typeData);
-                this.updateValidators(typeData);
-            }
-        });
-
-        // Listen for Fiat Asset Selections to Auto-lock pricing
-        this.form.controls.step1.valueChanges.subscribe(() => {
-            this.updateReactiveLocks();
-        });
-
-        this.form.controls.step2.valueChanges.subscribe(() => {
-            this.updateFeeLocks();
-        });
-
-        // Re-evaluate fee locks when spot price changes (to sync if same asset)
-        this.form.controls.step2.controls.spotPrice.valueChanges.subscribe(() => {
-            this.updateFeeLocks();
-        });
-
-        this.form.controls.step2.controls.spotPriceCurrency.valueChanges.subscribe(() => {
-            this.updateFeeLocks();
-        });
+        // Type change: migrate carried values + refresh validators
+        this.form.controls.step1.controls.type.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(typeValue => {
+                const typeData = this.transactionTypes().find(t => t.value === typeValue);
+                if (typeData) {
+                    this.migrateValuesOnTypeChange(typeData);
+                    this.updateValidators(typeData);
+                }
+            });
     }
+
+    // ── Private: form control side-effects ──────────────────────────────
 
     private updateReactiveLocks() {
         const spotPriceControl = this.form.controls.step2.controls.spotPrice;
         const spotPriceCurrencyControl = this.form.controls.step2.controls.spotPriceCurrency;
 
-        if (this.hasFiatLeg) {
+        if (this.hasFiatLeg()) {
             spotPriceControl.disable({ emitEvent: false });
             spotPriceCurrencyControl.disable({ emitEvent: false });
-        } else {
-            if (spotPriceControl.disabled) {
-                spotPriceControl.enable({ emitEvent: false });
-                spotPriceCurrencyControl.enable({ emitEvent: false });
-            }
+        } else if (spotPriceControl.disabled) {
+            spotPriceControl.enable({ emitEvent: false });
+            spotPriceCurrencyControl.enable({ emitEvent: false });
         }
     }
 
@@ -236,7 +303,7 @@ export class NewTransactionComponent implements OnInit {
         const hasFeeAsset = !!feeAssetControl.value;
         const hasFeeAmount = !!feeControl.value && feeControl.value > 0;
 
-        // Ensure strict symmetry: Fee Amount needs Asset, Asset needs Fee Amount
+        // Ensure strict symmetry: fee amount needs an asset and vice-versa
         if (hasFeeAsset || hasFeeAmount) {
             feeControl.setValidators([Validators.required, this.requireGreaterThanZero]);
             feeAssetControl.setValidators([Validators.required, this.requireAssetObject]);
@@ -247,9 +314,9 @@ export class NewTransactionComponent implements OnInit {
         feeControl.updateValueAndValidity({ emitEvent: false });
         feeAssetControl.updateValueAndValidity({ emitEvent: false });
 
-        if (!this.showFeeFiatValuation) {
-            // Auto-align the disabled pricing currency with the chosen Fiat fee asset
-            if (this.hasFiatFee && feeAssetControl.value?.symbol) {
+        if (!this.showFeeFiatValuation()) {
+            // No fee, or fee asset is fiat — no crypto price input needed
+            if (this.hasFiatFee() && feeAssetControl.value?.symbol) {
                 feePriceCurrencyControl.setValue(feeAssetControl.value.symbol, { emitEvent: false });
             }
             feePriceControl.disable({ emitEvent: false });
@@ -257,11 +324,10 @@ export class NewTransactionComponent implements OnInit {
             feePriceControl.clearValidators();
             feePriceCurrencyControl.clearValidators();
             feePriceControl.setValue(null, { emitEvent: false });
-        } else if (this.isFeeAssetSameAsSpotAsset) {
+        } else if (this.isFeeAssetSameAsSpotAsset()) {
             // Mirror spot price — same asset, no separate price needed
-            const step2 = this.form.controls.step2;
-            const spotPrice = step2.controls.spotPrice.value;
-            const spotCurrency = step2.controls.spotPriceCurrency.value;
+            const spotPrice = this.form.controls.step2.controls.spotPrice.value;
+            const spotCurrency = this.form.controls.step2.controls.spotPriceCurrency.value;
             feePriceControl.setValue(spotPrice, { emitEvent: false });
             feePriceCurrencyControl.setValue(spotCurrency, { emitEvent: false });
             feePriceControl.disable({ emitEvent: false });
@@ -287,15 +353,12 @@ export class NewTransactionComponent implements OnInit {
         const fromAmount = step1.controls.amountSpent.value;
         const toAmount = step1.controls.amountReceived.value;
 
-        // If new type ONLY needs FROM, and FROM is empty, and TO has a value
         if (newType.requiresFromAsset && !newType.requiresToAsset && !fromAsset && toAsset) {
             step1.controls.fromAssetId.setValue(toAsset);
             if (!fromAmount && toAmount && toAmount > 0) {
                 step1.controls.amountSpent.setValue(toAmount);
             }
-        }
-        // If new type ONLY needs TO, and TO is empty, and FROM has a value
-        else if (newType.requiresToAsset && !newType.requiresFromAsset && !toAsset && fromAsset) {
+        } else if (newType.requiresToAsset && !newType.requiresFromAsset && !toAsset && fromAsset) {
             step1.controls.toAssetId.setValue(fromAsset);
             if (!toAmount && fromAmount && fromAmount > 0) {
                 step1.controls.amountReceived.setValue(fromAmount);
@@ -310,7 +373,6 @@ export class NewTransactionComponent implements OnInit {
         const spentControl = step1.controls.amountSpent;
         const receivedControl = step1.controls.amountReceived;
 
-        // Reset validators
         fromControl.clearValidators();
         toControl.clearValidators();
         spentControl.clearValidators();
@@ -356,6 +418,8 @@ export class NewTransactionComponent implements OnInit {
         return Number(control.value) > 0 ? null : { 'minExclusive': true };
     }
 
+    // ── Submit / Cancel ──────────────────────────────────────────────────
+
     onSubmit() {
         if (this.form.invalid || this.isSubmitting()) return;
 
@@ -385,12 +449,8 @@ export class NewTransactionComponent implements OnInit {
         this.portfolioService.addTransaction(request)
             .pipe(finalize(() => this.isSubmitting.set(false)))
             .subscribe({
-                next: () => {
-                    this.router.navigate(['/']); // Back to Dashboard
-                },
-                error: (err) => {
-                    console.error('Failed to save transaction', err);
-                }
+                next: () => this.router.navigate(['/']),
+                error: (err) => console.error('Failed to save transaction', err)
             });
     }
 
@@ -398,77 +458,15 @@ export class NewTransactionComponent implements OnInit {
         this.router.navigate(['/']);
     }
 
-    get step1Group() {
-        return this.form.controls.step1;
-    }
+    // ── Accessors ────────────────────────────────────────────────────────
 
-    get step2Group() {
-        return this.form.controls.step2;
-    }
+    get step1Group() { return this.form.controls.step1; }
+    get step2Group() { return this.form.controls.step2; }
 
-    get step1Value(): any {
-        return this.step1Group.getRawValue();
-    }
+    /** Template reads go through the signal — Angular tracks the dependency correctly. */
+    get step1Value(): any { return this.step1Raw(); }
+    get step2Value(): any { return this.step2Raw(); }
 
-    get step2Value(): any {
-        return this.step2Group.getRawValue();
-    }
-
-    get pricedAssetSymbol(): string {
-        let defaultSymbol = 'Coin';
-        const typeData = this.selectedTypeData();
-        if (!typeData) return defaultSymbol;
-
-        // Swap (both true) and Withdrawal (from true) price the From Asset
-        if (typeData.requiresFromAsset) {
-            return this.step1Value?.fromAssetId?.symbol || defaultSymbol;
-        }
-
-        // Deposit and Reward price the To Asset
-        return this.step1Value?.toAssetId?.symbol || defaultSymbol;
-    }
-
-    get pricedAssetAmount(): number {
-        const typeData = this.selectedTypeData();
-        if (!typeData) return 0;
-        if (typeData.requiresFromAsset) {
-            return this.step1Value?.amountSpent || 0;
-        }
-        return this.step1Value?.amountReceived || 0;
-    }
-
-    get feeAssetSymbol(): string {
-        return this.step2Value?.feeAssetId?.symbol || 'Coin';
-    }
-
-    get hasFiatLeg(): boolean {
-        const fromAsset = this.step1Value?.fromAssetId;
-        const toAsset = this.step1Value?.toAssetId;
-        return this.fiatCurrencies().some(f => f.id === fromAsset?.id || f.id === toAsset?.id);
-    }
-
-    get hasFiatFee(): boolean {
-        const feeAsset = this.step2Value?.feeAssetId;
-        return this.fiatCurrencies().some(f => f.id === feeAsset?.id);
-    }
-
-    get showFeeFiatValuation(): boolean {
-        const hasAsset = !!this.step2Value?.feeAssetId;
-        return hasAsset && !this.hasFiatFee;
-    }
-
-    get isFeeAssetSameAsSpotAsset(): boolean {
-        const feeAsset = this.step2Value?.feeAssetId;
-        if (!feeAsset) return false;
-        const spotAsset = this.step1Value?.fromAssetId || this.step1Value?.toAssetId;
-        return !!spotAsset && feeAsset.id === spotAsset.id;
-    }
-
-    get isStep1Valid(): boolean {
-        return this.step1Group.valid;
-    }
-
-    get isStep2Valid(): boolean {
-        return this.step2Group.valid;
-    }
+    get isStep1Valid(): boolean { return this.step1Group.valid; }
+    get isStep2Valid(): boolean { return this.step2Group.valid; }
 }

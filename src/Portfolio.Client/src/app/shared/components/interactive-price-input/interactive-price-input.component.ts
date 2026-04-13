@@ -1,4 +1,7 @@
-import { Component, forwardRef, Input, ViewEncapsulation, SimpleChanges, OnChanges } from '@angular/core';
+import {
+    Component, forwardRef, input, signal, computed, effect, untracked,
+    ViewEncapsulation, ChangeDetectionStrategy
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -6,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FIAT_CURRENCY_SYMBOLS, DEFAULT_FIAT_CURRENCY } from '../../constants/currency.constants';
 
@@ -34,113 +38,102 @@ export enum PriceInputMode {
             multi: true
         }
     ],
-    encapsulation: ViewEncapsulation.None
+    encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class InteractivePriceInputComponent implements ControlValueAccessor, OnChanges {
-    @Input() assetSymbol: string = '';
-    @Input() assetAmount: number | null = 0;
-    @Input() fiatCurrency: string = DEFAULT_FIAT_CURRENCY;
+export class InteractivePriceInputComponent implements ControlValueAccessor {
+    readonly assetSymbol = input<string>('');
+    readonly assetAmount = input<number | null>(0);
+    readonly fiatCurrency = input<string>(DEFAULT_FIAT_CURRENCY);
 
-    mode: PriceInputMode = PriceInputMode.Unit;
     readonly PriceInputMode = PriceInputMode;
+
+    mode = signal<PriceInputMode>(PriceInputMode.Unit);
+    private currentUnitPrice = signal<number | null>(null);
     internalControl = new FormControl<number | null>(null);
 
-    // CVA methods
-    onChange: any = () => { };
-    onTouched: any = () => { };
+    onChange: (v: number | null) => void = () => { };
+    onTouched: () => void = () => { };
 
-    private currentUnitPrice: number | null = null;
+    currencyPrefix = computed(() =>
+        FIAT_CURRENCY_SYMBOLS[this.fiatCurrency() as keyof typeof FIAT_CURRENCY_SYMBOLS] || this.fiatCurrency()
+    );
 
-    get currencyPrefix(): string {
-        return FIAT_CURRENCY_SYMBOLS[this.fiatCurrency as keyof typeof FIAT_CURRENCY_SYMBOLS] || this.fiatCurrency;
-    }
+    safeAmount = computed(() => {
+        const amt = this.assetAmount();
+        return amt && amt > 0 ? amt : 0;
+    });
 
-    get safeAmount(): number {
-        return this.assetAmount && this.assetAmount > 0 ? this.assetAmount : 0;
-    }
+    calculatedTotal = computed(() => {
+        const price = this.currentUnitPrice();
+        if (price === null) return null;
+        return price * this.safeAmount();
+    });
 
-    get calculatedTotal(): number | null {
-        if (this.currentUnitPrice === null) return null;
-        return this.currentUnitPrice * this.safeAmount;
-    }
-
-    get calculatedUnit(): number | null {
-        return this.currentUnitPrice;
-    }
+    calculatedUnit = computed(() => this.currentUnitPrice());
 
     constructor() {
-        this.internalControl.valueChanges.subscribe(val => {
-            if (val === null || val < 0) {
-                this.currentUnitPrice = null;
-            } else if (this.mode === PriceInputMode.Unit) {
-                this.currentUnitPrice = val;
-            } else if (this.mode === PriceInputMode.Total) {
-                if (this.safeAmount > 0) {
-                    this.currentUnitPrice = val / this.safeAmount;
-                } else {
-                    this.currentUnitPrice = null;
+        // Replaces ngOnChanges: react to assetAmount changes while in Total mode
+        effect(() => {
+            const amount = this.safeAmount();
+            untracked(() => {
+                if (this.mode() === PriceInputMode.Total && this.internalControl.value !== null) {
+                    const newUnit = amount > 0 ? this.internalControl.value / amount : null;
+                    this.currentUnitPrice.set(newUnit);
+                    this.onChange(newUnit);
                 }
-            }
-            this.onChange(this.currentUnitPrice);
+            });
         });
-    }
 
-    ngOnChanges(changes: SimpleChanges): void {
-        if (changes['assetAmount']) {
-            // If the amount changes and we are in TOTAL mode, we need to recalculate the unit price
-            // without changing the total value string input
-            if (this.mode === PriceInputMode.Total && this.internalControl.value !== null) {
-                if (this.safeAmount > 0) {
-                    this.currentUnitPrice = this.internalControl.value / this.safeAmount;
+        // Drive currentUnitPrice and notify CVA from user input
+        this.internalControl.valueChanges
+            .pipe(takeUntilDestroyed())
+            .subscribe(val => {
+                if (val === null || val < 0) {
+                    this.currentUnitPrice.set(null);
+                } else if (this.mode() === PriceInputMode.Unit) {
+                    this.currentUnitPrice.set(val);
                 } else {
-                    this.currentUnitPrice = null;
+                    const amt = this.safeAmount();
+                    this.currentUnitPrice.set(amt > 0 ? val / amt : null);
                 }
-                this.onChange(this.currentUnitPrice);
-            }
-        }
+                this.onChange(this.currentUnitPrice());
+            });
     }
 
-    toggleMode() {
-        this.mode = this.mode === PriceInputMode.Unit ? PriceInputMode.Total : PriceInputMode.Unit;
-        
-        // Refresh the UI input based on the new mode
-        if (this.currentUnitPrice !== null) {
-            if (this.mode === PriceInputMode.Unit) {
-                this.internalControl.setValue(this.currentUnitPrice, { emitEvent: false });
-            } else {
-                this.internalControl.setValue(this.currentUnitPrice * this.safeAmount, { emitEvent: false });
-            }
+    toggleMode(): void {
+        this.mode.update(m => m === PriceInputMode.Unit ? PriceInputMode.Total : PriceInputMode.Unit);
+
+        const price = this.currentUnitPrice();
+        if (price !== null) {
+            const displayValue = this.mode() === PriceInputMode.Unit
+                ? price
+                : price * this.safeAmount();
+            this.internalControl.setValue(displayValue, { emitEvent: false });
         } else {
             this.internalControl.setValue(null, { emitEvent: false });
         }
     }
 
+    // ── ControlValueAccessor ─────────────────────────────────────────────
     writeValue(value: number | null): void {
-        this.currentUnitPrice = value;
+        this.currentUnitPrice.set(value);
         if (value !== null) {
-            if (this.mode === PriceInputMode.Unit) {
-                this.internalControl.setValue(value, { emitEvent: false });
-            } else {
-                this.internalControl.setValue(value * this.safeAmount, { emitEvent: false });
-            }
+            const displayValue = this.mode() === PriceInputMode.Unit
+                ? value
+                : value * this.safeAmount();
+            this.internalControl.setValue(displayValue, { emitEvent: false });
         } else {
             this.internalControl.setValue(null, { emitEvent: false });
         }
     }
 
-    registerOnChange(fn: any): void {
-        this.onChange = fn;
-    }
-
-    registerOnTouched(fn: any): void {
-        this.onTouched = fn;
-    }
+    registerOnChange(fn: (v: number | null) => void): void { this.onChange = fn; }
+    registerOnTouched(fn: () => void): void { this.onTouched = fn; }
 
     setDisabledState(isDisabled: boolean): void {
-        if (isDisabled) {
-            this.internalControl.disable({ emitEvent: false });
-        } else {
-            this.internalControl.enable({ emitEvent: false });
-        }
+        isDisabled
+            ? this.internalControl.disable({ emitEvent: false })
+            : this.internalControl.enable({ emitEvent: false });
     }
 }

@@ -1,10 +1,10 @@
 <mat-form-field appearance="fill" class="w-full">
     <mat-label>
-        {{ mode === PriceInputMode.Unit ? 'Price per ' + assetSymbol : 'Total Value' }}
+        {{ mode() === PriceInputMode.Unit ? 'Price per ' + assetSymbol() : 'Total Value' }}
     </mat-label>
 
-    @if (currencyPrefix) {
-    <span matTextPrefix class="mr-1 text-gray-300">{{ currencyPrefix }}</span>
+    @if (currencyPrefix()) {
+    <span matTextPrefix class="mr-1 text-gray-300">{{ currencyPrefix() }}</span>
     }
 
     <input matInput type="number" [formControl]="internalControl" [placeholder]="'0.00'" (blur)="onTouched()">
@@ -16,12 +16,12 @@
 
     <mat-hint class="text-xs">
         @if (internalControl.value !== null && internalControl.value > 0) {
-        @if (mode === PriceInputMode.Unit) {
-        = <span class="font-bold text-green-400">{{ calculatedTotal | currency:fiatCurrency:'symbol-narrow':'1.2-18'
+        @if (mode() === PriceInputMode.Unit) {
+        = <span class="font-bold text-green-400">{{ calculatedTotal() | currency:fiatCurrency():'symbol-narrow':'1.2-18'
             }}</span> Total
         } @else {
-        = <span class="font-bold text-green-400">{{ calculatedUnit | currency:fiatCurrency:'symbol-narrow':'1.2-18'
-            }}</span> per {{ assetSymbol }}
+        = <span class="font-bold text-green-400">{{ calculatedUnit() | currency:fiatCurrency():'symbol-narrow':'1.2-18'
+            }}</span> per {{ assetSymbol() }}
         }
         } @else {
         Enter value

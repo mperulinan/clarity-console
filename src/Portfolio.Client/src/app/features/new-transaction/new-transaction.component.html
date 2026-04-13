@@ -99,7 +99,7 @@
                     <ng-template matStepLabel>Pricing & Fees</ng-template>
 
                     <div class="mt-4">
-                        @if (!hasFiatLeg) {
+                        @if (!hasFiatLeg()) {
                         <!-- ── FIAT VALUATION ─────────────────────────────────── -->
                         <div class="section-card mb-6">
                             <div class="section-title">
@@ -131,7 +131,7 @@
                                 </mat-form-field>
 
                                 <app-interactive-price-input class="flex-grow" formControlName="spotPrice"
-                                    [assetSymbol]="pricedAssetSymbol" [assetAmount]="pricedAssetAmount"
+                                    [assetSymbol]="pricedAssetSymbol()" [assetAmount]="pricedAssetAmount()"
                                     [fiatCurrency]="step2Value.spotPriceCurrency">
                                 </app-interactive-price-input>
                             </div>
@@ -154,11 +154,11 @@
                                     <input matInput type="number" formControlName="fee" min="0">
                                 </mat-form-field>
                             </div>
-                            @if (showFeeFiatValuation) {
-                            @if (isFeeAssetSameAsSpotAsset) {
+                            @if (showFeeFiatValuation()) {
+                            @if (isFeeAssetSameAsSpotAsset()) {
                             <div class="fee-price-linked-badge mt-2">
                                 <mat-icon class="badge-icon">link</mat-icon>
-                                <span>Price per {{ feeAssetSymbol }} linked to Spot Price</span>
+                                <span>Price per {{ feeAssetSymbol() }} linked to Spot Price</span>
                             </div>
                             } @else {
                             <div class="flex flex-row gap-4 items-start w-full md:w-2/3 mt-2">
@@ -187,7 +187,7 @@
                                 </mat-form-field>
 
                                 <app-interactive-price-input class="flex-grow" formControlName="feeSpotPrice"
-                                    [assetSymbol]="feeAssetSymbol" [assetAmount]="step2Value.fee"
+                                    [assetSymbol]="feeAssetSymbol()" [assetAmount]="step2Value.fee"
                                     [fiatCurrency]="step2Value.feeSpotPriceCurrency">
                                 </app-interactive-price-input>
                             </div>
@@ -286,7 +286,7 @@
                                     <div>
                                         <span
                                             class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                                            Price per {{ pricedAssetSymbol }}
+                                            Price per {{ pricedAssetSymbol() }}
                                         </span>
                                         <div class="flex items-center gap-2 font-medium text-white">
                                             <span class="text-xl">{{ step2Value?.spotPrice || '-' }}</span>
@@ -308,7 +308,7 @@
                                         </span>
                                         <div class="flex items-center sm:justify-end gap-2 text-white">
                                             <span class="text-3xl font-bold tracking-tight">
-                                                {{ (pricedAssetAmount * (step2Value?.spotPrice || 0)) |
+                                                {{ (pricedAssetAmount() * (step2Value?.spotPrice || 0)) |
                                                 currency:step2Value.spotPriceCurrency:'symbol' }}
                                             </span>
                                         </div>
@@ -347,7 +347,7 @@
                                         <div>
                                             <span
                                                 class="block text-xs font-semibold text-red-400/70 uppercase tracking-wider mb-1">
-                                                Fee Price per {{ feeAssetSymbol }}
+                                                Fee Price per {{ feeAssetSymbol() }}
                                             </span>
                                             <div class="flex items-center gap-2 font-medium text-white">
                                                 <span>{{ step2Value?.feeSpotPrice }}</span>
@@ -361,7 +361,7 @@
                                     </div>
 
                                     <!-- Total Fee Value -->
-                                    @if (hasFiatFee || step2Value?.feeSpotPrice) {
+                                    @if (hasFiatFee() || step2Value?.feeSpotPrice) {
                                     <div class="lg:text-right mt-1 lg:mt-0">
                                         <span
                                             class="block text-xs font-semibold text-red-400/70 uppercase tracking-wider mb-1">
@@ -369,7 +369,7 @@
                                         </span>
                                         <div class="flex items-center lg:justify-end gap-2 text-red-400">
                                             <span class="text-xl font-bold tracking-tight">
-                                                @if (hasFiatFee) {
+                                                @if (hasFiatFee()) {
                                                 {{ step2Value.fee | currency:step2Value.feeSpotPriceCurrency:'symbol' }}
                                                 } @else {
                                                 {{ (step2Value.fee * (step2Value?.feeSpotPrice || 0)) |

@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, signal, computed, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -55,6 +56,8 @@ export class DashboardComponent implements OnInit {
     realizedSign   = computed(() => this.isRealizedPositive() ? '+' : '');
     returnSign     = computed(() => this.isReturnPositive() ? '+' : '');
 
+    private readonly destroyRef = inject(DestroyRef);
+
     constructor(
         private portfolioService: PortfolioService,
         private router: Router
@@ -67,7 +70,10 @@ export class DashboardComponent implements OnInit {
     loadData() {
         this.isLoading.set(true);
         this.portfolioService.getPortfolioDashboard()
-            .pipe(finalize(() => this.isLoading.set(false)))
+            .pipe(
+                finalize(() => this.isLoading.set(false)),
+                takeUntilDestroyed(this.destroyRef)
+            )
             .subscribe({
                 next: (metrics: PortfolioMetrics) => {
                     this.metrics.set(metrics);
