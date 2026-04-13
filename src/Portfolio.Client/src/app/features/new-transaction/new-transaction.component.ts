@@ -201,6 +201,15 @@ export class NewTransactionComponent implements OnInit {
         this.form.controls.step2.valueChanges.subscribe(() => {
             this.updateFeeLocks();
         });
+
+        // Re-evaluate fee locks when spot price changes (to sync if same asset)
+        this.form.controls.step2.controls.spotPrice.valueChanges.subscribe(() => {
+            this.updateFeeLocks();
+        });
+
+        this.form.controls.step2.controls.spotPriceCurrency.valueChanges.subscribe(() => {
+            this.updateFeeLocks();
+        });
     }
 
     private updateReactiveLocks() {
@@ -248,6 +257,17 @@ export class NewTransactionComponent implements OnInit {
             feePriceControl.clearValidators();
             feePriceCurrencyControl.clearValidators();
             feePriceControl.setValue(null, { emitEvent: false });
+        } else if (this.isFeeAssetSameAsSpotAsset) {
+            // Mirror spot price — same asset, no separate price needed
+            const step2 = this.form.controls.step2;
+            const spotPrice = step2.controls.spotPrice.value;
+            const spotCurrency = step2.controls.spotPriceCurrency.value;
+            feePriceControl.setValue(spotPrice, { emitEvent: false });
+            feePriceCurrencyControl.setValue(spotCurrency, { emitEvent: false });
+            feePriceControl.disable({ emitEvent: false });
+            feePriceCurrencyControl.disable({ emitEvent: false });
+            feePriceControl.clearValidators();
+            feePriceCurrencyControl.clearValidators();
         } else {
             if (feePriceControl.disabled) {
                 feePriceControl.enable({ emitEvent: false });
@@ -435,6 +455,13 @@ export class NewTransactionComponent implements OnInit {
     get showFeeFiatValuation(): boolean {
         const hasAsset = !!this.step2Value?.feeAssetId;
         return hasAsset && !this.hasFiatFee;
+    }
+
+    get isFeeAssetSameAsSpotAsset(): boolean {
+        const feeAsset = this.step2Value?.feeAssetId;
+        if (!feeAsset) return false;
+        const spotAsset = this.step1Value?.fromAssetId || this.step1Value?.toAssetId;
+        return !!spotAsset && feeAsset.id === spotAsset.id;
     }
 
     get isStep1Valid(): boolean {
