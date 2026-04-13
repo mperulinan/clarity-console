@@ -40,6 +40,16 @@ Dependencies flow inward:
 
 ---
 
+### Domain Core Concepts
+- **Transaction vs. Inventory**: The system handles transactions (deposits, withdrawals, swaps, rewards) and dynamically processes them via components like `InventoryCalculator` to maintain accurate `AssetHolding` balances and correctly calculate cost basis and P/L (Profit/Loss).
+- **Portfolio Metrics**: The `PortfolioMetricsCalculator` is responsible for aggregating individual enriched asset holdings into global user-level metrics. 
+
+### Design Principles & Conventions
+- **Thin Controllers**: API Controllers (like `AssetController`) act purely as HTTP adapters. Orchestration logic belongs in Application layer services (e.g., `AssetSearchService`).
+- **DDD Adherence**: Business logic is restricted to Domain entities and services. Infrastructure dependencies never leak into the Domain layer.
+
+---
+
 ## Frontend Architecture (Angular)
 The frontend is a modern **Angular** application utilizing standalone components and a feature-based structure.
 
