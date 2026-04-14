@@ -34,7 +34,7 @@
                             <mat-button-toggle-group formControlName="type" class="type-toggle-grid w-full">
                                 @for (type of transactionTypes(); track type.value) {
                                 <mat-button-toggle [value]="type.value">
-                                    {{ type.label }}
+                                    {{ type.name }}
                                 </mat-button-toggle>
                                 }
                             </mat-button-toggle-group>
@@ -221,7 +221,7 @@
                                         class="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
                                         Type
                                     </span>
-                                    <span class="font-medium text-white/90">{{ selectedTypeData()?.label || '-'
+                                    <span class="font-medium text-white/90">{{ selectedTypeData()?.name || '-'
                                         }}</span>
                                 </div>
                                 <div

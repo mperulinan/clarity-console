@@ -1,23 +1,27 @@
+import { AssetDto } from '../services/portfolio.service';
+
 export interface ProcessedTransaction {
     transaction: Transaction;
     profitLoss?: number;
+    totalLossAmount?: number;
     disallowsPreviousLosses: number[];
     isLossDisallowed: boolean;
     disallowedByTransactionId?: number;
+    error?: string;
 }
 
 export interface Transaction {
     id: number;
     date: string; // ISO date string
-    transactionType: TransactionType;
-    fromAssetId?: string;
-    toAssetId?: string;
+    type: TransactionType;
+    fromAsset?: AssetDto;
+    toAsset?: AssetDto;
     amountSpent: number;
     amountReceived: number;
-    spotPriceUSD: number;
+    spotPriceUSD?: number;
     spotPriceEUR?: number;
     fee: number;
-    feeAsset?: string;
+    feeAsset?: AssetDto;
     feePriceUSD?: number;
     feePriceEUR?: number;
     usdEurExchangeRate?: number;
@@ -26,7 +30,7 @@ export interface Transaction {
 
 export interface TransactionType {
     value: string;
-    label: string;
+    name: string;
     requiresFromAsset: boolean;
     requiresToAsset: boolean;
 }

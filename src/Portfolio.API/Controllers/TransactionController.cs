@@ -30,7 +30,7 @@ public class TransactionController(IPortfolioService portfolioService) : Control
         var types = TransactionType.List.Select(t => new TransactionTypeDto
         { 
             Value = t.Value, 
-            Label = t.Name,
+            Name = t.Name,
             RequiresFromAsset = t.RequiresFromAsset,
             RequiresToAsset = t.RequiresToAsset
         });
