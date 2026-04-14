@@ -1,0 +1,304 @@
+/* ═══════════════════════════════════════════════
+   Transactions Page — Dark Theme
+   ═══════════════════════════════════════════════ */
+
+:host { display: block; }
+
+.transactions-page {
+    padding: 28px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+/* ── TOKENS ─────────────────────────────────── */
+$bg-card: #16213e;
+$bg-card-alt: #1e2a45;
+$border: rgba(255, 255, 255, 0.07);
+$text-primary: #f0f0f0;
+$text-muted: #8892a4;
+$green: #00e676;
+$green-soft: rgba(0, 230, 118, 0.08);
+$red: #ff5252;
+$red-soft: rgba(255, 82, 82, 0.08);
+$accent: #7c6cfc;
+$amber: #ffab40;
+$amber-soft: rgba(255, 171, 64, 0.1);
+
+/* ── GLASSMORPHISM ───────────────────────────── */
+.glass {
+    background: rgba(22, 33, 62, 0.7) !important;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ── ANIMATIONS ─────────────────────────────── */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-header { animation: fadeInUp 0.4s ease backwards; }
+.table-wrap  { animation: fadeInUp 0.5s ease 0.15s backwards; }
+
+/* ── HEADER ─────────────────────────────────── */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+    font-size: 13px;
+    color: $text-muted;
+    margin: 4px 0 0;
+}
+
+.add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, $accent, #5c4ee8);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 4px 16px rgba(124, 108, 252, 0.4);
+
+    mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    &:hover { opacity: 0.9; transform: translateY(-1px); }
+}
+
+/* ── TABLE ───────────────────────────────────── */
+.table-wrap {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.txn-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th, td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid $border;
+    }
+
+    th {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: $text-muted;
+        background: rgba(255, 255, 255, 0.02);
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+}
+
+/* ── SORTABLE HEADERS ───────────────────────── */
+.sortable {
+    cursor: pointer;
+    transition: color 0.15s;
+
+    &:hover { color: $text-primary; }
+}
+
+.sort-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    margin-left: 4px;
+    opacity: 0.6;
+}
+
+/* ── ROW STYLES ─────────────────────────────── */
+.txn-row {
+    transition: background 0.15s;
+
+    &:hover { background: rgba(255, 255, 255, 0.03); }
+
+    &.row-error { background: rgba(255, 82, 82, 0.04); }
+
+    &.row-disallowed {
+        background: $amber-soft;
+        td { opacity: 0.75; }
+    }
+}
+
+/* ── CELL STYLES ────────────────────────────── */
+.col-num { text-align: right; }
+
+.col-pl {
+    background: rgba(255, 255, 255, 0.015);
+    border-left: 1px solid $border;
+    border-right: 1px solid $border;
+}
+
+.col-status {
+    text-align: center;
+    width: 48px;
+}
+
+.cell-primary {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-primary;
+}
+
+.cell-secondary {
+    display: block;
+    font-size: 11px;
+    color: $text-muted;
+    margin-top: 1px;
+}
+
+.cell-muted {
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 13px;
+}
+
+/* ── ASSET CELL ─────────────────────────────── */
+.asset-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.asset-icon-sm {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ── TYPE BADGE ─────────────────────────────── */
+.type-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    color: $text-muted;
+}
+
+/* ── P/L CELL ───────────────────────────────── */
+.pl-cell {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+
+    &.positive {
+        background: $green-soft;
+        .pl-amount { color: $green; }
+    }
+
+    &.negative {
+        background: $red-soft;
+        .pl-amount { color: $red; }
+    }
+}
+
+.pl-amount {
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ── STATUS ICONS ───────────────────────────── */
+.status-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.status-ok    { color: rgba(0, 230, 118, 0.4); }
+.status-warn  { color: $amber; }
+.status-error { color: $red; }
+
+/* ── EMPTY STATE ────────────────────────────── */
+.empty-state {
+    text-align: center;
+    padding: 64px 24px !important;
+    color: $text-muted;
+
+    mat-icon { font-size: 48px; width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+    p { font-size: 15px; margin-bottom: 0; opacity: 0.7; }
+}
+
+/* ── SKELETON ────────────────────────────────── */
+@keyframes shimmer {
+    0%   { background-position: -600px 0; }
+    100% { background-position: 600px 0; }
+}
+
+$skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
+
+%skel {
+    background: $skel-shine;
+    background-size: 600px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 6px;
+}
+
+.skel-wrap { display: flex; flex-direction: column; gap: 24px; }
+
+.skel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    .skel-line { @extend %skel; height: 14px; margin: 0; }
+    .skel-line.tall { height: 32px; }
+    .skel-line.w40 { width: 40%; }
+    .skel-line.w20 { width: 120px; }
+}
+
+.skel-table {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.skel-table-header {
+    display: flex; gap: 16px;
+    padding-bottom: 14px; border-bottom: 1px solid $border; margin-bottom: 14px;
+    .skel-line { @extend %skel; margin-bottom: 0; flex: 1; height: 14px; }
+}
+
+.skel-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px 0; border-bottom: 1px solid $border;
+    &:last-child { border-bottom: none; }
+    .skel-line { @extend %skel; flex: 1; margin-bottom: 0; height: 14px; }
+}
+
+.skel-line {
+    &.w70 { width: 70%; }
+    &.w80 { width: 80%; }
+}

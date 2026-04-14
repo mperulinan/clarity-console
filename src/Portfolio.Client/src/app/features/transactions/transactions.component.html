@@ -1,0 +1,178 @@
+<div class="transactions-page">
+
+    @if (isLoading()) {
+    <!-- ── SKELETON ───────────────────────────────────────────── -->
+    <div class="skel-wrap">
+        <div class="skel-header">
+            <div class="skel-line w40 tall"></div>
+            <div class="skel-line w20"></div>
+        </div>
+        <div class="skel-table glass">
+            <div class="skel-table-header">
+                @for (col of [1,2,3,4,5,6,7]; track $index) {
+                <div class="skel-line w80"></div>
+                }
+            </div>
+            @for (row of [1,2,3,4,5,6,7,8]; track $index) {
+            <div class="skel-row">
+                @for (col of [1,2,3,4,5,6,7]; track $index) {
+                <div class="skel-line w70"></div>
+                }
+            </div>
+            }
+        </div>
+    </div>
+    }
+
+    @if (!isLoading()) {
+
+    <!-- ── HEADER ─────────────────────────────────────────────── -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Transactions</h1>
+            <p class="page-subtitle">{{ totalCount() }} transactions processed</p>
+        </div>
+        <button class="add-btn" (click)="openNewTransaction()">
+            <mat-icon>add</mat-icon>
+            New Transaction
+        </button>
+    </div>
+
+    <!-- ── TABLE ──────────────────────────────────────────────── -->
+    <div class="table-wrap glass">
+        <table class="txn-table">
+            <thead>
+                <tr>
+                    <th class="col-date sortable" (click)="toggleSort('date')">
+                        Date
+                        <mat-icon class="sort-icon">{{ getSortIcon('date') }}</mat-icon>
+                    </th>
+                    <th class="col-type sortable" (click)="toggleSort('type')">
+                        Type
+                        <mat-icon class="sort-icon">{{ getSortIcon('type') }}</mat-icon>
+                    </th>
+                    <th class="col-asset sortable" (click)="toggleSort('from')">
+                        From
+                        <mat-icon class="sort-icon">{{ getSortIcon('from') }}</mat-icon>
+                    </th>
+                    <th class="col-asset sortable" (click)="toggleSort('to')">
+                        To
+                        <mat-icon class="sort-icon">{{ getSortIcon('to') }}</mat-icon>
+                    </th>
+                    <th class="col-num sortable" (click)="toggleSort('fee')">
+                        Fee
+                        <mat-icon class="sort-icon">{{ getSortIcon('fee') }}</mat-icon>
+                    </th>
+                    <th class="col-num col-pl sortable" (click)="toggleSort('profitLoss')">
+                        P/L
+                        <mat-icon class="sort-icon">{{ getSortIcon('profitLoss') }}</mat-icon>
+                    </th>
+                    <th class="col-status">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (row of transactions(); track row.transaction.id) {
+                <tr class="txn-row" [class.row-error]="row.error" [class.row-disallowed]="row.isLossDisallowed">
+
+                    <!-- Date -->
+                    <td class="col-date">
+                        <span class="cell-primary">{{ row.transaction.date | date:'dd/MM/yyyy' }}</span>
+                        <span class="cell-secondary">{{ row.transaction.date | date:'HH:mm' }}</span>
+                    </td>
+
+                    <!-- Type -->
+                    <td class="col-type">
+                        <span class="type-badge">{{ row.transaction.type.name || '-' }}</span>
+                    </td>
+
+                    <!-- From -->
+                    <td class="col-asset">
+                        @if (row.transaction.fromAsset) {
+                        <div class="asset-cell">
+                            @if (row.transaction.fromAsset.imageUrl) {
+                            <img class="asset-icon-sm" [src]="row.transaction.fromAsset.imageUrl"
+                                [alt]="row.transaction.fromAsset.symbol">
+                            }
+                            <div>
+                                <span class="cell-primary">{{ row.transaction.amountSpent | number:'1.2-8' }}</span>
+                                <span class="cell-secondary">{{ row.transaction.fromAsset.symbol }}</span>
+                            </div>
+                        </div>
+                        } @else {
+                        <span class="cell-muted">—</span>
+                        }
+                    </td>
+
+                    <!-- To -->
+                    <td class="col-asset">
+                        @if (row.transaction.toAsset) {
+                        <div class="asset-cell">
+                            @if (row.transaction.toAsset.imageUrl) {
+                            <img class="asset-icon-sm" [src]="row.transaction.toAsset.imageUrl"
+                                [alt]="row.transaction.toAsset.symbol">
+                            }
+                            <div>
+                                <span class="cell-primary">{{ row.transaction.amountReceived | number:'1.2-8' }}</span>
+                                <span class="cell-secondary">{{ row.transaction.toAsset.symbol }}</span>
+                            </div>
+                        </div>
+                        } @else {
+                        <span class="cell-muted">—</span>
+                        }
+                    </td>
+
+                    <!-- Fee -->
+                    <td class="col-num">
+                        @if (row.transaction.fee > 0) {
+                        <span class="cell-primary">{{ row.transaction.fee | number:'1.2-8' }}</span>
+                        <span class="cell-secondary">{{ row.transaction.feeAsset?.symbol || '' }}</span>
+                        } @else {
+                        <span class="cell-muted">—</span>
+                        }
+                    </td>
+
+                    <!-- P/L -->
+                    <td class="col-num col-pl">
+                        @if (row.profitLoss !== undefined && row.profitLoss !== null) {
+                        <div class="pl-cell"
+                             [class.positive]="row.profitLoss >= 0"
+                             [class.negative]="row.profitLoss < 0">
+                            <span class="pl-amount">
+                                {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss | currency:'EUR':'symbol':'1.2-2' }}
+                            </span>
+                        </div>
+                        } @else {
+                        <span class="cell-muted">—</span>
+                        }
+                    </td>
+
+                    <!-- Status -->
+                    <td class="col-status">
+                        @if (row.error) {
+                        <mat-icon class="status-icon status-error"
+                                  [matTooltip]="'Error: ' + row.error">error</mat-icon>
+                        } @else if (row.isLossDisallowed) {
+                        <mat-icon class="status-icon status-warn"
+                                  [matTooltip]="'Loss disallowed by transaction #' + row.disallowedByTransactionId">
+                            warning
+                        </mat-icon>
+                        } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {
+                        <mat-icon class="status-icon status-ok">check_circle</mat-icon>
+                        }
+                    </td>
+
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <mat-icon>receipt_long</mat-icon>
+                        <p>No transactions found.</p>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    }
+</div>
