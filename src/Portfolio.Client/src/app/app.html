@@ -1,1 +1,75 @@
-<router-outlet></router-outlet>
+<div class="app-shell" [class.sidebar-expanded]="sidebarExpanded()">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+    <nav class="sidebar" [class.expanded]="sidebarExpanded()">
+
+        <!-- Toggle -->
+        <button class="sidebar-toggle" (click)="toggleSidebar()"
+                [matTooltip]="sidebarExpanded() ? '' : 'Expand menu'"
+                matTooltipPosition="right">
+            <mat-icon>{{ sidebarExpanded() ? 'menu_open' : 'menu' }}</mat-icon>
+        </button>
+
+        <!-- Portfolio section -->
+        <div class="nav-section">
+            @if (sidebarExpanded()) {
+            <span class="nav-section-label">Portfolio</span>
+            }
+            @for (item of portfolioItems(); track item.path) {
+            <a class="nav-item"
+               [routerLink]="item.path"
+               routerLinkActive="active"
+               [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+               [matTooltip]="sidebarExpanded() ? '' : item.label"
+               matTooltipPosition="right">
+                <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                @if (sidebarExpanded()) {
+                <span class="nav-label">{{ item.label }}</span>
+                }
+            </a>
+            }
+        </div>
+
+        <div class="nav-divider"></div>
+
+        <!-- Tax section -->
+        <div class="nav-section">
+            @if (sidebarExpanded()) {
+            <span class="nav-section-label">Tax & Compliance</span>
+            }
+            @for (item of taxItems(); track item.path) {
+            <a class="nav-item"
+               [routerLink]="item.path"
+               routerLinkActive="active"
+               [matTooltip]="sidebarExpanded() ? '' : item.label"
+               matTooltipPosition="right">
+                <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                @if (sidebarExpanded()) {
+                <span class="nav-label">{{ item.label }}</span>
+                }
+            </a>
+            }
+        </div>
+
+        <!-- Spacer -->
+        <div class="nav-spacer"></div>
+
+        <!-- New Transaction CTA -->
+        <a class="nav-item nav-cta"
+           routerLink="/new-transaction"
+           routerLinkActive="active"
+           [matTooltip]="sidebarExpanded() ? '' : 'New Transaction'"
+           matTooltipPosition="right">
+            <mat-icon class="nav-icon">add_circle</mat-icon>
+            @if (sidebarExpanded()) {
+            <span class="nav-label">New Transaction</span>
+            }
+        </a>
+    </nav>
+
+    <!-- ── CONTENT ─────────────────────────────────────────── -->
+    <main class="content">
+        <router-outlet></router-outlet>
+    </main>
+
+</div>

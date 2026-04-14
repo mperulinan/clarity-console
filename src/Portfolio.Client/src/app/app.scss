@@ -1,0 +1,226 @@
+/* ═══════════════════════════════════════════════
+   App Shell — Collapsible Sidebar
+   ═══════════════════════════════════════════════ */
+
+/* ── TOKENS ─────────────────────────────────── */
+$sidebar-width-collapsed: 64px;
+$sidebar-width-expanded: 220px;
+$bg-sidebar: #111827;
+$bg-sidebar-hover: rgba(255, 255, 255, 0.05);
+$border: rgba(255, 255, 255, 0.07);
+$text-primary: #f0f0f0;
+$text-muted: #6b7280;
+$accent: #7c6cfc;
+$accent-glow: rgba(124, 108, 252, 0.3);
+$green: #00e676;
+$transition-speed: 0.25s;
+
+/* ── SHELL LAYOUT ───────────────────────────── */
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ── SIDEBAR ────────────────────────────────── */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: $sidebar-width-collapsed;
+    background: $bg-sidebar;
+    border-right: 1px solid $border;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 8px;
+    z-index: 100;
+    transition: width $transition-speed cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+
+    &.expanded {
+        width: $sidebar-width-expanded;
+    }
+}
+
+/* ── TOGGLE BUTTON ──────────────────────────── */
+.sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: transparent;
+    color: $text-muted;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+
+    &:hover {
+        background: $bg-sidebar-hover;
+        color: $text-primary;
+    }
+
+    mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+    }
+}
+
+/* ── NAV SECTIONS ───────────────────────────── */
+.nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nav-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $text-muted;
+    padding: 8px 14px 6px;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+
+.nav-divider {
+    height: 1px;
+    background: $border;
+    margin: 10px 8px;
+}
+
+.nav-spacer {
+    flex: 1;
+}
+
+/* ── NAV ITEM ───────────────────────────────── */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    color: $text-muted;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &:hover {
+        background: $bg-sidebar-hover;
+        color: $text-primary;
+    }
+
+    &.active {
+        background: rgba(124, 108, 252, 0.12);
+        color: $accent;
+
+        .nav-icon {
+            color: $accent;
+        }
+    }
+}
+
+.nav-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 2px;
+}
+
+.nav-label {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    overflow: hidden;
+}
+
+/* ── CTA BUTTON ─────────────────────────────── */
+.nav-cta {
+    background: linear-gradient(135deg, $accent, #5c4ee8);
+    color: #fff !important;
+    margin-top: 8px;
+    justify-content: center;
+    box-shadow: 0 4px 16px $accent-glow;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.15s;
+
+    .nav-icon {
+        color: #fff;
+    }
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(124, 108, 252, 0.45);
+        background: linear-gradient(135deg, #8b7dfd, #6c5ce7);
+    }
+
+    &.active {
+        background: linear-gradient(135deg, $accent, #5c4ee8);
+        box-shadow: 0 4px 20px $accent-glow;
+    }
+
+    .expanded & {
+        justify-content: flex-start;
+    }
+}
+
+/* ── CONTENT AREA ───────────────────────────── */
+.content {
+    flex: 1;
+    margin-left: $sidebar-width-collapsed;
+    transition: margin-left $transition-speed cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 100vh;
+}
+
+.sidebar-expanded .content {
+    margin-left: $sidebar-width-expanded;
+}
+
+/* ── RESPONSIVE ─────────────────────────────── */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 0;
+        padding: 0;
+        border-right: none;
+
+        &.expanded {
+            width: $sidebar-width-expanded;
+            padding: 12px 8px;
+            border-right: 1px solid $border;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+        }
+    }
+
+    .content {
+        margin-left: 0 !important;
+    }
+
+    /* Floating menu button for mobile */
+    .sidebar-toggle {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 200;
+        background: $bg-sidebar;
+        border: 1px solid $border;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+        .expanded & {
+            position: static;
+            box-shadow: none;
+            border: none;
+            background: transparent;
+        }
+    }
+}
