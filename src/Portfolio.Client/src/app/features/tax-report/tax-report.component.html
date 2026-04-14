@@ -1,0 +1,217 @@
+<div class="tax-report-page">
+
+    @if (isLoading()) {
+    <!-- ── SKELETON ───────────────────────────────────────────── -->
+    <div class="skel-wrap">
+        <div class="skel-header">
+            <div class="skel-line w40 tall"></div>
+        </div>
+        <div class="skel-cards">
+            @for (i of [1,2,3]; track $index) {
+            <div class="skel-card glass">
+                <div class="skel-line w60"></div>
+                <div class="skel-line w80 tall"></div>
+                <div class="skel-line w50"></div>
+            </div>
+            }
+        </div>
+        <div class="skel-table glass">
+            <div class="skel-table-header">
+                @for (col of [1,2,3,4,5,6]; track $index) {
+                <div class="skel-line w80"></div>
+                }
+            </div>
+            @for (row of [1,2,3,4,5]; track $index) {
+            <div class="skel-row">
+                @for (col of [1,2,3,4,5,6]; track $index) {
+                <div class="skel-line w70"></div>
+                }
+            </div>
+            }
+        </div>
+    </div>
+    }
+
+    @if (!isLoading()) {
+
+    <!-- ── HEADER ─────────────────────────────────────────────── -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Tax Report</h1>
+            <p class="page-subtitle">
+                Fiscal P/L summary in {{ reportCurrency }} · FIFO method
+            </p>
+        </div>
+    </div>
+
+    <!-- ── YEAR CARDS ─────────────────────────────────────────── -->
+    <div class="year-grid">
+        @for (ys of yearSummaries(); track ys.year) {
+        <button class="year-card glass"
+                [class.year-selected]="selectedYear() === ys.year"
+                (click)="selectYear(ys.year)">
+
+            <span class="year-label">{{ ys.year }}</span>
+
+            <div class="year-pl"
+                 [class.positive]="ys.netPL >= 0"
+                 [class.negative]="ys.netPL < 0">
+                {{ ys.netPL >= 0 ? '+' : '' }}{{ ys.netPL | currency:reportCurrency:'symbol':'1.2-2' }}
+            </div>
+
+            <div class="year-meta">
+                <span>{{ ys.eventCount }} events</span>
+                @if (ys.disallowedLosses > 0) {
+                <span class="year-disallowed"
+                      [matTooltip]="'Losses disallowed under fiscal rule'">
+                    <mat-icon class="meta-icon">block</mat-icon>
+                    {{ ys.disallowedLosses | currency:reportCurrency:'symbol':'1.2-2' }}
+                </span>
+                }
+                @if (ys.errorCount > 0) {
+                <span class="year-errors">
+                    <mat-icon class="meta-icon">error_outline</mat-icon>
+                    {{ ys.errorCount }}
+                </span>
+                }
+            </div>
+        </button>
+        } @empty {
+        <div class="empty-cards">
+            <mat-icon>assessment</mat-icon>
+            <p>No taxable events found.</p>
+        </div>
+        }
+    </div>
+
+    <!-- ── FILTER INDICATOR ───────────────────────────────────── -->
+    @if (selectedYear() !== null) {
+    <div class="filter-bar">
+        <span class="filter-text">
+            Showing {{ filteredCount() }} transactions for <strong>{{ selectedYear() }}</strong>
+        </span>
+        <button class="filter-clear" (click)="clearYearFilter()">
+            <mat-icon>close</mat-icon> Show all
+        </button>
+    </div>
+    }
+
+    <!-- ── TRANSACTIONS TABLE ─────────────────────────────────── -->
+    <div class="table-wrap glass">
+        <table class="txn-table">
+            <thead>
+                <tr>
+                    <th class="col-date">Date</th>
+                    <th class="col-type">Type</th>
+                    <th class="col-asset">From</th>
+                    <th class="col-asset">To</th>
+                    <th class="col-num col-pl">P/L (€)</th>
+                    <th class="col-status">Loss Allowed</th>
+                    <th class="col-ref">Disallowed By</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (row of filteredTransactions(); track row.transaction.id) {
+                <tr class="txn-row"
+                    [class.row-error]="row.error"
+                    [class.row-disallowed]="row.isLossDisallowed">
+
+                    <!-- Date -->
+                    <td class="col-date">
+                        <span class="cell-primary">{{ row.transaction.date | date:'dd/MM/yyyy' }}</span>
+                        <span class="cell-secondary">{{ row.transaction.date | date:'HH:mm' }}</span>
+                    </td>
+
+                    <!-- Type -->
+                    <td class="col-type">
+                        <span class="type-badge">{{ row.transaction.type.name || '-' }}</span>
+                    </td>
+
+                    <!-- From -->
+                    <td class="col-asset">
+                        @if (row.transaction.fromAsset) {
+                        <div class="asset-cell">
+                            @if (row.transaction.fromAsset.imageUrl) {
+                            <img class="asset-icon-sm" [src]="row.transaction.fromAsset.imageUrl"
+                                 [alt]="row.transaction.fromAsset.symbol">
+                            }
+                            <div>
+                                <span class="cell-primary">{{ row.transaction.amountSpent | number:'1.2-8' }}</span>
+                                <span class="cell-secondary">{{ row.transaction.fromAsset.symbol }}</span>
+                            </div>
+                        </div>
+                        } @else {
+                        <span class="cell-muted">—</span>
+                        }
+                    </td>
+
+                    <!-- To -->
+                    <td class="col-asset">
+                        @if (row.transaction.toAsset) {
+                        <div class="asset-cell">
+                            @if (row.transaction.toAsset.imageUrl) {
+                            <img class="asset-icon-sm" [src]="row.transaction.toAsset.imageUrl"
+                                 [alt]="row.transaction.toAsset.symbol">
+                            }
+                            <div>
+                                <span class="cell-primary">{{ row.transaction.amountReceived | number:'1.2-8' }}</span>
+                                <span class="cell-secondary">{{ row.transaction.toAsset.symbol }}</span>
+                            </div>
+                        </div>
+                        } @else {
+                        <span class="cell-muted">—</span>
+                        }
+                    </td>
+
+                    <!-- P/L -->
+                    <td class="col-num col-pl">
+                        @if (row.profitLoss !== undefined && row.profitLoss !== null) {
+                        <div class="pl-cell"
+                             [class.positive]="row.profitLoss >= 0"
+                             [class.negative]="row.profitLoss < 0"
+                             [class.pl-disallowed]="row.isLossDisallowed">
+                            <span class="pl-amount">
+                                {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss | currency:reportCurrency:'symbol':'1.2-2' }}
+                            </span>
+                        </div>
+                        } @else {
+                        <span class="cell-muted">—</span>
+                        }
+                    </td>
+
+                    <!-- Loss Allowed -->
+                    <td class="col-status">
+                        @if (row.error) {
+                        <mat-icon class="status-icon status-error"
+                                  [matTooltip]="'Error: ' + row.error">error</mat-icon>
+                        } @else if (row.isLossDisallowed) {
+                        <mat-icon class="status-icon status-warn">block</mat-icon>
+                        } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {
+                        <mat-icon class="status-icon status-ok">check_circle</mat-icon>
+                        }
+                    </td>
+
+                    <!-- Disallowed By -->
+                    <td class="col-ref">
+                        @if (row.disallowedByTransactionId) {
+                        <span class="ref-badge">#{{ row.disallowedByTransactionId }}</span>
+                        } @else {
+                        <span class="cell-muted">—</span>
+                        }
+                    </td>
+
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <mat-icon>assessment</mat-icon>
+                        <p>No taxable events for this period.</p>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    }
+</div>
