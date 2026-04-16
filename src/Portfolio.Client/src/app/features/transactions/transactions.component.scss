@@ -2,7 +2,9 @@
    Transactions Page — Dark Theme
    ═══════════════════════════════════════════════ */
 
-:host { display: block; }
+:host {
+    display: block;
+}
 
 .transactions-page {
     padding: 28px 32px;
@@ -35,12 +37,24 @@ $amber-soft: rgba(255, 171, 64, 0.1);
 
 /* ── ANIMATIONS ─────────────────────────────── */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.page-header { animation: fadeInUp 0.4s ease backwards; }
-.table-wrap  { animation: fadeInUp 0.5s ease 0.15s backwards; }
+.page-header {
+    animation: fadeInUp 0.4s ease backwards;
+}
+
+.table-wrap {
+    animation: fadeInUp 0.5s ease 0.15s backwards;
+}
 
 /* ── HEADER ─────────────────────────────────── */
 .page-header {
@@ -79,8 +93,16 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     transition: opacity 0.2s, transform 0.2s;
     box-shadow: 0 4px 16px rgba(124, 108, 252, 0.4);
 
-    mat-icon { font-size: 18px; width: 18px; height: 18px; }
-    &:hover { opacity: 0.9; transform: translateY(-1px); }
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
 }
 
 /* ── TABLE ───────────────────────────────────── */
@@ -96,7 +118,8 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     width: 100%;
     border-collapse: collapse;
 
-    th, td {
+    th,
+    td {
         padding: 12px 16px;
         text-align: left;
         border-bottom: 1px solid $border;
@@ -113,7 +136,9 @@ $amber-soft: rgba(255, 171, 64, 0.1);
         user-select: none;
     }
 
-    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
 }
 
 /* ── SORTABLE HEADERS ───────────────────────── */
@@ -121,7 +146,9 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     cursor: pointer;
     transition: color 0.15s;
 
-    &:hover { color: $text-primary; }
+    &:hover {
+        color: $text-primary;
+    }
 }
 
 .sort-icon {
@@ -137,18 +164,27 @@ $amber-soft: rgba(255, 171, 64, 0.1);
 .txn-row {
     transition: background 0.15s;
 
-    &:hover { background: rgba(255, 255, 255, 0.03); }
+    &:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
 
-    &.row-error { background: rgba(255, 82, 82, 0.04); }
+    &.row-error {
+        background: rgba(255, 82, 82, 0.04);
+    }
 
     &.row-disallowed {
         background: $amber-soft;
-        td { opacity: 0.75; }
+
+        td {
+            opacity: 0.75;
+        }
     }
 }
 
 /* ── CELL STYLES ────────────────────────────── */
-.col-num { text-align: right; }
+.col-num {
+    text-align: right;
+}
 
 .col-pl {
     background: rgba(255, 255, 255, 0.015);
@@ -157,8 +193,9 @@ $amber-soft: rgba(255, 171, 64, 0.1);
 }
 
 .col-status {
-    text-align: center;
+    text-align: center !important;
     width: 48px;
+    padding: 8px !important;
 }
 
 .cell-primary {
@@ -235,12 +272,18 @@ $amber-soft: rgba(255, 171, 64, 0.1);
 
     &.positive {
         background: $green-soft;
-        .pl-amount { color: $green; }
+
+        .pl-amount {
+            color: $green;
+        }
     }
 
     &.negative {
         background: $red-soft;
-        .pl-amount { color: $red; }
+
+        .pl-amount {
+            color: $red;
+        }
     }
 }
 
@@ -252,14 +295,27 @@ $amber-soft: rgba(255, 171, 64, 0.1);
 
 /* ── STATUS ICONS ───────────────────────────── */
 .status-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
+    font-size: 22px;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    overflow: visible !important;
 }
 
-.status-ok    { color: rgba(0, 230, 118, 0.4); }
-.status-warn  { color: $amber; }
-.status-error { color: $red; }
+.status-ok {
+    color: rgba(0, 230, 118, 0.4);
+}
+
+.status-warn {
+    color: $amber;
+}
+
+.status-error {
+    color: $red;
+}
 
 /* ── EMPTY STATE ────────────────────────────── */
 .empty-state {
@@ -267,14 +323,30 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     padding: 64px 24px !important;
     color: $text-muted;
 
-    mat-icon { font-size: 48px; width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
-    p { font-size: 15px; margin-bottom: 0; opacity: 0.7; }
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 12px;
+        opacity: 0.4;
+    }
+
+    p {
+        font-size: 15px;
+        margin-bottom: 0;
+        opacity: 0.7;
+    }
 }
 
 /* ── SKELETON ────────────────────────────────── */
 @keyframes shimmer {
-    0%   { background-position: -600px 0; }
-    100% { background-position: 600px 0; }
+    0% {
+        background-position: -600px 0;
+    }
+
+    100% {
+        background-position: 600px 0;
+    }
 }
 
 $skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
@@ -286,14 +358,34 @@ $skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
     border-radius: 6px;
 }
 
-.skel-wrap { display: flex; flex-direction: column; gap: 24px; }
+.skel-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
 
 .skel-header {
-    display: flex; align-items: center; justify-content: space-between;
-    .skel-line { @extend %skel; height: 14px; margin: 0; }
-    .skel-line.tall { height: 32px; }
-    .skel-line.w40 { width: 40%; }
-    .skel-line.w20 { width: 120px; }
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .skel-line {
+        @extend %skel;
+        height: 14px;
+        margin: 0;
+    }
+
+    .skel-line.tall {
+        height: 32px;
+    }
+
+    .skel-line.w40 {
+        width: 40%;
+    }
+
+    .skel-line.w20 {
+        width: 120px;
+    }
 }
 
 .skel-table {
@@ -304,19 +396,45 @@ $skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
 }
 
 .skel-table-header {
-    display: flex; gap: 16px;
-    padding-bottom: 14px; border-bottom: 1px solid $border; margin-bottom: 14px;
-    .skel-line { @extend %skel; margin-bottom: 0; flex: 1; height: 14px; }
+    display: flex;
+    gap: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid $border;
+    margin-bottom: 14px;
+
+    .skel-line {
+        @extend %skel;
+        margin-bottom: 0;
+        flex: 1;
+        height: 14px;
+    }
 }
 
 .skel-row {
-    display: flex; align-items: center; gap: 16px;
-    padding: 12px 0; border-bottom: 1px solid $border;
-    &:last-child { border-bottom: none; }
-    .skel-line { @extend %skel; flex: 1; margin-bottom: 0; height: 14px; }
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .skel-line {
+        @extend %skel;
+        flex: 1;
+        margin-bottom: 0;
+        height: 14px;
+    }
 }
 
 .skel-line {
-    &.w70 { width: 70%; }
-    &.w80 { width: 80%; }
+    &.w70 {
+        width: 70%;
+    }
+
+    &.w80 {
+        width: 80%;
+    }
 }

@@ -47,23 +47,19 @@
     <!-- ── YEAR CARDS ─────────────────────────────────────────── -->
     <div class="year-grid">
         @for (ys of yearSummaries(); track ys.year) {
-        <button class="year-card glass"
-                [class.year-selected]="selectedYear() === ys.year"
-                (click)="selectYear(ys.year)">
+        <button class="year-card glass" [class.year-selected]="selectedYear() === ys.year"
+            (click)="selectYear(ys.year)">
 
             <span class="year-label">{{ ys.year }}</span>
 
-            <div class="year-pl"
-                 [class.positive]="ys.netPL >= 0"
-                 [class.negative]="ys.netPL < 0">
+            <div class="year-pl" [class.positive]="ys.netPL >= 0" [class.negative]="ys.netPL < 0">
                 {{ ys.netPL >= 0 ? '+' : '' }}{{ ys.netPL | currency:reportCurrency:'symbol':'1.2-2' }}
             </div>
 
             <div class="year-meta">
                 <span>{{ ys.eventCount }} events</span>
                 @if (ys.disallowedLosses > 0) {
-                <span class="year-disallowed"
-                      [matTooltip]="'Losses disallowed under fiscal rule'">
+                <span class="year-disallowed" [matTooltip]="'Losses disallowed under fiscal rule'">
                     <mat-icon class="meta-icon">block</mat-icon>
                     {{ ys.disallowedLosses | currency:reportCurrency:'symbol':'1.2-2' }}
                 </span>
@@ -112,15 +108,15 @@
             </thead>
             <tbody>
                 @for (row of filteredTransactions(); track row.transaction.id) {
-                <tr class="txn-row"
-                    [class.row-error]="row.error"
-                    [class.row-disallowed]="row.isLossDisallowed">
+                <tr class="txn-row" [class.row-error]="row.error" [class.row-disallowed]="row.isLossDisallowed">
 
                     <!-- Date -->
                     <td class="col-date">
                         <span class="cell-primary">{{ row.transaction.date | date:'dd/MM/yyyy' }}</span>
                         <span class="cell-secondary time-hover">
-                            <span class="time-base">{{ row.transaction.date | date:'HH:mm' }}</span><span class="time-secs">:<span class="secs-val">{{ row.transaction.date | date:'ss' }}</span></span>
+                            <span class="time-base">{{ row.transaction.date | date:'HH:mm' }}</span><span
+                                class="time-secs">:<span class="secs-val">{{ row.transaction.date | date:'ss'
+                                    }}</span></span>
                         </span>
                     </td>
 
@@ -135,7 +131,7 @@
                         <div class="asset-cell">
                             @if (row.transaction.fromAsset.imageUrl) {
                             <img class="asset-icon-sm" [src]="row.transaction.fromAsset.imageUrl"
-                                 [alt]="row.transaction.fromAsset.symbol">
+                                [alt]="row.transaction.fromAsset.symbol">
                             }
                             <div>
                                 <span class="cell-primary">{{ row.transaction.amountSpent | number:'1.2-8' }}</span>
@@ -153,7 +149,7 @@
                         <div class="asset-cell">
                             @if (row.transaction.toAsset.imageUrl) {
                             <img class="asset-icon-sm" [src]="row.transaction.toAsset.imageUrl"
-                                 [alt]="row.transaction.toAsset.symbol">
+                                [alt]="row.transaction.toAsset.symbol">
                             }
                             <div>
                                 <span class="cell-primary">{{ row.transaction.amountReceived | number:'1.2-8' }}</span>
@@ -168,12 +164,11 @@
                     <!-- P/L -->
                     <td class="col-num col-pl">
                         @if (row.profitLoss !== undefined && row.profitLoss !== null) {
-                        <div class="pl-cell"
-                             [class.positive]="row.profitLoss >= 0"
-                             [class.negative]="row.profitLoss < 0"
-                             [class.pl-disallowed]="row.isLossDisallowed">
+                        <div class="pl-cell" [class.positive]="row.profitLoss >= 0"
+                            [class.negative]="row.profitLoss < 0" [class.pl-disallowed]="row.isLossDisallowed">
                             <span class="pl-amount">
-                                {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss | currency:reportCurrency:'symbol':'1.2-2' }}
+                                {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss |
+                                currency:reportCurrency:'symbol':'1.2-2' }}
                             </span>
                         </div>
                         } @else {
@@ -184,8 +179,7 @@
                     <!-- Loss Allowed -->
                     <td class="col-status">
                         @if (row.error) {
-                        <mat-icon class="status-icon status-error"
-                                  [matTooltip]="'Error: ' + row.error">error</mat-icon>
+                        <mat-icon class="status-icon status-error" [matTooltip]="'Error: ' + row.error">error</mat-icon>
                         } @else if (row.isLossDisallowed) {
                         <mat-icon class="status-icon status-warn">block</mat-icon>
                         } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {

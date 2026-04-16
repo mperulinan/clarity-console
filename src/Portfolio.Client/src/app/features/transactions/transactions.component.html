@@ -78,7 +78,9 @@
                     <td class="col-date">
                         <span class="cell-primary">{{ row.transaction.date | date:'dd/MM/yyyy' }}</span>
                         <span class="cell-secondary time-hover">
-                            <span class="time-base">{{ row.transaction.date | date:'HH:mm' }}</span><span class="time-secs">:<span class="secs-val">{{ row.transaction.date | date:'ss' }}</span></span>
+                            <span class="time-base">{{ row.transaction.date | date:'HH:mm' }}</span><span
+                                class="time-secs">:<span class="secs-val">{{ row.transaction.date | date:'ss'
+                                    }}</span></span>
                         </span>
                     </td>
 
@@ -136,11 +138,11 @@
                     <!-- P/L -->
                     <td class="col-num col-pl">
                         @if (row.profitLoss !== undefined && row.profitLoss !== null) {
-                        <div class="pl-cell"
-                             [class.positive]="row.profitLoss >= 0"
-                             [class.negative]="row.profitLoss < 0">
+                        <div class="pl-cell" [class.positive]="row.profitLoss >= 0"
+                            [class.negative]="row.profitLoss < 0">
                             <span class="pl-amount">
-                                {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss | currency:'EUR':'symbol':'1.2-2' }}
+                                {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss | currency:'EUR':'symbol':'1.2-2'
+                                }}
                             </span>
                         </div>
                         } @else {
@@ -151,11 +153,10 @@
                     <!-- Status -->
                     <td class="col-status">
                         @if (row.error) {
-                        <mat-icon class="status-icon status-error"
-                                  [matTooltip]="'Error: ' + row.error">error</mat-icon>
+                        <mat-icon class="status-icon status-error" [matTooltip]="'Error: ' + row.error">error</mat-icon>
                         } @else if (row.isLossDisallowed) {
                         <mat-icon class="status-icon status-warn"
-                                  [matTooltip]="'Loss disallowed by transaction #' + row.disallowedByTransactionId">
+                            [matTooltip]="'Loss disallowed by transaction #' + row.disallowedByTransactionId">
                             warning
                         </mat-icon>
                         } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {
