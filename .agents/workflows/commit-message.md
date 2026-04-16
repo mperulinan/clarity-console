@@ -35,30 +35,36 @@ description: Generate a professional commit message from staged git changes
    - Use the imperative, present tense: *add*, *fix*, *remove* — not *added*, *fixes*, *removed*.
    - Maximum **72 characters** for the entire first line.
    - Do **not** end with a period.
-   - Capitalise the first letter of the summary only.
+   - **Do NOT capitalize the first letter**. Keep the entire summary lowercase to match Angular ecosystem standards (e.g., `feat(ui): add cool feature`).
 6. **Body** (optional but recommended for non-trivial changes):
    - Wrap at **72 characters** per line.
    - Explain *what* and *why*, not *how*.
+   - Use a bulleted list for specific changes, following the pattern: `- Verb 'CodeReference' or explanation`. (e.g. `- Replace 'MyComponent' with new grid system`).
    - Separate from the subject with a blank line.
 7. **Footer** (optional):
    - Reference issues: `Closes #123`, `Fixes #456`.
    - Mark breaking changes: `BREAKING CHANGE: <description>`.
-8. **Apostrophe rule**: use the straight single quote `'` consistently for contractions and possessives inside the message body. Never use curly quotes.
+8. **Apostrophe rule**: use the straight single quote `'` consistently for contractions, possessives, and quoting code components inside the message body. Never use curly quotes.
 9. **Output**: always deliver the final commit message inside a fenced code block with no extra commentary unless the user asks a question.
 
 ## Steps
 
-// turbo
-1. Retrieve the staged diff:
+// turbo-all
+1. Retrieve the project's historical commit style by analyzing the last 10 commits:
+   ```powershell
+   git log -n 10 --oneline
+   ```
+
+2. Retrieve the staged diff:
    ```powershell
    git diff --cached
    ```
 
-2. Analyse the diff:
+3. Analyse the diff and the historical style context:
    - Identify changed files and their feature area → derive **scope**.
    - Determine the nature of the change → pick **type**.
-   - Summarise the intent in one imperative sentence → write **subject**.
-   - Note any context worth explaining → draft optional **body**.
+   - Summarise the intent in one imperative sentence → write **subject**. Ensure it is **lowercase**.
+   - Note any context worth explaining → draft optional **body** using the `- Verb 'Reference'` format seen in recent project history.
    - Check for issue references or breaking changes → add optional **footer**.
 
-3. Compose the commit message following all rules above and present it in a code block.
+4. Compose the commit message strictly following the rules and present it in a single code block.
