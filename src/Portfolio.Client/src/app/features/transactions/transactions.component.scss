@@ -175,6 +175,24 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     margin-top: 1px;
 }
 
+.time-hover {
+    display: inline-flex;
+    align-items: center;
+    cursor: default;
+
+    .time-secs {
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    }
+
+    &:hover .time-secs {
+        max-width: 20px;
+        opacity: 0.8;
+    }
+}
+
 .cell-muted {
     color: rgba(255, 255, 255, 0.2);
     font-size: 13px;
