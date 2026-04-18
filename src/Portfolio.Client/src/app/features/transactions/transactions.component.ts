@@ -54,7 +54,9 @@ export class TransactionsComponent implements OnInit {
                     cmp = (a.transaction.toAsset?.symbol ?? '').localeCompare(b.transaction.toAsset?.symbol ?? '');
                     break;
                 case 'spotPrice':
-                    cmp = (a.transaction.spotPriceUSD ?? 0) - (b.transaction.spotPriceUSD ?? 0);
+                    const priceA = this.baseCurrency === 'EUR' ? a.transaction.spotPriceEUR : a.transaction.spotPriceUSD;
+                    const priceB = this.baseCurrency === 'EUR' ? b.transaction.spotPriceEUR : b.transaction.spotPriceUSD;
+                    cmp = (priceA ?? 0) - (priceB ?? 0);
                     break;
                 case 'fee':
                     cmp = a.transaction.fee - b.transaction.fee;
@@ -106,5 +108,9 @@ export class TransactionsComponent implements OnInit {
 
     openNewTransaction() {
         this.router.navigate(['/new-transaction']);
+    }
+
+    getSpotPrice(row: ProcessedTransaction): number | undefined {
+        return this.baseCurrency === 'EUR' ? row.transaction.spotPriceEUR : row.transaction.spotPriceUSD;
     }
 }

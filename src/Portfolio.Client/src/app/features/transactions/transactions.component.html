@@ -9,13 +9,13 @@
         </div>
         <div class="skel-table glass">
             <div class="skel-table-header">
-                @for (col of [1,2,3,4,5,6,7]; track $index) {
+                @for (col of [1,2,3,4,5,6,7,8]; track $index) {
                 <div class="skel-line w80"></div>
                 }
             </div>
             @for (row of [1,2,3,4,5,6,7,8]; track $index) {
             <div class="skel-row">
-                @for (col of [1,2,3,4,5,6,7]; track $index) {
+                @for (col of [1,2,3,4,5,6,7,8]; track $index) {
                 <div class="skel-line w70"></div>
                 }
             </div>
@@ -58,6 +58,10 @@
                     <th class="col-asset sortable" (click)="toggleSort('to')">
                         To
                         <mat-icon class="sort-icon">{{ getSortIcon('to') }}</mat-icon>
+                    </th>
+                    <th class="col-num sortable" (click)="toggleSort('spotPrice')">
+                        Spot Price
+                        <mat-icon class="sort-icon">{{ getSortIcon('spotPrice') }}</mat-icon>
                     </th>
                     <th class="col-num sortable" (click)="toggleSort('fee')">
                         Fee
@@ -125,6 +129,16 @@
                         }
                     </td>
 
+                    <!-- Spot Price -->
+                    <td class="col-num">
+                        @if (getSpotPrice(row)) {
+                        <span class="cell-primary">{{ getSpotPrice(row) | currency:baseCurrency:'symbol':'1.2-6' }}</span>
+                        <span class="cell-secondary">{{ baseCurrency }}</span>
+                        } @else {
+                        <span class="cell-muted">—</span>
+                        }
+                    </td>
+
                     <!-- Fee -->
                     <td class="col-num">
                         @if (row.transaction.fee > 0) {
@@ -167,7 +181,7 @@
                 </tr>
                 } @empty {
                 <tr>
-                    <td colspan="7" class="empty-state">
+                    <td colspan="8" class="empty-state">
                         <mat-icon>receipt_long</mat-icon>
                         <p>No transactions found.</p>
                     </td>
