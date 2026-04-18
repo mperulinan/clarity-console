@@ -15,7 +15,7 @@
             </div>
             }
         </div>
-        <div class="skel-table glass">
+        <div class="skel-table">
             <div class="skel-table-header">
                 @for (col of [1,2,3,4,5,6]; track $index) {
                 <div class="skel-line w80"></div>
@@ -93,7 +93,7 @@
     }
 
     <!-- ── TRANSACTIONS TABLE ─────────────────────────────────── -->
-    <div class="table-wrap glass">
+    <div class="table-wrap">
         <table class="txn-table">
             <thead>
                 <tr>
@@ -108,7 +108,7 @@
             </thead>
             <tbody>
                 @for (row of filteredTransactions(); track row.transaction.id) {
-                <tr class="txn-row" [class.row-error]="row.error" [class.row-disallowed]="row.isLossDisallowed">
+                <tr class="txn-row" [class.row-error]="row.error" [class.row-wash-sale]="row.isLossDisallowed">
 
                     <!-- Date -->
                     <td class="col-date">
@@ -181,7 +181,7 @@
                         @if (row.error) {
                         <mat-icon class="status-icon status-error" [matTooltip]="'Error: ' + row.error">error</mat-icon>
                         } @else if (row.isLossDisallowed) {
-                        <mat-icon class="status-icon status-warn">block</mat-icon>
+                        <mat-icon class="status-icon status-neutral" matTooltip="Wash Sale (Loss Disallowed)">info</mat-icon>
                         } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {
                         <mat-icon class="status-icon status-ok">check_circle</mat-icon>
                         }
