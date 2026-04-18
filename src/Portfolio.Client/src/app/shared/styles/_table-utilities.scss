@@ -1,0 +1,243 @@
+/* ═══════════════════════════════════════════════
+   Shared Table, Cell & Skeleton Utilities
+   ═══════════════════════════════════════════════ */
+
+/* ── TOKENS ─────────────────────────────────── */
+$border: rgba(255, 255, 255, 0.07);
+$text-primary: #f0f0f0;
+$text-muted: #8892a4;
+$green: #00e676;
+$green-soft: rgba(0, 230, 118, 0.08);
+$red: #ff5252;
+$red-soft: rgba(255, 82, 82, 0.08);
+$amber: #ffab40;
+
+/* ── CELLS & BADGES ─────────────────────────── */
+.col-num {
+    text-align: right;
+}
+
+.col-status {
+    text-align: center !important;
+    width: 80px;
+    padding: 8px !important;
+}
+
+.col-pl {
+    background: rgba(255, 255, 255, 0.015);
+    border-left: 1px solid $border;
+    border-right: 1px solid $border;
+}
+
+.cell-primary {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-primary;
+}
+
+.cell-secondary {
+    display: block;
+    font-size: 11px;
+    color: $text-muted;
+    margin-top: 1px;
+}
+
+.time-hover {
+    display: inline-flex;
+    align-items: center;
+    cursor: default;
+
+    .time-secs {
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    }
+
+    &:hover .time-secs {
+        max-width: 20px;
+        opacity: 0.8;
+    }
+}
+
+.cell-muted {
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 13px;
+}
+
+.asset-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.asset-icon-sm {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.type-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    color: $text-muted;
+}
+
+/* ── P/L CELL ───────────────────────────────── */
+.pl-cell {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+
+    &.positive {
+        background: $green-soft;
+        .pl-amount { color: $green; }
+    }
+
+    &.negative {
+        background: $red-soft;
+        .pl-amount { color: $red; }
+    }
+
+    &.pl-disallowed {
+        opacity: 0.5;
+        text-decoration: line-through;
+    }
+}
+
+.pl-amount {
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ── STATUS ICONS ───────────────────────────── */
+.status-icon {
+    font-size: 22px;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    overflow: visible !important;
+}
+
+.status-ok { color: rgba(0, 230, 118, 0.4); }
+.status-warn { color: $amber; }
+.status-error { color: $red; }
+.status-neutral { color: $text-muted; opacity: 0.8; }
+
+.empty-state {
+    text-align: center;
+    padding: 64px 24px !important;
+    color: $text-muted;
+
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 12px;
+        opacity: 0.4;
+    }
+
+    p {
+        font-size: 15px;
+        margin-bottom: 0;
+        opacity: 0.7;
+    }
+}
+
+/* ── SKELETON ────────────────────────────────── */
+@keyframes shimmer {
+    0% { background-position: -600px 0; }
+    100% { background-position: 600px 0; }
+}
+
+$skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
+$bg-card: #16213e;
+
+%skel {
+    background: $skel-shine;
+    background-size: 600px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 6px;
+}
+
+.skel-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.skel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .skel-line {
+        @extend %skel;
+        height: 14px;
+        margin-bottom: 0;
+    }
+
+    .skel-line.tall { height: 32px; }
+    .skel-line.w20 { width: 120px; }
+    .skel-line.w40 { width: 40%; }
+}
+
+.skel-table {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.skel-table-header {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid $border;
+    margin-bottom: 14px;
+
+    .skel-line {
+        @extend %skel;
+        margin-bottom: 0;
+        flex: 1;
+        height: 14px;
+    }
+}
+
+.skel-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid $border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .skel-line {
+        @extend %skel;
+        flex: 1;
+        margin-bottom: 0;
+        height: 14px;
+    }
+}
+
+.skel-line {
+    &.w70 { width: 70%; }
+    &.w80 { width: 80%; }
+}
