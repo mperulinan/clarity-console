@@ -170,8 +170,8 @@
                         <mat-icon class="status-icon status-error" [matTooltip]="'Error: ' + row.error">error</mat-icon>
                         } @else if (row.isLossDisallowed) {
                         <mat-icon class="status-icon status-warn"
-                            [matTooltip]="'Loss disallowed by transaction #' + row.disallowedByTransactionId">
-                            warning
+                            [matTooltip]="'Wash sale — disallowed by #' + row.disallowedByTransactionId">
+                            block
                         </mat-icon>
                         } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {
                         <mat-icon class="status-icon status-ok">check_circle</mat-icon>
