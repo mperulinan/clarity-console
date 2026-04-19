@@ -10,14 +10,17 @@ import { finalize } from 'rxjs';
 
 import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
+import { YearSummary } from '../../models/portfolio-report';
 
-interface YearSummary {
-    year: number;
-    netPL: number;
-    disallowedLosses: number;
-    eventCount: number;
-    errorCount: number;
-}
+/**
+ * Icon mapping per transaction type — consistent with new-transaction's UI_CONFIG.
+ */
+const EVENT_ICONS: Record<string, { fromIcon: string; toIcon: string }> = {
+    SWAP: { fromIcon: 'sell', toIcon: 'shopping_cart' },
+    WITHDRAWAL: { fromIcon: 'north_east', toIcon: '' },
+    DEPOSIT: { fromIcon: '', toIcon: 'south_east' },
+    REWARD: { fromIcon: '', toIcon: 'workspace_premium' },
+};
 
 @Component({
     selector: 'app-tax-report',
@@ -28,42 +31,32 @@ interface YearSummary {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaxReportComponent implements OnInit {
-    readonly reportCurrency = 'EUR';
+    reportCurrency = signal<string>('EUR'); // Default fallback, overwritten by backend
 
     private allTransactions = signal<ProcessedTransaction[]>([]);
     isLoading = signal(true);
     selectedYear = signal<number | null>(null);
 
-    yearSummaries = computed<YearSummary[]>(() => {
-        const txs = this.allTransactions();
-        const yearMap = new Map<number, ProcessedTransaction[]>();
+    /** Year summaries provided by the backend — no frontend business logic. */
+    yearSummaries = signal<YearSummary[]>([]);
 
-        for (const pt of txs) {
-            const year = new Date(pt.transaction.date).getFullYear();
-            if (!yearMap.has(year)) yearMap.set(year, []);
-            yearMap.get(year)!.push(pt);
-        }
-
-        const summaries: YearSummary[] = [];
-        for (const [year, pts] of yearMap) {
-            let netPL = 0;
-            let disallowedLosses = 0;
-            let errorCount = 0;
-
-            for (const pt of pts) {
-                if (pt.profitLoss != null && !pt.isLossDisallowed) {
-                    netPL += pt.profitLoss;
-                }
-                if (pt.isLossDisallowed && pt.profitLoss != null) {
-                    disallowedLosses += Math.abs(pt.profitLoss);
-                }
-                if (pt.error) errorCount++;
+    /** KPIs for the currently selected year (or all years if none selected). */
+    selectedYearKPIs = computed(() => {
+        const year = this.selectedYear();
+        const summaries = this.yearSummaries();
+        if (year === null) {
+            // Aggregate all years
+            let totalGains = 0, totalLosses = 0, disallowed = 0;
+            for (const ys of summaries) {
+                totalGains += ys.totalGains;
+                totalLosses += ys.totalLosses;
+                disallowed += ys.disallowedLosses;
             }
-
-            summaries.push({ year, netPL, disallowedLosses, eventCount: pts.length, errorCount });
+            return { totalGains, totalLosses, netPL: totalGains + totalLosses, disallowed };
         }
-
-        return summaries.sort((a, b) => b.year - a.year);
+        const ys = summaries.find(s => s.year === year);
+        if (!ys) return { totalGains: 0, totalLosses: 0, netPL: 0, disallowed: 0 };
+        return { totalGains: ys.totalGains, totalLosses: ys.totalLosses, netPL: ys.netPL, disallowed: ys.disallowedLosses };
     });
 
     filteredTransactions = computed(() => {
@@ -87,7 +80,11 @@ export class TaxReportComponent implements OnInit {
             )
             .subscribe({
                 next: report => {
+                    console.log(report);
+                    this.reportCurrency.set(report.reportingCurrency);
                     this.allTransactions.set(report.transactions);
+                    this.yearSummaries.set(report.yearSummaries || []);
+
                     // Auto-select the most recent year
                     const summaries = this.yearSummaries();
                     if (summaries.length > 0) {
@@ -104,5 +101,21 @@ export class TaxReportComponent implements OnInit {
 
     clearYearFilter() {
         this.selectedYear.set(null);
+    }
+
+    getSpotPrice(row: ProcessedTransaction): number | undefined {
+        const currency = this.reportCurrency();
+        return currency === 'EUR' ? row.transaction.spotPriceEUR : row.transaction.spotPriceUSD;
+    }
+
+    getEventIcons(typeValue: string): { fromIcon: string; toIcon: string } {
+        return EVENT_ICONS[typeValue?.toUpperCase()] || { fromIcon: 'swap_horiz', toIcon: 'swap_horiz' };
+    }
+
+    getWashSaleTooltip(row: ProcessedTransaction): string {
+        if (row.disallowedByTransactionId) {
+            return `Wash sale — disallowed by #${row.disallowedByTransactionId}`;
+        }
+        return 'Wash sale (loss disallowed)';
     }
 }

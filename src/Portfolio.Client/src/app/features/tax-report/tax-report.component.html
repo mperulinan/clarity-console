@@ -15,6 +15,14 @@
             </div>
             }
         </div>
+        <div class="skel-kpi-strip">
+            @for (i of [1,2,3,4]; track $index) {
+            <div class="skel-kpi-cell">
+                <div class="skel-line w60"></div>
+                <div class="skel-line w80 tall"></div>
+            </div>
+            }
+        </div>
         <div class="skel-table">
             <div class="skel-table-header">
                 @for (col of [1,2,3,4,5,6]; track $index) {
@@ -39,7 +47,7 @@
         <div>
             <h1 class="page-title">Tax Report</h1>
             <p class="page-subtitle">
-                Fiscal P/L summary in {{ reportCurrency }} · FIFO method
+                Fiscal P/L summary in {{ reportCurrency() }} · FIFO method
             </p>
         </div>
     </div>
@@ -53,7 +61,7 @@
             <span class="year-label">{{ ys.year }}</span>
 
             <div class="year-pl" [class.positive]="ys.netPL >= 0" [class.negative]="ys.netPL < 0">
-                {{ ys.netPL >= 0 ? '+' : '' }}{{ ys.netPL | currency:reportCurrency:'symbol':'1.2-2' }}
+                {{ ys.netPL >= 0 ? '+' : '' }}{{ ys.netPL | currency:reportCurrency():'symbol':'1.2-2' }}
             </div>
 
             <div class="year-meta">
@@ -61,7 +69,7 @@
                 @if (ys.disallowedLosses > 0) {
                 <span class="year-disallowed" [matTooltip]="'Losses disallowed under fiscal rule'">
                     <mat-icon class="meta-icon">block</mat-icon>
-                    {{ ys.disallowedLosses | currency:reportCurrency:'symbol':'1.2-2' }}
+                    {{ ys.disallowedLosses | currency:reportCurrency():'symbol':'1.2-2' }}
                 </span>
                 }
                 @if (ys.errorCount > 0) {
@@ -80,6 +88,38 @@
         }
     </div>
 
+    <!-- ── KPI SUMMARY STRIP ──────────────────────────────────── -->
+    @if (yearSummaries().length > 0) {
+    <div class="kpi-strip">
+        <div class="kpi-cell">
+            <span class="kpi-label">Total Gains</span>
+            <span class="kpi-value positive">
+                +{{ selectedYearKPIs().totalGains | currency:reportCurrency():'symbol':'1.2-2' }}
+            </span>
+        </div>
+        <div class="kpi-cell">
+            <span class="kpi-label">Total Losses</span>
+            <span class="kpi-value negative">
+                {{ selectedYearKPIs().totalLosses | currency:reportCurrency():'symbol':'1.2-2' }}
+            </span>
+        </div>
+        <div class="kpi-cell">
+            <span class="kpi-label">Net P/L</span>
+            <span class="kpi-value" [class.positive]="selectedYearKPIs().netPL >= 0"
+                [class.negative]="selectedYearKPIs().netPL < 0">
+                {{ selectedYearKPIs().netPL >= 0 ? '+' : '' }}{{ selectedYearKPIs().netPL |
+                currency:reportCurrency():'symbol':'1.2-2' }}
+            </span>
+        </div>
+        <div class="kpi-cell">
+            <span class="kpi-label">Disallowed</span>
+            <span class="kpi-value disallowed">
+                {{ selectedYearKPIs().disallowed | currency:reportCurrency():'symbol':'1.2-2' }}
+            </span>
+        </div>
+    </div>
+    }
+
     <!-- ── FILTER INDICATOR ───────────────────────────────────── -->
     @if (selectedYear() !== null) {
     <div class="filter-bar">
@@ -94,21 +134,20 @@
 
     <!-- ── TRANSACTIONS TABLE ─────────────────────────────────── -->
     <div class="table-wrap">
-        <table class="txn-table">
+        <table class="report-table">
             <thead>
                 <tr>
                     <th class="col-date">Date</th>
                     <th class="col-type">Type</th>
-                    <th class="col-asset">From</th>
-                    <th class="col-asset">To</th>
-                    <th class="col-num col-pl">P/L (€)</th>
-                    <th class="col-status">Loss Allowed</th>
-                    <th class="col-ref">Disallowed By</th>
+                    <th class="col-event">Event</th>
+                    <th class="col-num">Spot Price</th>
+                    <th class="col-num col-pl">Realized P/L</th>
+                    <th class="col-status">Status</th>
                 </tr>
             </thead>
             <tbody>
                 @for (row of filteredTransactions(); track row.transaction.id) {
-                <tr class="txn-row" [class.row-error]="row.error" [class.row-wash-sale]="row.isLossDisallowed">
+                <tr class="report-row" [class.row-error]="row.error" [class.row-wash-sale]="row.isLossDisallowed">
 
                     <!-- Date -->
                     <td class="col-date">
@@ -125,50 +164,65 @@
                         <span class="type-badge">{{ row.transaction.type.name || '-' }}</span>
                     </td>
 
-                    <!-- From -->
-                    <td class="col-asset">
-                        @if (row.transaction.fromAsset) {
-                        <div class="asset-cell">
-                            @if (row.transaction.fromAsset.imageUrl) {
-                            <img class="asset-icon-sm" [src]="row.transaction.fromAsset.imageUrl"
-                                [alt]="row.transaction.fromAsset.symbol">
-                            }
-                            <div>
+                    <!-- Event (combined From → To) -->
+                    <td class="col-event">
+                        <div class="event-flow">
+                            @if (row.transaction.fromAsset) {
+                            <div class="event-leg">
+                                @if (getEventIcons(row.transaction.type.value).fromIcon) {
+                                <mat-icon class="event-type-icon">{{ getEventIcons(row.transaction.type.value).fromIcon }}</mat-icon>
+                                }
                                 <span class="cell-primary">{{ row.transaction.amountSpent | number:'1.2-8' }}</span>
-                                <span class="cell-secondary">{{ row.transaction.fromAsset.symbol }}</span>
+                                <div class="asset-badge">
+                                    @if (row.transaction.fromAsset.imageUrl) {
+                                    <img class="asset-icon-xs" [src]="row.transaction.fromAsset.imageUrl"
+                                        [alt]="row.transaction.fromAsset.symbol">
+                                    }
+                                    <span class="cell-secondary">{{ row.transaction.fromAsset.symbol }}</span>
+                                </div>
                             </div>
-                        </div>
-                        } @else {
-                        <span class="cell-muted">—</span>
-                        }
-                    </td>
-
-                    <!-- To -->
-                    <td class="col-asset">
-                        @if (row.transaction.toAsset) {
-                        <div class="asset-cell">
-                            @if (row.transaction.toAsset.imageUrl) {
-                            <img class="asset-icon-sm" [src]="row.transaction.toAsset.imageUrl"
-                                [alt]="row.transaction.toAsset.symbol">
                             }
-                            <div>
+
+                            @if (row.transaction.fromAsset && row.transaction.toAsset) {
+                            <mat-icon class="event-arrow">arrow_forward</mat-icon>
+                            }
+
+                            @if (row.transaction.toAsset) {
+                            <div class="event-leg">
+                                @if (getEventIcons(row.transaction.type.value).toIcon) {
+                                <mat-icon class="event-type-icon">{{ getEventIcons(row.transaction.type.value).toIcon }}</mat-icon>
+                                }
                                 <span class="cell-primary">{{ row.transaction.amountReceived | number:'1.2-8' }}</span>
-                                <span class="cell-secondary">{{ row.transaction.toAsset.symbol }}</span>
+                                <div class="asset-badge">
+                                    @if (row.transaction.toAsset.imageUrl) {
+                                    <img class="asset-icon-xs" [src]="row.transaction.toAsset.imageUrl"
+                                        [alt]="row.transaction.toAsset.symbol">
+                                    }
+                                    <span class="cell-secondary">{{ row.transaction.toAsset.symbol }}</span>
+                                </div>
                             </div>
+                            }
                         </div>
+                    </td>
+
+                    <!-- Spot Price -->
+                    <td class="col-num">
+                        @if (getSpotPrice(row)) {
+                        <span class="cell-primary">{{ getSpotPrice(row) | currency:reportCurrency():'symbol':'1.2-6'
+                            }}</span>
                         } @else {
                         <span class="cell-muted">—</span>
                         }
                     </td>
 
-                    <!-- P/L -->
+                    <!-- Realized P/L -->
                     <td class="col-num col-pl">
                         @if (row.profitLoss !== undefined && row.profitLoss !== null) {
                         <div class="pl-cell" [class.positive]="row.profitLoss >= 0"
                             [class.negative]="row.profitLoss < 0" [class.pl-disallowed]="row.isLossDisallowed">
                             <span class="pl-amount">
                                 {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss |
-                                currency:reportCurrency:'symbol':'1.2-2' }}
+                                currency:reportCurrency():'symbol':'1.2-2' }}
                             </span>
                         </div>
                         } @else {
@@ -176,30 +230,23 @@
                         }
                     </td>
 
-                    <!-- Loss Allowed -->
+                    <!-- Status -->
                     <td class="col-status">
                         @if (row.error) {
                         <mat-icon class="status-icon status-error" [matTooltip]="'Error: ' + row.error">error</mat-icon>
                         } @else if (row.isLossDisallowed) {
-                        <mat-icon class="status-icon status-neutral" matTooltip="Wash Sale (Loss Disallowed)">info</mat-icon>
+                        <mat-icon class="status-icon status-warn" [matTooltip]="getWashSaleTooltip(row)">
+                            block
+                        </mat-icon>
                         } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {
                         <mat-icon class="status-icon status-ok">check_circle</mat-icon>
-                        }
-                    </td>
-
-                    <!-- Disallowed By -->
-                    <td class="col-ref">
-                        @if (row.disallowedByTransactionId) {
-                        <span class="ref-badge">#{{ row.disallowedByTransactionId }}</span>
-                        } @else {
-                        <span class="cell-muted">—</span>
                         }
                     </td>
 
                 </tr>
                 } @empty {
                 <tr>
-                    <td colspan="7" class="empty-state">
+                    <td colspan="6" class="empty-state">
                         <mat-icon>assessment</mat-icon>
                         <p>No taxable events for this period.</p>
                     </td>

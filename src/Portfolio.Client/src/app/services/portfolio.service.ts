@@ -30,7 +30,17 @@ export class PortfolioService {
         return this.http.get<PortfolioReport>(`${this.apiUrl}/Portfolio/tax-report`).pipe(
             map(report => ({
                 ...report,
-                transactions: report.transactions.map(pt => this.normalizeProcessedTransaction(pt))
+                reportingCurrency: report.reportingCurrency,
+                transactions: report.transactions.map(pt => this.normalizeProcessedTransaction(pt)),
+                holdings: report.holdings,
+                yearSummaries: (report.yearSummaries || []).map(ys => ({
+                    ...ys,
+                    totalGains: Number(ys.totalGains),
+                    totalLosses: Number(ys.totalLosses),
+                    netPL: Number(ys.netPL),
+                    disallowedLosses: Number(ys.disallowedLosses),
+                    year: Number(ys.year)
+                }))
             }))
         );
     }
