@@ -13,6 +13,8 @@ import { finalize } from 'rxjs';
 import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
 import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
+import { MatDialog } from '@angular/material/dialog';
+import { WashSaleDetailsDialogComponent } from '../../shared/components/wash-sale-details-dialog/wash-sale-details-dialog';
 
 type SortField = 'date' | 'type' | 'from' | 'to' | 'spotPrice' | 'fee' | 'profitLoss';
 type SortDir = 'asc' | 'desc';
@@ -26,7 +28,7 @@ type SortDir = 'asc' | 'desc';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TransactionsComponent implements OnInit {
-    readonly baseCurrency = DEFAULT_FIAT_CURRENCY;
+    baseCurrency = signal<string>(DEFAULT_FIAT_CURRENCY);
 
     private allTransactions = signal<ProcessedTransaction[]>([]);
     isLoading = signal(true);
@@ -54,8 +56,8 @@ export class TransactionsComponent implements OnInit {
                     cmp = (a.transaction.toAsset?.symbol ?? '').localeCompare(b.transaction.toAsset?.symbol ?? '');
                     break;
                 case 'spotPrice':
-                    const priceA = this.baseCurrency === 'EUR' ? a.transaction.spotPriceEUR : a.transaction.spotPriceUSD;
-                    const priceB = this.baseCurrency === 'EUR' ? b.transaction.spotPriceEUR : b.transaction.spotPriceUSD;
+                    const priceA = this.baseCurrency() === 'EUR' ? a.transaction.spotPriceEUR : a.transaction.spotPriceUSD;
+                    const priceB = this.baseCurrency() === 'EUR' ? b.transaction.spotPriceEUR : b.transaction.spotPriceUSD;
                     cmp = (priceA ?? 0) - (priceB ?? 0);
                     break;
                 case 'fee':
@@ -74,6 +76,7 @@ export class TransactionsComponent implements OnInit {
     totalCount = computed(() => this.allTransactions().length);
 
     private readonly destroyRef = inject(DestroyRef);
+    private readonly dialog = inject(MatDialog);
 
     constructor(
         private portfolioService: PortfolioService,
@@ -87,7 +90,10 @@ export class TransactionsComponent implements OnInit {
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe({
-                next: report => this.allTransactions.set(report.transactions),
+                next: report => {
+                    this.baseCurrency.set(report.reportingCurrency);
+                    this.allTransactions.set(report.transactions);
+                },
                 error: err => console.error('Failed to load transactions', err)
             });
     }
@@ -111,6 +117,36 @@ export class TransactionsComponent implements OnInit {
     }
 
     getSpotPrice(row: ProcessedTransaction): number | undefined {
-        return this.baseCurrency === 'EUR' ? row.transaction.spotPriceEUR : row.transaction.spotPriceUSD;
+        return this.baseCurrency() === 'EUR' ? row.transaction.spotPriceEUR : row.transaction.spotPriceUSD;
+    }
+
+    viewWashSaleDetails(row: ProcessedTransaction) {
+        if (!row.disallowedByTransactionId) return;
+
+        const targetElementId = `tx-${row.disallowedByTransactionId}`;
+        const element = document.getElementById(targetElementId);
+
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.classList.add('highlight-glow');
+            setTimeout(() => {
+                element.classList.remove('highlight-glow');
+            }, 2500);
+            return;
+        }
+
+        const repurchaseTx = this.allTransactions().find(t => t.transaction.id === row.disallowedByTransactionId);
+        
+        if (repurchaseTx) {
+            this.dialog.open(WashSaleDetailsDialogComponent, {
+                width: '600px',
+                data: {
+                    lossTx: row,
+                    repurchaseTx: repurchaseTx,
+                    currency: this.baseCurrency()
+                },
+                panelClass: 'dark-dialog-panel'
+            });
+        }
     }
 }

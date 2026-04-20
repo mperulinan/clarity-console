@@ -1,0 +1,150 @@
+.dialog-container {
+    background: #111827;
+    color: #e5e7eb;
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    h2 {
+        margin: 0;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+}
+
+::ng-deep .mat-mdc-dialog-content {
+    padding: 24px !important;
+}
+
+.dialog-subtitle {
+    margin-top: 0;
+    margin-bottom: 24px;
+    color: #9ca3af;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.comparison-grid {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    @media (max-width: 600px) {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+        
+        .link-icon {
+            transform: rotate(90deg);
+            align-self: center;
+        }
+    }
+}
+
+.tx-card {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+
+    &.loss-card {
+        border-color: rgba(244, 67, 54, 0.2);
+    }
+
+    &.buy-card {
+        border-color: rgba(33, 150, 243, 0.2);
+    }
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .status-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.card-body {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+
+    .label {
+        color: #9ca3af;
+    }
+    
+    .value {
+        font-weight: 500;
+        color: #f3f4f6;
+    }
+}
+
+.text-warn {
+    color: #f44336;
+}
+
+.text-primary {
+    color: #2196f3;
+}
+
+.action-badge {
+    background: rgba(33, 150, 243, 0.1);
+    color: #2196f3;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.link-icon {
+    color: #6b7280;
+}
+
+.dialog-note {
+    margin: 0;
+    padding: 12px 16px;
+    background: rgba(255, 171, 64, 0.1);
+    border-left: 3px solid #ffab40;
+    border-radius: 4px;
+    color: #e5e7eb;
+    font-size: 0.9rem;
+    line-height: 1.5;
+
+    strong {
+        color: #ffab40;
+    }
+}
+
+::ng-deep .mat-mdc-dialog-actions {
+    padding: 16px 24px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}

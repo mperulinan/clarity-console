@@ -248,3 +248,25 @@ $bg-card: #16213e;
     &.w70 { width: 70%; }
     &.w80 { width: 80%; }
 }
+
+/* ── UX ANIMATIONS ───────────────────────────── */
+@keyframes pulseGlow {
+    0% { background-color: transparent; }
+    30% { background-color: rgba(255, 171, 64, 0.2); }
+    100% { background-color: transparent; }
+}
+
+.highlight-glow {
+    animation: pulseGlow 2.5s ease-out forwards;
+}
+
+.clickable-icon {
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s, color 0.2s;
+
+    &:hover {
+        transform: scale(1.15);
+        opacity: 1;
+        color: #ffab40; /* Slightly glow amber on hover to show interactivity */
+    }
+}

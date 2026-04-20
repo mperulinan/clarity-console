@@ -1,0 +1,69 @@
+<div class="dialog-container">
+    <div class="dialog-header">
+        <h2 mat-dialog-title>Wash Sale Connection</h2>
+        <button mat-icon-button (click)="close()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <mat-dialog-content>
+        <p class="dialog-subtitle">
+            Your loss on this transaction was disallowed due to a wash sale. 
+            The system detected that you repurchased the same asset within the wash sale window.
+        </p>
+
+        <div class="comparison-grid">
+            <!-- Left Side: Loss -->
+            <div class="tx-card loss-card">
+                <div class="card-header">
+                    <mat-icon class="status-icon text-warn">sell</mat-icon>
+                    <h3>Original Sale</h3>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="label">Date</span>
+                        <span class="value">{{ data.lossTx.transaction.date | date:'mediumDate' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Amount Sold</span>
+                        <span class="value">{{ data.lossTx.transaction.amountSpent | number:'1.2-8' }} {{ data.lossTx.transaction.fromAsset?.symbol }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Disallowed Loss</span>
+                        <span class="value text-warn">{{ data.lossTx.profitLoss | currency:data.currency:'symbol':'1.2-2' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <mat-icon class="link-icon">link</mat-icon>
+
+            <!-- Right Side: Repurchase -->
+            <div class="tx-card buy-card">
+                <div class="card-header">
+                    <mat-icon class="status-icon text-primary">shopping_cart</mat-icon>
+                    <h3>Triggering Repurchase</h3>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="label">Date</span>
+                        <span class="value">{{ data.repurchaseTx.transaction.date | date:'mediumDate' }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Amount Bought</span>
+                        <span class="value">{{ data.repurchaseTx.transaction.amountReceived | number:'1.2-8' }} {{ data.repurchaseTx.transaction.toAsset?.symbol }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Tax Effect</span>
+                        <span class="value action-badge">Basis Adjusted</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="dialog-note">
+            The disallowed loss amount of <strong>{{ (data.lossTx.profitLoss || 0) * -1 | currency:data.currency:'symbol':'1.2-2' }}</strong> 
+            has been added to the cost basis of the repurchased asset and will be recognized when you systematically dispose of it.
+        </p>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button mat-flat-button color="primary" (click)="close()">Got It</button>
+    </mat-dialog-actions>
+</div>

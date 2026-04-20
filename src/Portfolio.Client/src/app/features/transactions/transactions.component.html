@@ -76,7 +76,8 @@
             </thead>
             <tbody>
                 @for (row of transactions(); track row.transaction.id) {
-                <tr class="txn-row" [class.row-error]="row.error" [class.row-disallowed]="row.isLossDisallowed">
+                <tr class="txn-row" [id]="'tx-' + row.transaction.id" [class.row-error]="row.error"
+                    [class.row-disallowed]="row.isLossDisallowed">
 
                     <!-- Date -->
                     <td class="col-date">
@@ -132,8 +133,9 @@
                     <!-- Spot Price -->
                     <td class="col-num">
                         @if (getSpotPrice(row)) {
-                        <span class="cell-primary">{{ getSpotPrice(row) | currency:baseCurrency:'symbol':'1.2-6' }}</span>
-                        <span class="cell-secondary">{{ baseCurrency }}</span>
+                        <span class="cell-primary">{{ getSpotPrice(row) | currency:baseCurrency():'symbol':'1.2-6'
+                            }}</span>
+                        <span class="cell-secondary">{{ baseCurrency() }}</span>
                         } @else {
                         <span class="cell-muted">—</span>
                         }
@@ -155,7 +157,8 @@
                         <div class="pl-cell" [class.positive]="row.profitLoss >= 0"
                             [class.negative]="row.profitLoss < 0">
                             <span class="pl-amount">
-                                {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss | currency:'EUR':'symbol':'1.2-2'
+                                {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss |
+                                currency:baseCurrency():'symbol':'1.2-2'
                                 }}
                             </span>
                         </div>
@@ -169,12 +172,15 @@
                         @if (row.error) {
                         <mat-icon class="status-icon status-error" [matTooltip]="'Error: ' + row.error">error</mat-icon>
                         } @else if (row.isLossDisallowed) {
-                        <mat-icon class="status-icon status-warn"
-                            [matTooltip]="'Wash sale — disallowed by #' + row.disallowedByTransactionId">
+                        <mat-icon class="status-icon status-warn clickable-icon"
+                            [matTooltip]="'Wash sale (Loss disallowed) — Click to see details'"
+                            (click)="viewWashSaleDetails(row)">
                             block
                         </mat-icon>
                         } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {
                         <mat-icon class="status-icon status-ok">check_circle</mat-icon>
+                        } @else {
+                        <mat-icon class="status-icon status-neutral">check_circle_outline</mat-icon>
                         }
                     </td>
 

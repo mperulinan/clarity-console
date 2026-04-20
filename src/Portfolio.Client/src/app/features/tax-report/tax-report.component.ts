@@ -11,6 +11,9 @@ import { finalize } from 'rxjs';
 import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
 import { YearSummary } from '../../models/portfolio-report';
+import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
+import { MatDialog } from '@angular/material/dialog';
+import { WashSaleDetailsDialogComponent } from '../../shared/components/wash-sale-details-dialog/wash-sale-details-dialog';
 
 /**
  * Icon mapping per transaction type — consistent with new-transaction's UI_CONFIG.
@@ -31,7 +34,7 @@ const EVENT_ICONS: Record<string, { fromIcon: string; toIcon: string }> = {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaxReportComponent implements OnInit {
-    reportCurrency = signal<string>('EUR'); // Default fallback, overwritten by backend
+    reportCurrency = signal<string>(DEFAULT_FIAT_CURRENCY); // Default fallback, overwritten by backend
 
     private allTransactions = signal<ProcessedTransaction[]>([]);
     isLoading = signal(true);
@@ -69,6 +72,7 @@ export class TaxReportComponent implements OnInit {
     filteredCount = computed(() => this.filteredTransactions().length);
 
     private readonly destroyRef = inject(DestroyRef);
+    private dialog = inject(MatDialog);
 
     constructor(private portfolioService: PortfolioService) { }
 
@@ -113,9 +117,39 @@ export class TaxReportComponent implements OnInit {
     }
 
     getWashSaleTooltip(row: ProcessedTransaction): string {
-        if (row.disallowedByTransactionId) {
-            return `Wash sale — disallowed by #${row.disallowedByTransactionId}`;
+        return 'Wash sale (Loss disallowed) — Click to see details';
+    }
+
+    viewWashSaleDetails(row: ProcessedTransaction) {
+        if (!row.disallowedByTransactionId) return;
+
+        // Pattern 1: Try to find the related transaction element on screen to scroll to it
+        const targetElementId = `tx-${row.disallowedByTransactionId}`;
+        const element = document.getElementById(targetElementId);
+
+        if (element) {
+            // It's in the current view. Auto-scroll and glow.
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.classList.add('highlight-glow');
+            setTimeout(() => {
+                element.classList.remove('highlight-glow');
+            }, 2500);
+            return;
         }
-        return 'Wash sale (loss disallowed)';
+
+        // Pattern 2: It's filtered out. Find the data in memory and launch the Forensic Dialog.
+        const repurchaseTx = this.allTransactions().find(t => t.transaction.id === row.disallowedByTransactionId);
+        
+        if (repurchaseTx) {
+            this.dialog.open(WashSaleDetailsDialogComponent, {
+                width: '600px',
+                data: {
+                    lossTx: row,
+                    repurchaseTx: repurchaseTx,
+                    currency: this.reportCurrency()
+                },
+                panelClass: 'dark-dialog-panel'
+            });
+        }
     }
 }
