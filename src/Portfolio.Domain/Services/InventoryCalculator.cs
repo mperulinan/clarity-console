@@ -61,7 +61,10 @@ public class InventoryCalculator : IInventoryCalculator
 
                 inventory.Enqueue(new InventoryEntry { Quantity = tx.AmountReceived, Price = toAssetPrice });
 
-                CheckWashSale(lossCandidates, toAssetId, tx.Date, pt);
+                if (tx.Type.TriggersWashSale)
+                {
+                    CheckWashSale(lossCandidates, toAssetId, tx.Date, pt);
+                }
             }
 
             // --- HANDLING OUTFLOWS (Swap-out/Withdrawal/Fee) ---

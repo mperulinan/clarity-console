@@ -214,6 +214,35 @@ public class InventoryCalculatorTests
     }
 
     [Fact]
+    public void CalculateInventory_WashSale_ShouldNotDisallowLoss_WhenBuyIsReward()
+    {
+        var btc = "BTC";
+        var usd = "USD";
+        var transactions = new List<Transaction>
+        {
+            // Buy 1 BTC @ 30k
+            CreateTx(date: new DateTime(2023, 1, 1), fromAsset: usd, toAsset: btc, spent: 30000m, received: 1m, spotPriceUSD: 1m),
+            
+            // Sell 1 BTC @ 20k (Loss 10k)
+            CreateTx(date: new DateTime(2023, 1, 15), fromAsset: btc, toAsset: usd, spent: 1m, received: 20000m, spotPriceUSD: 20000m),
+            
+            // Receive 1 BTC Reward within 2 months
+            CreateTx(date: new DateTime(2023, 1, 20), type: TransactionType.Reward, toAsset: btc, received: 1m, spotPriceUSD: 22000m)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
+        var reportTransactions = report.Transactions.ToList();
+
+        // Verify Loss is ALLOWED
+        var sellTx = reportTransactions[1];
+        Assert.False(sellTx.IsLossDisallowed);
+        Assert.Equal(-10000m, sellTx.ProfitLoss);
+                
+        // Ensure no disallowance link
+        Assert.Empty(reportTransactions[2].DisallowsPreviousLosses);
+    }
+
+    [Fact]
     public void CalculateInventory_ShouldFlagError_WhenBuyingWithInsufficientFunds()
     {
         // Scenario: Attempt to Buy 1 BTC with USD, but we have 0 USD.
