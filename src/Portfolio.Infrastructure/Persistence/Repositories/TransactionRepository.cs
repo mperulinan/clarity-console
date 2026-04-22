@@ -27,13 +27,12 @@ public class TransactionRepository(PortfolioContext context) : ITransactionRepos
     public async Task AddAsync(Transaction transaction)
     {
         await context.Transactions.AddAsync(transaction);
-        await context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Transaction transaction)
     {
         context.Transactions.Update(transaction);
-        await context.SaveChangesAsync();
+        await Task.CompletedTask; // Keep async signature without SaveChanges
     }
 
     public async Task DeleteAsync(int id)
@@ -42,7 +41,6 @@ public class TransactionRepository(PortfolioContext context) : ITransactionRepos
         if (transaction != null)
         {
             context.Transactions.Remove(transaction);
-            await context.SaveChangesAsync();
         }
     }
 }

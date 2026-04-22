@@ -18,7 +18,7 @@ Dependencies flow inward:
 
 1.  **Domain**: 
     - The core of the application. 
-    - Contains **Entities** (`Asset`, `Transaction`), **Value Objects**, **Enums**, and core **Interfaces** (`IAssetRepository`, `ITransactionRepository`).
+    - Contains **Entities** (`Asset`, `Transaction`), **Value Objects**, **Enums**, and core **Interfaces** (`IUnitOfWork`, `IAssetRepository`, `ITransactionRepository`).
     - Defines domain logic and business rules independent of external frameworks.
 2.  **Application**: 
     - Orchestrates the flow of data and application logic.
@@ -26,7 +26,7 @@ Dependencies flow inward:
     - Depends only on the Domain layer.
 3.  **Infrastructure**: 
     - Implements interfaces defined in the Domain and Application layers.
-    - **Persistence**: Uses EF Core with SQL Server (`PortfolioContext`).
+    - **Persistence**: Uses EF Core with SQL Server (`PortfolioContext`). Implements `IUnitOfWork` as `UnitOfWork`, which instantiates repositories internally to guarantee they share the same `DbContext` instance.
     - **External Services**: Integrates with external APIs like CoinGecko and Frankfurter for market data and exchange rates.
 4.  **Portfolio.API**: 
     - The entry point for the backend.
@@ -45,8 +45,9 @@ Dependencies flow inward:
 - **Portfolio Metrics**: The `PortfolioMetricsCalculator` is responsible for aggregating individual enriched asset holdings into global user-level metrics. 
 
 ### Design Principles & Conventions
-- **Thin Controllers**: API Controllers (like `AssetController`) act purely as HTTP adapters. Orchestration logic belongs in Application layer services (e.g., `AssetSearchService`).
+- **Thin Controllers**: API Controllers act purely as HTTP adapters. Orchestration logic belongs in Application layer services.
 - **DDD Adherence**: Business logic is restricted to Domain entities and services. Infrastructure dependencies never leak into the Domain layer.
+- **Unit of Work Pattern**: All Application Services and Controllers depend on `IUnitOfWork` (defined in the Domain layer) rather than individual repository interfaces directly. The concrete `UnitOfWork` (in Infrastructure) instantiates its own repositories, guaranteeing that all operations within a business transaction share the same `DbContext` and are committed atomically in a single `SaveChangesAsync` call. Repositories are pure staging layers — they never call `SaveChangesAsync` themselves.
 
 ---
 

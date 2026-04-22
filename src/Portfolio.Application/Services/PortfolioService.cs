@@ -12,7 +12,7 @@ using Portfolio.Domain.ValueObjects;
 namespace Portfolio.Application.Services;
 
 public class PortfolioService(
-    ITransactionRepository transactionRepository,
+    IUnitOfWork unitOfWork,
     IInventoryCalculator inventoryCalculator,
     IExchangeRateProvider exchangeRateProvider,
     IAssetMarketDataService assetMarketDataService,
@@ -30,7 +30,7 @@ public class PortfolioService(
         var sw = Stopwatch.StartNew();
         logger.LogInformation("Calculating portfolio metrics...");
 
-        var transactions = await transactionRepository.GetAllAsync();
+        var transactions = await unitOfWork.Transactions.GetAllAsync();
         if (!transactions.Any())
         {
             logger.LogInformation("No transactions found. Returning empty metrics.");
@@ -69,7 +69,7 @@ public class PortfolioService(
     {
         logger.LogInformation("Generating portfolio report ({Currency})...", FinancialReportingCurrency.Value);
 
-        var transactions = await transactionRepository.GetAllAsync();
+        var transactions = await unitOfWork.Transactions.GetAllAsync();
         var report = inventoryCalculator.CalculateInventory(transactions, FinancialReportingCurrency);
         var processedList = report.Transactions.ToList();
 
@@ -142,7 +142,8 @@ public class PortfolioService(
             request.TransactionTypeCode, request.Date.ToString("dd-MM-yyyy"));
 
         var transaction = BuildTransaction(request);
-        await transactionRepository.AddAsync(transaction);
+        await unitOfWork.Transactions.AddAsync(transaction);
+        await unitOfWork.SaveChangesAsync();
 
         logger.LogInformation("Successfully added transaction {TransactionId}.", transaction.Id);
     }
@@ -179,7 +180,7 @@ public class PortfolioService(
 
     public async Task CalculateExchangeRatesAsync()
     {
-        var transactions = await transactionRepository.GetAllAsync();
+        var transactions = await unitOfWork.Transactions.GetAllAsync();
         var pending = transactions.Where(t => t.Date.Date < DateTime.UtcNow.Date && t.HasIncompleteExchangeRates).ToList();
 
         logger.LogInformation("Found {Count} transactions pending exchange rate calculation.", pending.Count);
@@ -187,6 +188,11 @@ public class PortfolioService(
         foreach (var transaction in pending)
         {
             await TryUpdateExchangeRateAsync(transaction);
+        }
+
+        if (pending.Count > 0)
+        {
+            await unitOfWork.SaveChangesAsync();
         }
     }
 
@@ -196,7 +202,7 @@ public class PortfolioService(
         {
             var rate = await exchangeRateProvider.GetUsdEurRateAsync(transaction.Date);
             transaction.UpdateExchangeRates(rate);
-            await transactionRepository.UpdateAsync(transaction);
+            await unitOfWork.Transactions.UpdateAsync(transaction);
         }
         catch (Exception ex)
         {

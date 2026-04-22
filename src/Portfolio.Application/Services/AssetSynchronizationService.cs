@@ -6,7 +6,7 @@ using Portfolio.Domain.Interfaces;
 namespace Portfolio.Application.Services;
 
 public class AssetSynchronizationService(
-    IAssetRepository assetRepository,
+    IUnitOfWork unitOfWork,
     ILogger<AssetSynchronizationService> logger) : IAssetSynchronizationService
 {
     public async Task<int> SynchronizeCatalogAsync(IEnumerable<Asset> externalAssets)
@@ -22,7 +22,7 @@ public class AssetSynchronizationService(
         
         var externalIds = externalList.Select(a => a.ExternalId!).ToList();
         
-        var existingAssets = await assetRepository.GetByExternalIdsAsync(externalIds);
+        var existingAssets = await unitOfWork.Assets.GetByExternalIdsAsync(externalIds);
         var existingDict = existingAssets.ToDictionary(a => a.ExternalId!, StringComparer.OrdinalIgnoreCase);
 
         int updatedOrInserted = 0;
@@ -34,15 +34,20 @@ public class AssetSynchronizationService(
                 if (existing.Symbol != incoming.Symbol || existing.Name != incoming.Name || existing.ImageUrl != incoming.ImageUrl)
                 {
                     existing.UpdateMetadata(incoming.Symbol, incoming.Name, incoming.ImageUrl);
-                    await assetRepository.UpdateAsync(existing);
+                    await unitOfWork.Assets.UpdateAsync(existing);
                     updatedOrInserted++;
                 }
             }
             else
             {
-                await assetRepository.AddAsync(incoming);
+                await unitOfWork.Assets.AddAsync(incoming);
                 updatedOrInserted++;
             }
+        }
+
+        if (updatedOrInserted > 0)
+        {
+            await unitOfWork.SaveChangesAsync();
         }
         
         logger.LogInformation("Catalog synchronization complete. {UpdatedOrInserted} assets were updated or inserted.", updatedOrInserted);

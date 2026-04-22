@@ -29,12 +29,11 @@ public class AssetRepository(PortfolioContext context) : IAssetRepository
     public async Task AddAsync(Asset asset)
     {
         await context.Assets.AddAsync(asset);
-        await context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Asset asset)
     {
         context.Assets.Update(asset);
-        await context.SaveChangesAsync();
+        await Task.CompletedTask; // Keep async signature without SaveChanges
     }
 }

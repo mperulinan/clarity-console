@@ -1,6 +1,7 @@
 using NSubstitute;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Services;
+using Portfolio.Application.Tests.Fakes;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
@@ -12,32 +13,22 @@ namespace Portfolio.Application.Tests;
 
 public class PortfolioServiceTests
 {
-    private readonly ITransactionRepository _mockRepo;
-    private readonly IAssetRepository _mockAssetRepo;
     private readonly IExchangeRateProvider _mockRates;
     private readonly IAssetMarketDataService _mockMarketData;
     private readonly IPortfolioMetricsCalculator _mockMetrics;
     private readonly InventoryCalculator _inventoryCalculator;
-    private readonly PortfolioService _service;
 
     public PortfolioServiceTests()
     {
-        _mockRepo = Substitute.For<ITransactionRepository>();
-        _mockAssetRepo = Substitute.For<IAssetRepository>();
         _mockRates = Substitute.For<IExchangeRateProvider>();
         _mockMarketData = Substitute.For<IAssetMarketDataService>();
         _mockMetrics = Substitute.For<IPortfolioMetricsCalculator>();
         _inventoryCalculator = new InventoryCalculator();
-
-        _service = new PortfolioService(
-            _mockRepo,
-            _inventoryCalculator,
-            _mockRates,
-            _mockMarketData,
-            _mockMetrics,
-            NullLogger<PortfolioService>.Instance
-        );
     }
+
+    private PortfolioService BuildService(IUnitOfWork uow) => new(
+        uow, _inventoryCalculator, _mockRates, _mockMarketData, _mockMetrics,
+        NullLogger<PortfolioService>.Instance);
 
     private static Transaction CreateTx(
         DateTime? date = null,
@@ -80,9 +71,16 @@ public class PortfolioServiceTests
         };
     }
 
+    // -------------------------------------------------------------------------
+    // Write Paths — verified via FakeUnitOfWork (no mock chains, no EF Core)
+    // -------------------------------------------------------------------------
+
     [Fact]
-    public async Task AddTransaction_ShouldAddTransactionToRepository()
+    public async Task AddTransaction_ShouldStageAndPersistTransaction()
     {
+        var uow = new FakeUnitOfWork();
+        var service = BuildService(uow);
+
         NewTransactionRequest request = new()
         {
             Date = DateTime.UtcNow,
@@ -95,78 +93,102 @@ public class PortfolioServiceTests
             SpotPriceInputCurrency = "USD"
         };
 
-        await _service.AddTransactionAsync(request);
+        await service.AddTransactionAsync(request);
 
-        await _mockRepo.Received(1).AddAsync(Arg.Is<Transaction>(t => 
-            t.FromAssetId == request.FromAssetId && 
-            t.ToAssetId == request.ToAssetId &&
-            t.AmountSpent == 10000
-        ));
+        var saved = (await uow.FakeTransactions.GetAllAsync()).Single();
+        Assert.Equal(request.FromAssetId, saved.FromAssetId);
+        Assert.Equal(request.ToAssetId, saved.ToAssetId);
+        Assert.Equal(10000, saved.AmountSpent);
+        Assert.Equal(1, uow.SaveChangesCallCount); // persisted exactly once
     }
 
     [Fact]
     public async Task CalculateExchangeRatesAsync_ShouldUpdateRates_ForPastTransactions()
     {
+        var uow = new FakeUnitOfWork();
         var pastDate = DateTime.UtcNow.AddDays(-2);
-        Transaction tx = CreateTx(pastDate, TransactionType.Swap, "USD", "BTC", 100, 1, 1, null, 0, null, null, null, null, null);
-        
-        // Setup Repo to return this transaction
-        _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
-        
-        // Setup Exchange Rate Provider
+        var tx = CreateTx(pastDate, TransactionType.Swap, "USD", "BTC", 100, 1, 1);
+        await uow.FakeTransactions.AddAsync(tx);
+
         _mockRates.GetUsdEurRateAsync(Arg.Any<DateTime>()).Returns(Task.FromResult(0.85m));
 
-        await _service.CalculateExchangeRatesAsync();
+        var service = BuildService(uow);
+        await service.CalculateExchangeRatesAsync();
 
-        await _mockRepo.Received(1).UpdateAsync(Arg.Is<Transaction>(t => 
-            t.UsdEurExchangeRate == 0.85m &&
-            t.SpotPriceEUR == 0.85m // 1 * 0.85
-        ));
+        Assert.Equal(0.85m, tx.UsdEurExchangeRate);
+        Assert.Equal(0.85m, tx.SpotPriceEUR);
+        Assert.Equal(1, uow.SaveChangesCallCount); // all updates in one batch
+    }
+
+    [Fact]
+    public async Task CalculateExchangeRatesAsync_ShouldBatchSave_WhenMultiplePendingTransactions()
+    {
+        var uow = new FakeUnitOfWork();
+        var pastDate = DateTime.UtcNow.AddDays(-2);
+
+        // Three pending transactions
+        for (int i = 0; i < 3; i++)
+            await uow.FakeTransactions.AddAsync(CreateTx(pastDate, TransactionType.Swap, "USD", "BTC", 100, 1, 1));
+
+        _mockRates.GetUsdEurRateAsync(Arg.Any<DateTime>()).Returns(Task.FromResult(0.9m));
+
+        var service = BuildService(uow);
+        await service.CalculateExchangeRatesAsync();
+
+        // Only 1 SaveChangesAsync call regardless of how many transactions were updated
+        Assert.Equal(1, uow.SaveChangesCallCount);
     }
 
     [Fact]
     public async Task CalculateExchangeRatesAsync_ShouldUpdateUsdFromEur_WhenEurIsTruthSource()
     {
+        var uow = new FakeUnitOfWork();
         var pastDate = DateTime.UtcNow.AddDays(-3);
-        // Start with 100 EUR, Truth source is EUR.
-        Transaction tx = new(pastDate, TransactionType.Swap, Guid.NewGuid(), Guid.NewGuid(), 1, 1, null, 100m, 0, null, null, null, null, FiatCurrency.EUR, null, null)
+        var tx = new Transaction(pastDate, TransactionType.Swap, Guid.NewGuid(), Guid.NewGuid(), 1, 1, null, 100m, 0, null, null, null, null, FiatCurrency.EUR, null, null)
         {
             FromAsset = new Asset("EUR", "Euro", null, null, AssetType.Fiat),
             ToAsset = new Asset("BTC", "Bitcoin", null, null, AssetType.Crypto)
         };
-        
-        _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
-        _mockRates.GetUsdEurRateAsync(pastDate).Returns(Task.FromResult(0.8m)); // 1 USD = 0.8 EUR -> 1 EUR = 1.25 USD
+        await uow.FakeTransactions.AddAsync(tx);
 
-        await _service.CalculateExchangeRatesAsync();
+        _mockRates.GetUsdEurRateAsync(pastDate).Returns(Task.FromResult(0.8m)); // 1 USD = 0.8 EUR → 1 EUR = 1.25 USD
 
-        await _mockRepo.Received(1).UpdateAsync(Arg.Is<Transaction>(t => 
-            t.SpotPriceUSD == 125m && // (100 / 0.8)
-            t.SpotPriceEUR == 100m
-        ));
+        var service = BuildService(uow);
+        await service.CalculateExchangeRatesAsync();
+
+        Assert.Equal(125m, tx.SpotPriceUSD); // 100 / 0.8
+        Assert.Equal(100m, tx.SpotPriceEUR);
     }
+
+    // -------------------------------------------------------------------------
+    // Read Paths — mock IUnitOfWork at the top level only (no mock chains)
+    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task GetPortfolioMetrics_ShouldOrchestrateFlowCorrectly()
     {
+        var mockUow = Substitute.For<IUnitOfWork>();
+        var service = BuildService(mockUow);
+
         Guid btcId = Guid.NewGuid();
         Transaction tx = new(DateTime.UtcNow, TransactionType.Swap, FiatCurrency.USD.Id, btcId, 10000, 1, 1, null, 0, null, null, null, null, null, null, null)
         {
             FromAsset = new Asset("USD", "US Dollar", null, null, AssetType.Fiat),
             ToAsset = new Asset("BTC", "Bitcoin", null, null, AssetType.Crypto)
         };
-        _mockRepo.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
-        
+
+        mockUow.Transactions.GetAllAsync().Returns(Task.FromResult((IEnumerable<Transaction>)[tx]));
+
         _mockMarketData.GetMarketDataAsync(Arg.Any<IEnumerable<Guid>>(), FiatCurrency.USD)
             .Returns(Task.FromResult(new Dictionary<Guid, AssetMarketData> { { btcId, new AssetMarketData("BTC", "Bitcoin", 30000m) } }));
-            
+
         _mockMetrics.CalculateMetrics(Arg.Any<List<AssetHolding>>(), Arg.Any<Dictionary<Guid, decimal>>())
             .Returns(new PortfolioMetrics());
 
-        await _service.GetPortfolioMetricsAsync();
+        await service.GetPortfolioMetricsAsync();
 
         _mockMetrics.Received(1).CalculateMetrics(
-            Arg.Is<List<AssetHolding>>(h => h.Count == 1 && h.First().Id == btcId), 
+            Arg.Is<List<AssetHolding>>(h => h.Count == 1 && h.First().Id == btcId),
             Arg.Any<Dictionary<Guid, decimal>>());
     }
 }

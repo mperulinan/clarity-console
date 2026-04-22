@@ -12,13 +12,13 @@ namespace Portfolio.API.Controllers;
 [ApiController]
 public class AssetController(
     IAssetSearchService assetSearchService,
-    IAssetRepository assetRepository,
+    IUnitOfWork unitOfWork,
     IAssetSynchronizationService syncService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AssetDto>>> GetAssets()
     {
-        var assets = await assetRepository.GetAllAsync();
+        var assets = await unitOfWork.Assets.GetAllAsync();
         return Ok(assets.Select(AssetMapper.ToDto));
     }
 
@@ -38,7 +38,7 @@ public class AssetController(
         if (string.IsNullOrWhiteSpace(request?.ExternalId))
             return BadRequest("ExternalId is required for synchronization.");
 
-        var existingAssets = await assetRepository.GetByExternalIdsAsync(new[] { request.ExternalId });
+        var existingAssets = await unitOfWork.Assets.GetByExternalIdsAsync(new[] { request.ExternalId });
         var existingAsset = existingAssets.FirstOrDefault();
 
         if (existingAsset != null)
@@ -51,7 +51,7 @@ public class AssetController(
 
         await syncService.SynchronizeCatalogAsync(new[] { newAsset });
 
-        var syncedAssets = await assetRepository.GetByExternalIdsAsync(new[] { request.ExternalId });
+        var syncedAssets = await unitOfWork.Assets.GetByExternalIdsAsync(new[] { request.ExternalId });
         var syncedAsset = syncedAssets.FirstOrDefault();
 
         if (syncedAsset == null)

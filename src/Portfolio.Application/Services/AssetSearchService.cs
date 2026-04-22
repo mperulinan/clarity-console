@@ -8,9 +8,8 @@ using Portfolio.Domain.Interfaces;
 namespace Portfolio.Application.Services;
 
 public class AssetSearchService(
-    IAssetRepository assetRepository,
+    IUnitOfWork unitOfWork,
     IAssetSearchProvider searchProvider,
-    ITransactionRepository transactionRepository,
     ILogger<AssetSearchService> logger) : IAssetSearchService
 {
     public async Task<IEnumerable<AssetDto>> SearchAsync(string query, string? type = null)
@@ -18,7 +17,7 @@ public class AssetSearchService(
         logger.LogInformation("Asset search requested: '{Query}' (Filter: {Type})", query ?? "", type ?? "None");
 
         // 1. Search local DB
-        var allLocalAssets = await assetRepository.GetAllAsync();
+        var allLocalAssets = await unitOfWork.Assets.GetAllAsync();
         var localAssets = allLocalAssets.Where(a =>
             (string.IsNullOrEmpty(query) ||
              a.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
@@ -39,7 +38,7 @@ public class AssetSearchService(
         }
 
         // 3. Compute per-asset transaction counts (counts appearances across From, To, and Fee)
-        var allTransactions = await transactionRepository.GetAllAsync();
+        var allTransactions = await unitOfWork.Transactions.GetAllAsync();
         Dictionary<Guid, int> transactionCounts = [];
         foreach (var tx in allTransactions)
         {

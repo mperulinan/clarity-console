@@ -65,11 +65,12 @@ public class TransactionRepositoryTests
         {
             context.Assets.AddRange(usdAsset, btcAsset);
             await context.SaveChangesAsync();
-            
+
             TransactionRepository repository = new(context);
             Transaction transaction = CreateTx(fromAssetId: usdAsset.Id, toAssetId: btcAsset.Id);
 
             await repository.AddAsync(transaction);
+            await context.SaveChangesAsync(); // UoW responsibility — explicit in tests
         }
 
         using (PortfolioContext assertContext = new(_options))
@@ -128,10 +129,11 @@ public class TransactionRepositoryTests
             TransactionRepository repository = new(context);
             var tx = await repository.GetByIdAsync(id);
             Assert.NotNull(tx);
-            
+
             tx.UpdateExchangeRates(0.9m);
-            
+
             await repository.UpdateAsync(tx);
+            await context.SaveChangesAsync();
         }
 
         using (PortfolioContext context = new(_options))
