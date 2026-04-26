@@ -29,6 +29,8 @@ builder.Services.AddDbContext<PortfolioContext>(options =>
 });
 
 // Dependency Injection
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAssetSearchService, AssetSearchService>();
 builder.Services.AddScoped<IInventoryCalculator, InventoryCalculator>();

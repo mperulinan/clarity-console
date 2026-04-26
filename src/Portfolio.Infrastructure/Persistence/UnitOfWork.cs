@@ -5,10 +5,13 @@ using Portfolio.Infrastructure.Persistence.Repositories;
 
 namespace Portfolio.Infrastructure.Persistence;
 
-public sealed class UnitOfWork(PortfolioContext context) : IUnitOfWork
+public sealed class UnitOfWork(
+    PortfolioContext context,
+    ITransactionRepository transactions,
+    IAssetRepository assets) : IUnitOfWork
 {
-    public ITransactionRepository Transactions { get; } = new TransactionRepository(context);
-    public IAssetRepository Assets { get; } = new AssetRepository(context);
+    public ITransactionRepository Transactions { get; } = transactions;
+    public IAssetRepository Assets { get; } = assets;
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => await context.SaveChangesAsync(cancellationToken);
