@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Portfolio.Application.CQRS.Commands;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
 using Portfolio.Domain.Enums;
@@ -20,8 +21,8 @@ public class TransactionController(IPortfolioService portfolioService, ISender s
     [HttpPost]
     public async Task<ActionResult> PostTransaction(NewTransactionRequest request)
     {
-        await portfolioService.AddTransactionAsync(request);
-        return Ok();
+        var result = await sender.Send(new AddTransactionCommand(request));
+        return Ok(result);
     }
 
     [HttpGet("types")]
