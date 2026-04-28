@@ -1,14 +1,15 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Portfolio.API.BackgroundServices;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Services;
 using Portfolio.Domain.Interfaces;
 using Portfolio.Domain.Services;
+using Portfolio.Infrastructure.ExternalServices;
 using Portfolio.Infrastructure.Persistence;
 using Portfolio.Infrastructure.Persistence.Repositories;
-using Portfolio.Infrastructure.ExternalServices;
-using System.Text.Json.Serialization;
-using Microsoft.Extensions.Caching.Memory;
-using Portfolio.API.BackgroundServices;
+using Portfolio.Application.CQRS.Queries;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
@@ -34,15 +35,14 @@ builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAssetSearchService, AssetSearchService>();
 builder.Services.AddScoped<IInventoryCalculator, InventoryCalculator>();
-builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddScoped<IExchangeRateProvider, FrankfurterExchangeRateProvider>();
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(PortfolioService).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetPortfolioMetricsQuery).Assembly));
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<CoinGeckoProvider>();
-builder.Services.AddScoped<IAssetPriceProvider, AssetPriceCacheService>(sp => 
+builder.Services.AddScoped<IAssetPriceProvider, AssetPriceCacheService>(sp =>
     new AssetPriceCacheService(
-        sp.GetRequiredService<CoinGeckoProvider>(), 
+        sp.GetRequiredService<CoinGeckoProvider>(),
         sp.GetRequiredService<IMemoryCache>(),
         sp.GetRequiredService<ILogger<AssetPriceCacheService>>()
     ));
@@ -59,7 +59,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString;
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; 
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
 builder.Services.AddEndpointsApiExplorer();

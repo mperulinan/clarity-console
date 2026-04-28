@@ -3,14 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Portfolio.Application.CQRS.Commands;
 using Portfolio.Application.CQRS.Queries;
 using Portfolio.Application.DTOs;
-using Portfolio.Application.Interfaces;
 using Portfolio.Domain.Enums;
 
 namespace Portfolio.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class TransactionController(IPortfolioService portfolioService, ISender sender) : ControllerBase
+public class TransactionController(ISender sender) : ControllerBase
 {
     [HttpGet]
     public async Task<IEnumerable<TransactionDto>> GetTransactions()
