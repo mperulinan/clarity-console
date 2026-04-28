@@ -1,3 +1,4 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
@@ -7,7 +8,7 @@ namespace Portfolio.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class PortfolioController(IPortfolioService portfolioService) : ControllerBase
+public class PortfolioController(IPortfolioService portfolioService, ISender sender) : ControllerBase
 {
     [HttpGet("dashboard")]
     public async Task<ActionResult<PortfolioMetrics>> GetDashboard()

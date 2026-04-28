@@ -1,14 +1,14 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Portfolio.Application.Interfaces;
-using Portfolio.Infrastructure.Persistence;
 using Portfolio.Application.DTOs;
+using Portfolio.Application.Interfaces;
 using Portfolio.Domain.Enums;
 
 namespace Portfolio.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class TransactionController(IPortfolioService portfolioService) : ControllerBase
+public class TransactionController(IPortfolioService portfolioService, ISender sender) : ControllerBase
 {
     [HttpGet]
     public async Task<IEnumerable<TransactionDto>> GetTransactions()
@@ -28,8 +28,8 @@ public class TransactionController(IPortfolioService portfolioService) : Control
     public ActionResult<IEnumerable<TransactionTypeDto>> GetTransactionTypes()
     {
         var types = TransactionType.List.Select(t => new TransactionTypeDto
-        { 
-            Value = t.Value, 
+        {
+            Value = t.Value,
             Name = t.Name,
             RequiresFromAsset = t.RequiresFromAsset,
             RequiresToAsset = t.RequiresToAsset
