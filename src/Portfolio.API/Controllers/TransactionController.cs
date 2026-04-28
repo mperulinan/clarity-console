@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Portfolio.Application.CQRS.Commands;
+using Portfolio.Application.CQRS.Queries;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
 using Portfolio.Domain.Enums;
@@ -14,7 +15,7 @@ public class TransactionController(IPortfolioService portfolioService, ISender s
     [HttpGet]
     public async Task<IEnumerable<TransactionDto>> GetTransactions()
     {
-        var report = await portfolioService.GetPortfolioReportAsync();
+        var report = await sender.Send(new GetPortfolioReportQuery());
         return report.Transactions.Select(t => t.Transaction);
     }
 

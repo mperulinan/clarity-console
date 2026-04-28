@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Portfolio.Application.CQRS.Queries;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
 using Portfolio.Domain.ValueObjects;
@@ -13,14 +14,14 @@ public class PortfolioController(IPortfolioService portfolioService, ISender sen
     [HttpGet("dashboard")]
     public async Task<ActionResult<PortfolioMetrics>> GetDashboard()
     {
-        var metrics = await portfolioService.GetPortfolioMetricsAsync();
-        return Ok(metrics);
+        var result = await sender.Send(new GetPortfolioMetricsQuery());
+        return Ok(result);
     }
 
     [HttpGet("tax-report")]
     public async Task<ActionResult<PortfolioReportDto>> GetTaxReport()
     {
-        var report = await portfolioService.GetPortfolioReportAsync();
-        return Ok(report);
+        var result = await sender.Send(new GetPortfolioReportQuery());
+        return Ok(result);
     }
 }
