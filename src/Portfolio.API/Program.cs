@@ -36,6 +36,7 @@ builder.Services.AddScoped<IAssetSearchService, AssetSearchService>();
 builder.Services.AddScoped<IInventoryCalculator, InventoryCalculator>();
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddScoped<IExchangeRateProvider, FrankfurterExchangeRateProvider>();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(PortfolioService).Assembly));
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<CoinGeckoProvider>();
