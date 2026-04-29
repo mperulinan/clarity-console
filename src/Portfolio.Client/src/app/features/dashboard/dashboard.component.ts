@@ -35,26 +35,26 @@ export class DashboardComponent implements OnInit {
         return data ? mapToDashboardRows(data) : [];
     });
 
-    totalValue       = computed(() => this.metrics()?.totalPortfolioValueUsd ?? 0);
-    totalCost        = computed(() => this.metrics()?.totalCostBasisUsd ?? 0);
-    netDeposits      = computed(() => this.metrics()?.netDepositsUsd ?? 0);
+    totalValue = computed(() => this.metrics()?.totalPortfolioValueUsd ?? 0);
+    totalCost = computed(() => this.metrics()?.totalCostBasisUsd ?? 0);
+    netDeposits = computed(() => this.metrics()?.netDepositsUsd ?? 0);
     totalUnrealizedPL = computed(() => this.metrics()?.totalUnrealizedProfitLossUsd ?? 0);
-    totalRealizedPL  = computed(() => this.metrics()?.totalRealizedProfitLossUsd ?? 0);
-    totalPL          = computed(() => this.metrics()?.totalProfitLossUsd ?? 0);
+    totalRealizedPL = computed(() => this.metrics()?.totalRealizedProfitLossUsd ?? 0);
+    totalPL = computed(() => this.metrics()?.totalProfitLossUsd ?? 0);
     unrealizedPLPercentage = computed(() => this.metrics()?.unrealizedProfitLossPercentage ?? 0);
-    totalReturn      = computed(() => this.metrics()?.totalReturn ?? 0);
+    totalReturn = computed(() => this.metrics()?.totalReturn ?? 0);
 
     // ── Boolean state signals (keep template free of arithmetic) ─────────
-    isPlPositive          = computed(() => this.totalPL() >= 0);
-    isUnrealizedPositive  = computed(() => this.totalUnrealizedPL() >= 0);
-    isRealizedPositive    = computed(() => this.totalRealizedPL() >= 0);
-    isReturnPositive      = computed(() => this.totalReturn() >= 0);
+    isPlPositive = computed(() => this.totalPL() >= 0);
+    isUnrealizedPositive = computed(() => this.totalUnrealizedPL() >= 0);
+    isRealizedPositive = computed(() => this.totalRealizedPL() >= 0);
+    isReturnPositive = computed(() => this.totalReturn() >= 0);
 
     // ── Sign prefix helpers ───────────────────────────────────────────────
-    plSign         = computed(() => this.isPlPositive() ? '+' : '');
+    plSign = computed(() => this.isPlPositive() ? '+' : '');
     unrealizedSign = computed(() => this.isUnrealizedPositive() ? '+' : '');
-    realizedSign   = computed(() => this.isRealizedPositive() ? '+' : '');
-    returnSign     = computed(() => this.isReturnPositive() ? '+' : '');
+    realizedSign = computed(() => this.isRealizedPositive() ? '+' : '');
+    returnSign = computed(() => this.isReturnPositive() ? '+' : '');
 
     private readonly destroyRef = inject(DestroyRef);
 
@@ -85,7 +85,7 @@ export class DashboardComponent implements OnInit {
     }
 
     getInitials(symbol: string): string {
-        return (symbol ?? '??').slice(0, 2).toUpperCase();
+        return (symbol || '??').slice(0, 2).toUpperCase();
     }
 
     openNewTransaction() {
