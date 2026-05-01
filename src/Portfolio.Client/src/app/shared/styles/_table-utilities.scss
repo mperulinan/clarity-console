@@ -2,15 +2,15 @@
    Shared Table, Cell & Skeleton Utilities
    ═══════════════════════════════════════════════ */
 
-/* ── TOKENS ─────────────────────────────────── */
-$border: rgba(255, 255, 255, 0.07);
-$text-primary: #f0f0f0;
-$text-muted: #8892a4;
-$green: #00e676;
-$green-soft: rgba(0, 230, 118, 0.08);
-$red: #ff5252;
-$red-soft: rgba(255, 82, 82, 0.08);
-$amber: #ffab40;
+/* ── TOKENS (DESIGN.md: The Clarity Console) ─── */
+$border: rgba(255, 255, 255, 0.06);
+$text-primary: #E8ECF4;
+$text-muted: #8B93A8;
+$green: #FAFF70; // Bull Yellow
+$green-soft: rgba(250, 255, 112, 0.10);
+$red: #9B8EFD; // Purple Loss
+$red-soft: rgba(155, 142, 253, 0.10);
+$amber: #FAFF70; // alias → Bull Yellow
 
 /* ── CELLS & BADGES ─────────────────────────── */
 .col-num {
@@ -101,12 +101,18 @@ $amber: #ffab40;
 
     &.positive {
         background: $green-soft;
-        .pl-amount { color: $green; }
+
+        .pl-amount {
+            color: $green;
+        }
     }
 
     &.negative {
         background: $red-soft;
-        .pl-amount { color: $red; }
+
+        .pl-amount {
+            color: $red;
+        }
     }
 
     &.pl-disallowed {
@@ -133,12 +139,25 @@ $amber: #ffab40;
     overflow: visible !important;
 }
 
-.status-ok { color: rgba(0, 230, 118, 0.4); }
-.status-warn { color: $amber; }
-.status-error { color: $red; }
-.status-neutral { color: $text-muted; opacity: 0.8; }
+.status-ok {
+    color: rgba(0, 230, 118, 0.4);
+}
 
-.empty-state, .empty-cards {
+.status-warn {
+    color: $amber;
+}
+
+.status-error {
+    color: $red;
+}
+
+.status-neutral {
+    color: $text-muted;
+    opacity: 0.8;
+}
+
+.empty-state,
+.empty-cards {
     text-align: center;
     color: $text-muted;
 
@@ -167,12 +186,17 @@ $amber: #ffab40;
 
 /* ── SKELETON ────────────────────────────────── */
 @keyframes shimmer {
-    0% { background-position: -600px 0; }
-    100% { background-position: 600px 0; }
+    0% {
+        background-position: -600px 0;
+    }
+
+    100% {
+        background-position: 600px 0;
+    }
 }
 
-$skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
-$bg-card: #16213e;
+$skel-shine: linear-gradient(90deg, #1e2236 25%, #252945 50%, #1e2236 75%);
+$bg-card: #1e2236;
 
 %skel {
     background: $skel-shine;
@@ -198,9 +222,17 @@ $bg-card: #16213e;
         margin-bottom: 0;
     }
 
-    .skel-line.tall { height: 32px; }
-    .skel-line.w20 { width: 120px; }
-    .skel-line.w40 { width: 40%; }
+    .skel-line.tall {
+        height: 32px;
+    }
+
+    .skel-line.w20 {
+        width: 120px;
+    }
+
+    .skel-line.w40 {
+        width: 40%;
+    }
 }
 
 .skel-table {
@@ -245,15 +277,28 @@ $bg-card: #16213e;
 }
 
 .skel-line {
-    &.w70 { width: 70%; }
-    &.w80 { width: 80%; }
+    &.w70 {
+        width: 70%;
+    }
+
+    &.w80 {
+        width: 80%;
+    }
 }
 
 /* ── UX ANIMATIONS ───────────────────────────── */
 @keyframes pulseGlow {
-    0% { background-color: transparent; }
-    30% { background-color: rgba(255, 171, 64, 0.2); }
-    100% { background-color: transparent; }
+    0% {
+        background-color: transparent;
+    }
+
+    30% {
+        background-color: rgba(255, 171, 64, 0.2);
+    }
+
+    100% {
+        background-color: transparent;
+    }
 }
 
 .highlight-glow {
@@ -267,6 +312,6 @@ $bg-card: #16213e;
     &:hover {
         transform: scale(1.15);
         opacity: 1;
-        color: #ffab40; /* Slightly glow amber on hover to show interactivity */
+        color: $amber;
     }
 }

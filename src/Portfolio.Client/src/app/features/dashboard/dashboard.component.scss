@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════
-   Dashboard — Dark Theme
+   Dashboard — The Clarity Console
+   DESIGN.md tokens · product register
    ═══════════════════════════════════════════════ */
 
 :host {
@@ -14,49 +15,47 @@
 }
 
 /* ── TOKENS ─────────────────────────────────── */
-$bg-surface: #1a1a2e;
-$bg-card: #16213e;
-$bg-card-alt: #1e2a45;
-$border: rgba(255, 255, 255, 0.07);
-$text-primary: #f0f0f0;
-$text-muted: #8892a4;
-$green: #00e676;
-$green-glow: rgba(0, 230, 118, 0.15);
-$green-soft: rgba(0, 230, 118, 0.08);
-$red: #ff5252;
-$red-glow: rgba(255, 82, 82, 0.15);
-$red-soft: rgba(255, 82, 82, 0.08);
-$purple: #b388ff;
-$blue: #40c4ff;
-$accent: #7c6cfc;
-
-/* ── GLASSMORPHISM ───────────────────────────── */
-.glass {
-    background: rgba(22, 33, 62, 0.7) !important;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
+$bg-card: #1e2236; // Navy Surface
+$bg-deeper: #171c2c; // stat strip (darker than card)
+$border: rgba(255, 255, 255, 0.06);
+$text: #E8ECF4;
+$muted: #8B93A8;
+$gain: #FAFF70; // Bull Yellow
+$gain-soft: rgba(250, 255, 112, 0.10);
+$loss: #9B8EFD; // Purple Loss
+$loss-soft: rgba(155, 142, 253, 0.10);
+$crimson: #FF0054; // Hot Crimson — primary action only
 
 /* ── ANIMATIONS ─────────────────────────────── */
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(8px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-.bento-grid, .table-wrap, .toolbar {
-    animation: fadeInUp 0.5s ease backwards;
+.bento-grid,
+.table-wrap,
+.toolbar {
+    animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) backwards;
 }
 
-.bento-grid { animation-delay: 0.1s; }
-.toolbar    { animation-delay: 0.3s; }
-.table-wrap { animation-delay: 0.4s; }
+.bento-grid {
+    animation-delay: 0.05s;
+}
+
+.toolbar {
+    animation-delay: 0.15s;
+}
+
+.table-wrap {
+    animation-delay: 0.20s;
+}
 
 /* ── BENTO GRID ──────────────────────────────── */
 .bento-grid {
@@ -66,15 +65,12 @@ $accent: #7c6cfc;
     grid-template-areas:
         'value value  pl   pl'
         'dep   cost   unr  real';
-    gap: 1px;                              // gap reveals bg = 1px border
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 1px; // gap color = hairline dividers between cells
+    background: $border;
+    border: 1px solid $border;
     border-radius: 20px;
     overflow: hidden;
     margin-bottom: 28px;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
 
     @media (max-width: 900px) {
         grid-template-columns: 1fr 1fr;
@@ -99,59 +95,45 @@ $accent: #7c6cfc;
 }
 
 /* ── GRID AREA ASSIGNMENTS ───────────────────── */
-.bento-value { grid-area: value; }
-.bento-pl    { grid-area: pl; }
-.bento-dep   { grid-area: dep; }
-.bento-cost  { grid-area: cost; }
-.bento-unr   { grid-area: unr; }
-.bento-real  { grid-area: real; }
-
-/* ── VALUE CELL ──────────────────────────────── */
 .bento-value {
-    background: linear-gradient(150deg, $bg-card 65%, $bg-card-alt 100%);
+    grid-area: value;
+}
+
+.bento-pl {
+    grid-area: pl;
+}
+
+.bento-dep {
+    grid-area: dep;
+}
+
+.bento-cost {
+    grid-area: cost;
+}
+
+.bento-unr {
+    grid-area: unr;
+}
+
+.bento-real {
+    grid-area: real;
 }
 
 /* ── P&L CELL ────────────────────────────────── */
+// Sign is communicated through text color (gold/purple) only.
+// No background tints, no side-stripe bars.
 .bento-pl {
-    transition: background 0.3s ease;
-
-    // Glowing left-edge accent bar signals P&L sign at a glance
-    &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 20px;
-        bottom: 20px;
-        width: 3px;
-        border-radius: 0 3px 3px 0;
-        transition: background 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    &.bento-pos {
-        background: linear-gradient(150deg, $bg-card 50%, rgba(0, 230, 118, 0.05) 100%);
-        &::before {
-            background: $green;
-            box-shadow: 0 0 20px rgba(0, 230, 118, 0.45);
-        }
-    }
-
-    &.bento-neg {
-        background: linear-gradient(150deg, $bg-card 50%, rgba(255, 82, 82, 0.05) 100%);
-        &::before {
-            background: $red;
-            box-shadow: 0 0 20px rgba(255, 82, 82, 0.45);
-        }
-    }
+    transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* ── STAT CELLS (bottom row) ─────────────────── */
+/* ── STAT CELLS (compact bottom row) ─────────── */
 .bento-stat {
     padding: 16px 22px;
-    background: rgba(14, 19, 34, 0.8);   // darker than top row = depth
-    transition: background 0.15s ease;
+    background: $bg-deeper;
+    transition: background 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 
     &:hover {
-        background: rgba(255, 255, 255, 0.025);
+        background: rgba(255, 255, 255, 0.02);
     }
 }
 
@@ -164,54 +146,72 @@ $accent: #7c6cfc;
     font-weight: 600;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: $text-muted;
+    color: $muted;
     margin-bottom: 10px;
 }
 
 /* ── STATUS DOT ──────────────────────────────── */
 .bento-dot {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     flex-shrink: 0;
 
-    &.dot-blue  { background: $blue;  box-shadow: 0 0 7px $blue; }
-    &.dot-green { background: $green; box-shadow: 0 0 7px $green; }
-    &.dot-red   { background: $red;   box-shadow: 0 0 7px $red; }
+    &.dot-blue {
+        background: $muted;
+    }
+
+    // neutral — portfolio value
+    &.dot-green {
+        background: $gain;
+    }
+
+    // gold — gain signal
+    &.dot-red {
+        background: $loss;
+    }
+
+    // purple — loss signal
 }
 
 /* ── PRIMARY AMOUNT ──────────────────────────── */
 .bento-amount {
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
     font-size: 34px;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    color: $text-primary;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: $text;
     line-height: 1.1;
     margin-bottom: 14px;
 
-    &.bento-pl-amount { font-size: 40px; }
+    &.bento-pl-amount {
+        font-size: 40px;
+    }
 }
 
 /* ── RETURN BADGE ────────────────────────────── */
 .bento-return-badge {
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
     display: inline-flex;
     align-items: center;
     gap: 4px;
     font-size: 13px;
     font-weight: 600;
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
 
     &.badge-green {
-        background: $green-glow;
-        color: $green;
-        border: 1px solid rgba(0, 230, 118, 0.2);
+        background: rgba(255, 214, 0, 0.10);
+        color: $gain;
+        border: 1px solid rgba(255, 214, 0, 0.2);
     }
 
     &.badge-red {
-        background: $red-glow;
-        color: $red;
-        border: 1px solid rgba(255, 82, 82, 0.2);
+        background: $loss-soft;
+        color: $loss;
+        border: 1px solid rgba(155, 142, 253, 0.2);
     }
 
     .badge-icon {
@@ -229,28 +229,28 @@ $accent: #7c6cfc;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: $text-muted;
+    color: $muted;
     margin-bottom: 6px;
 }
 
 .bento-stat-value {
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
     display: block;
     font-size: 18px;
-    font-weight: 700;
-    color: $text-primary;
+    font-weight: 500;
+    color: $text;
     letter-spacing: -0.01em;
     line-height: 1.2;
 }
 
-
-
 /* ── COLOR CLASSES ───────────────────────────── */
 .positive {
-    color: $green !important;
+    color: $gain !important;
 }
 
 .negative {
-    color: $red !important;
+    color: $loss !important;
 }
 
 /* ── TOOLBAR ─────────────────────────────────── */
@@ -263,17 +263,17 @@ $accent: #7c6cfc;
 
 .holdings-title {
     font-size: 18px;
-    font-weight: 700;
-    color: $text-primary;
+    font-weight: 600;
+    color: $text;
     margin: 0;
 }
 
 .holdings-count {
     display: inline-block;
-    background: rgba(124, 108, 252, 0.2);
-    color: $accent;
-    font-size: 13px;
-    font-weight: 700;
+    background: rgba(255, 255, 255, 0.08);
+    color: $muted;
+    font-size: 12px;
+    font-weight: 600;
     padding: 1px 8px;
     border-radius: 10px;
     margin-left: 8px;
@@ -284,16 +284,18 @@ $accent: #7c6cfc;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: linear-gradient(135deg, $accent, #5c4ee8);
+    background: $crimson;
     color: #fff;
     border: none;
-    border-radius: 10px;
-    padding: 9px 20px;
+    border-radius: 8px;
+    padding: 8px 18px;
     font-size: 14px;
     font-weight: 600;
+    font-family: var(--font-sans);
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.2s;
-    box-shadow: 0 4px 16px rgba(124, 108, 252, 0.4);
+    transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+        transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+        box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     mat-icon {
         font-size: 18px;
@@ -302,8 +304,14 @@ $accent: #7c6cfc;
     }
 
     &:hover {
-        opacity: 0.9;
+        background: #d90047;
         transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: none;
     }
 }
 
@@ -313,7 +321,6 @@ $accent: #7c6cfc;
     border: 1px solid $border;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
 .holdings-table {
@@ -329,10 +336,10 @@ $accent: #7c6cfc;
 
     th {
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: $text-muted;
+        color: $muted;
         background: rgba(255, 255, 255, 0.02);
         white-space: nowrap;
     }
@@ -343,32 +350,26 @@ $accent: #7c6cfc;
 }
 
 .holdings-row {
-    transition: background 0.15s ease;
+    transition: background 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 
     &:hover {
-        background: rgba(255, 255, 255, 0.03);
-
-        .col-openpl.col-num .pl-cell.positive {
-            box-shadow: 0 0 12px $green-glow;
-        }
-
-        .col-openpl.col-num .pl-cell.negative {
-            box-shadow: 0 0 12px $red-glow;
-        }
+        background: rgba(255, 255, 255, 0.025);
     }
 }
 
 .col-num {
     text-align: right;
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
 }
 
 .col-alloc {
     width: 160px;
 }
 
-/* ── Open P/L highlight column ── */
+/* Open P/L — highlighted column via background, not stripe border */
 .col-openpl {
-    background: rgba(255, 255, 255, 0.015);
+    background: rgba(255, 255, 255, 0.012);
     border-left: 1px solid $border;
     border-right: 1px solid $border;
 }
@@ -382,30 +383,31 @@ $accent: #7c6cfc;
 
 .asset-icon-wrap {
     flex-shrink: 0;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
 }
 
 .asset-icon {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     object-fit: cover;
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid $border;
 }
 
 .asset-icon-fallback {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, $accent, #9c27b0);
+    background: #252945;
+    border: 1px solid $border;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
-    color: #fff;
+    color: $muted;
     letter-spacing: 0.03em;
 }
 
@@ -417,14 +419,14 @@ $accent: #7c6cfc;
 
 .asset-symbol {
     font-size: 14px;
-    font-weight: 700;
-    color: $text-primary;
-    letter-spacing: 0.04em;
+    font-weight: 600;
+    color: $text;
+    letter-spacing: 0.02em;
 }
 
 .asset-name {
     font-size: 12px;
-    color: $text-muted;
+    color: $muted;
     text-transform: capitalize;
 }
 
@@ -432,14 +434,14 @@ $accent: #7c6cfc;
 .cell-primary {
     display: block;
     font-size: 14px;
-    font-weight: 600;
-    color: $text-primary;
+    font-weight: 500;
+    color: $text;
 }
 
 .cell-secondary {
     display: block;
     font-size: 12px;
-    color: $text-muted;
+    color: $muted;
     margin-top: 2px;
 }
 
@@ -449,39 +451,40 @@ $accent: #7c6cfc;
     flex-direction: column;
     align-items: flex-end;
     gap: 3px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    transition: box-shadow 0.2s ease;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     &.positive {
-        background: $green-soft;
+        background: $gain-soft;
 
         .pl-amount {
-            color: $green;
+            color: $gain;
         }
 
         .pl-pct {
-            color: #00c060;
+            color: $gain;
         }
     }
 
     &.negative {
-        background: $red-soft;
+        background: $loss-soft;
 
         .pl-amount {
-            color: $red;
+            color: $loss;
         }
 
         .pl-pct {
-            color: #e03b3b;
+            color: $loss;
         }
     }
 }
 
 .pl-amount {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 600;
     line-height: 1;
+    white-space: nowrap;
 }
 
 .pl-pct {
@@ -508,8 +511,8 @@ $accent: #7c6cfc;
 
 .alloc-bar-wrap {
     flex: 1;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.07);
+    height: 4px;
+    background: rgba(255, 255, 255, 0.06);
     border-radius: 10px;
     overflow: hidden;
     min-width: 60px;
@@ -518,23 +521,21 @@ $accent: #7c6cfc;
 .alloc-bar-fill {
     height: 100%;
     border-radius: 10px;
-    background: linear-gradient(90deg, $accent, $blue);
-    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: rgba(139, 147, 168, 0.45);
+    transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     max-width: 100%;
 
     &.fill-dominant {
-        background: linear-gradient(90deg, #ff9100, #ff5252);
-    }
-
-    &.fill-medium {
-        background: linear-gradient(90deg, $accent, $purple);
+        background: rgba(255, 214, 0, 0.50); // yellow tint for big positions
     }
 }
 
 .alloc-label {
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
     font-size: 12px;
     font-weight: 600;
-    color: $text-muted;
+    color: $muted;
     min-width: 38px;
     text-align: right;
 }
@@ -544,14 +545,14 @@ $accent: #7c6cfc;
     text-align: center;
     padding: 64px 24px !important;
     border-bottom: none !important;
-    color: $text-muted;
+    color: $muted;
 
     mat-icon {
         font-size: 48px;
         width: 48px;
         height: 48px;
         margin-bottom: 12px;
-        opacity: 0.4;
+        opacity: 0.3;
     }
 
     p {
@@ -572,8 +573,7 @@ $accent: #7c6cfc;
     }
 }
 
-$skel-base: #1e2a45;
-$skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
+$skel-shine: linear-gradient(90deg, #1e2236 25%, #252945 50%, #1e2236 75%);
 
 %skel {
     background: $skel-shine;
@@ -627,17 +627,17 @@ $skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
 }
 
 .skel-bento {
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid $border;
     border-radius: 20px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.06);  // gap color = border
+    background: $border;
 }
 
 .skel-bento-top {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1px;
-    background: rgba(255, 255, 255, 0.06);
+    background: $border;
 
     @media (max-width: 900px) {
         grid-template-columns: 1fr;
@@ -653,8 +653,8 @@ $skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1px;
-    background: rgba(255, 255, 255, 0.06);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: $border;
+    border-top: 1px solid $border;
 
     @media (max-width: 900px) {
         grid-template-columns: 1fr 1fr;
@@ -666,12 +666,15 @@ $skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
 }
 
 .skel-bento-stat {
-    background: rgba(14, 19, 34, 0.8);
+    background: $bg-deeper;
     padding: 16px 22px;
 
     .skel-line {
         margin-bottom: 6px;
-        &:last-child { margin-bottom: 0; }
+
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
 }
 
@@ -721,8 +724,26 @@ $skel-shine: linear-gradient(90deg, #1e2a45 25%, #29395a 50%, #1e2a45 75%);
 
 .skel-circle {
     @extend %skel;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     flex-shrink: 0;
+}
+
+/* ── REDUCED MOTION ──────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+
+    .bento-grid,
+    .table-wrap,
+    .toolbar {
+        animation: none;
+    }
+
+    .alloc-bar-fill {
+        transition: none;
+    }
+
+    .add-btn {
+        transition: none;
+    }
 }
