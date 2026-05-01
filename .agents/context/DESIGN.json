@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-01T11:55:00Z",
+  "title": "Design System: Portfolio",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Hot Crimson", "canonical": "#FF0054", "tonalRamp": ["#330011", "#660022", "#990033", "#cc0044", "#FF0054", "#ff3377", "#ff6699", "#ff99bb"] },
+      "bg-base": { "role": "neutral", "displayName": "Navy Dark", "canonical": "#131722", "tonalRamp": ["#080a0f", "#0c0f16", "#10141d", "#131722", "#21283a", "#2f3953", "#3d4b6b", "#4b5c84"] },
+      "bg-surface": { "role": "neutral", "displayName": "Navy Surface", "canonical": "#1e2236", "tonalRamp": ["#0c0e16", "#121520", "#181b2b", "#1e2236", "#2f3554", "#404873", "#515c91", "#6370af"] },
+      "semantic-gain": { "role": "secondary", "displayName": "Gold Gain", "canonical": "#F2C14E", "tonalRamp": ["#332506", "#66490c", "#996e12", "#cc9318", "#F2C14E", "#f5cd71", "#f7d995", "#fae6b8"] },
+      "semantic-loss": { "role": "tertiary", "displayName": "Purple Loss", "canonical": "#9B8EFD", "tonalRamp": ["#191444", "#322988", "#4b3ecc", "#6b5cfa", "#9B8EFD", "#afb6fe", "#c3cafe", "#d7deff"] }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Hero headlines only, like the total portfolio value." },
+      "label": { "displayName": "Label", "purpose": "Table headers, small secondary stats." }
+    },
+    "shadows": [
+      { "name": "lifted-interaction", "value": "0 4px 12px rgba(0, 0, 0, 0.2)", "purpose": "Appears exclusively when an interactive element is hovered or active." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for state transitions like hover lifts." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary call to action.",
+      "html": "<button class=\"ds-btn-primary\">NEW TRANSACTION</button>",
+      "css": ".ds-btn-primary { background: #FF0054; color: #ffffff; padding: 8px 16px; font-family: Inter, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; border: none; border-radius: 8px; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; cursor: pointer; } .ds-btn-primary:hover { background: #d90047; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }"
+    },
+    {
+      "name": "Gain Badge",
+      "kind": "chip",
+      "refersTo": "semantic-gain",
+      "description": "Indicates a positive financial return.",
+      "html": "<div class=\"ds-badge-gain\">+12.4%</div>",
+      "css": ".ds-badge-gain { display: inline-flex; background: rgba(242, 193, 78, 0.1); color: #F2C14E; padding: 4px 8px; font-family: Inter, system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; border-radius: 4px; }"
+    },
+    {
+      "name": "Loss Badge",
+      "kind": "chip",
+      "refersTo": "semantic-loss",
+      "description": "Indicates a negative financial return.",
+      "html": "<div class=\"ds-badge-loss\">-3.2%</div>",
+      "css": ".ds-badge-loss { display: inline-flex; background: rgba(155, 142, 253, 0.1); color: #9B8EFD; padding: 4px 8px; font-family: Inter, system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; border-radius: 4px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Clarity Console",
+    "overview": "This system is built to provide an instant and clear view of the portfolio to aid in decision-making. It operates in a precise, calm, and serious register. It is designed for personal use and interview demonstrations, avoiding generic SaaS templates and AI clichés. The interface relies on a distinctive TradingView-inspired dark navy ground, utilizing hot crimson exclusively for primary actions. Crucially, financial gains are represented in yellow-gold and losses in soft purple, breaking from the traditional green/red to establish a personal, highly readable aesthetic.",
+    "keyCharacteristics": [
+      "Terminal Warmth & TradingView Navy: A specific #131722 dark navy background.",
+      "Extreme Restraint: The primary accent (#FF0054) is used sparingly (≤10% of the surface).",
+      "Distinctive Semantics: Gains are gold (#F2C14E), losses are soft purple (#9B8EFD).",
+      "Data as Material: Strong typographic hierarchy with Inter."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "The primary accent (#FF0054) is used on ≤10% of any given screen. Its rarity is the point.", "section": "colors" },
+      { "name": "The Data Dominance Rule", "body": "Typography, spacing, and color exist to make financial data legible. Aesthetics serve readability, not the reverse.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Shadows appear only as a response to state (hover, elevation, focus).", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Gold (#F2C14E) and Purple (#9B8EFD) for all financial gain/loss indicators.",
+      "Do rely on typographic size and weight to establish hierarchy instead of borders and boxes.",
+      "Do use asymmetry and purposeful negative space to create visual interest.",
+      "Do use subtle micro-animations that enhance usability and reward attention."
+    ],
+    "donts": [
+      "Don't use generic AI UI slop: glowing purple/indigo/cyan neon gradients as default \"futuristic energy\".",
+      "Don't use heavy glassmorphism with strong uniform backdrop blur and frosted translucent cards everywhere.",
+      "Don't use overused dashboard clichés like big pulsing glowing metric numbers with dramatic bloom and animated rings.",
+      "Don't use rainbow/chrome gradient text on headings.",
+      "Don't use identical card grids (same-sized cards with icon + heading + text, repeated endlessly).",
+      "Don't use side-stripe borders greater than 1px as a colored accent on cards."
+    ]
+  }
+}
