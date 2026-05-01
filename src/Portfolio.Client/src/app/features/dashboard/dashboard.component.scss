@@ -142,7 +142,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
+    font-size: var(--text-mini);
     font-weight: 600;
     letter-spacing: 0.09em;
     text-transform: uppercase;
@@ -178,7 +178,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
 .bento-amount {
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
-    font-size: 34px;
+    font-size: var(--text-2xl);
     font-weight: 300;
     letter-spacing: -0.02em;
     color: $text;
@@ -186,7 +186,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     margin-bottom: 14px;
 
     &.bento-pl-amount {
-        font-size: 40px;
+        font-size: var(--text-3xl);
     }
 }
 
@@ -197,7 +197,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 13px;
+    font-size: var(--text-sm);
     font-weight: 600;
     padding: 4px 10px;
     border-radius: 20px;
@@ -225,7 +225,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
 /* ── STAT CELL TYPOGRAPHY ────────────────────── */
 .bento-stat-label {
     display: block;
-    font-size: 10px;
+    font-size: var(--text-micro);
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -237,7 +237,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
     display: block;
-    font-size: 18px;
+    font-size: var(--text-lg);
     font-weight: 500;
     color: $text;
     letter-spacing: -0.01em;
@@ -262,7 +262,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
 }
 
 .holdings-title {
-    font-size: 18px;
+    font-size: var(--text-lg);
     font-weight: 600;
     color: $text;
     margin: 0;
@@ -272,7 +272,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     display: inline-block;
     background: rgba(255, 255, 255, 0.08);
     color: $muted;
-    font-size: 12px;
+    font-size: var(--text-xs);
     font-weight: 600;
     padding: 1px 8px;
     border-radius: 10px;
@@ -289,7 +289,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     border: none;
     border-radius: 8px;
     padding: 8px 18px;
-    font-size: 14px;
+    font-size: var(--text-base);
     font-weight: 600;
     font-family: var(--font-sans);
     cursor: pointer;
@@ -298,7 +298,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
         box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     mat-icon {
-        font-size: 18px;
+        font-size: var(--text-lg);
         width: 18px;
         height: 18px;
     }
@@ -335,7 +335,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     }
 
     th {
-        font-size: 11px;
+        font-size: var(--text-mini);
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -405,7 +405,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: var(--text-xs);
     font-weight: 700;
     color: $muted;
     letter-spacing: 0.03em;
@@ -418,14 +418,14 @@ $crimson: #FF0054; // Hot Crimson — primary action only
 }
 
 .asset-symbol {
-    font-size: 14px;
+    font-size: var(--text-base);
     font-weight: 600;
     color: $text;
     letter-spacing: 0.02em;
 }
 
 .asset-name {
-    font-size: 12px;
+    font-size: var(--text-xs);
     color: $muted;
     text-transform: capitalize;
 }
@@ -433,14 +433,14 @@ $crimson: #FF0054; // Hot Crimson — primary action only
 /* ── GENERIC CELL TEXT ───────────────────────── */
 .cell-primary {
     display: block;
-    font-size: 14px;
+    font-size: var(--text-base);
     font-weight: 500;
     color: $text;
 }
 
 .cell-secondary {
     display: block;
-    font-size: 12px;
+    font-size: var(--text-xs);
     color: $muted;
     margin-top: 2px;
 }
@@ -481,7 +481,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
 }
 
 .pl-amount {
-    font-size: 13px;
+    font-size: var(--text-sm);
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
@@ -490,13 +490,13 @@ $crimson: #FF0054; // Hot Crimson — primary action only
 .pl-pct {
     display: flex;
     align-items: center;
-    font-size: 11px;
+    font-size: var(--text-mini);
     font-weight: 600;
     opacity: 0.85;
 }
 
 .pl-icon {
-    font-size: 14px;
+    font-size: var(--text-base);
     width: 14px;
     height: 14px;
     line-height: 14px;
@@ -533,7 +533,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
 .alloc-label {
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
-    font-size: 12px;
+    font-size: var(--text-xs);
     font-weight: 600;
     color: $muted;
     min-width: 38px;
@@ -556,7 +556,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     }
 
     p {
-        font-size: 15px;
+        font-size: var(--text-md);
         margin-bottom: 20px;
         opacity: 0.7;
     }
