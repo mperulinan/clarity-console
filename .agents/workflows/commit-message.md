@@ -39,7 +39,7 @@ description: Generate a professional commit message from staged git changes
 6. **Body** (optional but recommended for non-trivial changes):
    - Wrap at **72 characters** per line.
    - Explain *what* and *why*, not *how*.
-   - Use a bulleted list for specific changes, following the pattern: `- Verb 'CodeReference' or explanation`. (e.g. `- Replace 'MyComponent' with new grid system`).
+   - Use a bulleted list for specific changes, following the pattern: `- Verb 'CodeReference' or explanation`. Ensure the first letter of the verb is capitalized. (e.g. `- Replace 'MyComponent' with new grid system`).
    - Separate from the subject with a blank line.
 7. **Footer** (optional):
    - Reference issues: `Closes #123`, `Fixes #456`.
