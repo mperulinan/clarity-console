@@ -166,7 +166,7 @@ $transition-speed: 0.25s;
     }
 
     &.active {
-        background: linear-gradient(135deg, $accent, #5c4ee8);
+        background: color-mix(in srgb, var(--color-primary), transparent 88%);
         box-shadow: 0 4px 20px $accent-glow;
     }
 

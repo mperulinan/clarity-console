@@ -15,18 +15,28 @@
     --color-gain: #FAFF70;
     --color-loss: #9B8EFD;
     --color-border: rgba(255, 255, 255, 0.06);
-    
+
     /* Typography Scale (Base 16px) */
-    --text-micro: 0.625rem;   /* 10px */
-    --text-mini: 0.6875rem;   /* 11px */
-    --text-xs: 0.75rem;       /* 12px */
-    --text-sm: 0.8125rem;     /* 13px */
-    --text-base: 0.875rem;    /* 14px */
-    --text-md: 0.9375rem;     /* 15px */
-    --text-lg: 1.125rem;      /* 18px */
-    --text-xl: 1.5rem;        /* 24px */
-    --text-2xl: 2.125rem;     /* 34px */
-    --text-3xl: 2.5rem;       /* 40px */
+    --text-micro: 0.625rem;
+    /* 10px */
+    --text-mini: 0.6875rem;
+    /* 11px */
+    --text-xs: 0.75rem;
+    /* 12px */
+    --text-sm: 0.8125rem;
+    /* 13px */
+    --text-base: 0.875rem;
+    /* 14px */
+    --text-md: 0.9375rem;
+    /* 15px */
+    --text-lg: 1.125rem;
+    /* 18px */
+    --text-xl: 1.5rem;
+    /* 24px */
+    --text-2xl: 2.125rem;
+    /* 34px */
+    --text-3xl: 2.5rem;
+    /* 40px */
 
     --font-sans: 'Manrope', system-ui, sans-serif;
     --font-numbers: 'Work Sans', system-ui, sans-serif;
@@ -52,12 +62,6 @@ body[data-theme="aubergine"] {
     --color-bg-base: #19151A;
     --color-bg-surface: #241E26;
     --color-border: rgba(240, 230, 255, 0.04);
-}
-
-body[data-theme="carbon"] {
-    --color-bg-base: #1C1C1A;
-    --color-bg-surface: #272725;
-    --color-border: rgba(255, 255, 255, 0.05);
 }
 
 body[data-theme="oxblood"] {

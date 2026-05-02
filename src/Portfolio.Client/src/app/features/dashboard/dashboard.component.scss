@@ -135,7 +135,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     transition: background 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 
     &:hover {
-        background: rgba(255, 255, 255, 0.02);
+        background: rgba(255, 255, 255, 0.04);
     }
 }
 
@@ -285,30 +285,33 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 .add-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    background: $crimson;
-    color: #fff;
-    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid color-mix(in srgb, var(--color-primary), transparent 60%);
     border-radius: 8px;
-    padding: 8px 18px;
+    padding: 7px 17px; /* 1px less padding to compensate for 1px border */
     font-size: var(--text-base);
     font-weight: 600;
     font-family: var(--font-sans);
     cursor: pointer;
     transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
         transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-        box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+        border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     mat-icon {
         font-size: var(--text-lg);
         width: 18px;
         height: 18px;
+        line-height: 18px;
     }
 
     &:hover {
-        background: #d90047;
+        background: color-mix(in srgb, var(--color-primary), transparent 95%);
+        border-color: var(--color-primary);
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
 
     &:active {
@@ -528,7 +531,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     max-width: 100%;
 
     &.fill-dominant {
-        background: rgba(255, 214, 0, 0.50); // yellow tint for big positions
+        background: color-mix(in srgb, var(--color-primary), transparent 50%);
     }
 }
 
@@ -575,11 +578,10 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     }
 }
 
-$skel-shine: linear-gradient(90deg, 
-    var(--color-bg-surface) 25%, 
-    color-mix(in srgb, var(--color-bg-surface), white 3%) 50%, 
-    var(--color-bg-surface) 75%
-);
+$skel-shine: linear-gradient(90deg,
+        var(--color-bg-surface) 25%,
+        color-mix(in srgb, var(--color-bg-surface), white 3%) 50%,
+        var(--color-bg-surface) 75%);
 
 %skel {
     background: $skel-shine;
