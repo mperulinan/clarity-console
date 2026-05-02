@@ -291,7 +291,8 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     color: var(--color-primary);
     border: 1px solid color-mix(in srgb, var(--color-primary), transparent 60%);
     border-radius: 8px;
-    padding: 7px 17px; /* 1px less padding to compensate for 1px border */
+    padding: 7px 17px;
+    /* 1px less padding to compensate for 1px border */
     font-size: var(--text-base);
     font-weight: 600;
     font-family: var(--font-sans);
@@ -517,7 +518,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 .alloc-bar-wrap {
     flex: 1;
     height: 4px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--color-border);
     border-radius: 10px;
     overflow: hidden;
     min-width: 60px;
@@ -526,12 +527,20 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 .alloc-bar-fill {
     height: 100%;
     border-radius: 10px;
-    background: rgba(139, 147, 168, 0.45);
-    transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    /* Base state (<15%): Very faint neutral */
+    background: color-mix(in srgb, var(--color-text-muted), transparent 75%);
+    transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+        background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     max-width: 100%;
 
+    /* Medium state (15-39%): Solid neutral */
+    &.fill-medium {
+        background: color-mix(in srgb, var(--color-text-muted), transparent 45%);
+    }
+
+    /* Dominant state (40%+): Strongest neutral, but stays in the same color family */
     &.fill-dominant {
-        background: color-mix(in srgb, var(--color-primary), transparent 50%);
+        background: color-mix(in srgb, var(--color-text-muted), transparent 15%);
     }
 }
 
