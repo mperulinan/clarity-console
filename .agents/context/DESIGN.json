@@ -1,60 +1,52 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-05-01T11:55:00Z",
+  "generatedAt": "2026-05-02T14:25:00Z",
   "title": "Design System: Portfolio",
   "extensions": {
     "colorMeta": {
-      "primary": { "role": "primary", "displayName": "Hot Crimson", "canonical": "#FF0054", "tonalRamp": ["#330011", "#660022", "#990033", "#cc0044", "#FF0054", "#ff3377", "#ff6699", "#ff99bb"] },
-      "bg-base": { "role": "neutral", "displayName": "Navy Dark", "canonical": "#131722", "tonalRamp": ["#080a0f", "#0c0f16", "#10141d", "#131722", "#21283a", "#2f3953", "#3d4b6b", "#4b5c84"] },
-      "bg-surface": { "role": "neutral", "displayName": "Navy Surface", "canonical": "#1e2236", "tonalRamp": ["#0c0e16", "#121520", "#181b2b", "#1e2236", "#2f3554", "#404873", "#515c91", "#6370af"] },
-      "semantic-gain": { "role": "secondary", "displayName": "Gold Gain", "canonical": "#F2C14E", "tonalRamp": ["#332506", "#66490c", "#996e12", "#cc9318", "#F2C14E", "#f5cd71", "#f7d995", "#fae6b8"] },
-      "semantic-loss": { "role": "tertiary", "displayName": "Purple Loss", "canonical": "#9B8EFD", "tonalRamp": ["#191444", "#322988", "#4b3ecc", "#6b5cfa", "#9B8EFD", "#afb6fe", "#c3cafe", "#d7deff"] }
+      "primary": { "role": "primary", "displayName": "Hot Crimson", "canonical": "#FF0054", "tonalRamp": ["#ffccd8", "#ff99b1", "#ff668a", "#ff3363", "#FF0054", "#cc0043", "#990032", "#660021"] },
+      "gain": { "role": "tertiary", "displayName": "Gold Gain", "canonical": "#FAFF70", "tonalRamp": ["#feffde", "#fdffbc", "#fbff9b", "#f9ff79", "#FAFF70", "#c8cc5a", "#969943", "#64662d"] },
+      "loss": { "role": "secondary", "displayName": "Purple Loss", "canonical": "#9B8EFD", "tonalRamp": ["#eae7ff", "#d5cfff", "#c0b8ff", "#aba0ff", "#9B8EFD", "#7c72ca", "#5d5598", "#3e3965"] },
+      "bg-base": { "role": "neutral", "displayName": "Midnight Crimson Dark", "canonical": "#171216", "tonalRamp": ["#ffffff", "#ebd1df", "#d3a1bf", "#b56c9a", "#953874", "#6f2152", "#471534", "#171216"] }
     },
     "typographyMeta": {
-      "headline": { "displayName": "Headline", "purpose": "Hero headlines only, like the total portfolio value." },
-      "label": { "displayName": "Label", "purpose": "Table headers, small secondary stats." }
+      "display": { "displayName": "Display", "purpose": "Massive quiet numbers in hero summary." },
+      "label": { "displayName": "Label", "purpose": "Tabular numbers for financial data and column headers." }
     },
     "shadows": [
-      { "name": "lifted-interaction", "value": "0 4px 12px rgba(0, 0, 0, 0.2)", "purpose": "Appears exclusively when an interactive element is hovered or active." }
+      { "name": "lifted-interaction", "value": "0 4px 12px rgba(0, 0, 0, 0.25)", "purpose": "Used on interactive elements during hover or active states." }
     ],
     "motion": [
-      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for state transitions like hover lifts." }
+      { "name": "ease-standard", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default exponential easing for state transitions." }
     ]
   },
   "components": [
     {
-      "name": "Primary Button",
+      "name": "Ghost Button",
       "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Primary call to action.",
-      "html": "<button class=\"ds-btn-primary\">NEW TRANSACTION</button>",
-      "css": ".ds-btn-primary { background: #FF0054; color: #ffffff; padding: 8px 16px; font-family: Inter, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; border: none; border-radius: 8px; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; cursor: pointer; } .ds-btn-primary:hover { background: #d90047; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }"
+      "refersTo": "button-ghost",
+      "description": "Primary CTA in a data-dense environment. Restrained until interacted with.",
+      "html": "<button class=\"ds-btn-ghost\">New Transaction</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #FF0054; border: 1px solid rgba(255, 0, 84, 0.4); border-radius: 8px; padding: 7px 17px; font-size: 0.875rem; font-weight: 600; font-family: 'Manrope', system-ui, sans-serif; cursor: pointer; transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-ghost:hover { background: rgba(255, 0, 84, 0.05); border-color: #FF0054; transform: translateY(-1px); } .ds-btn-ghost:active { transform: translateY(0); box-shadow: none; }"
     },
     {
-      "name": "Gain Badge",
-      "kind": "chip",
-      "refersTo": "semantic-gain",
-      "description": "Indicates a positive financial return.",
-      "html": "<div class=\"ds-badge-gain\">+12.4%</div>",
-      "css": ".ds-badge-gain { display: inline-flex; background: rgba(242, 193, 78, 0.1); color: #F2C14E; padding: 4px 8px; font-family: Inter, system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; border-radius: 4px; }"
-    },
-    {
-      "name": "Loss Badge",
-      "kind": "chip",
-      "refersTo": "semantic-loss",
-      "description": "Indicates a negative financial return.",
-      "html": "<div class=\"ds-badge-loss\">-3.2%</div>",
-      "css": ".ds-badge-loss { display: inline-flex; background: rgba(155, 142, 253, 0.1); color: #9B8EFD; padding: 4px 8px; font-family: Inter, system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; border-radius: 4px; }"
+      "name": "Allocation Bar",
+      "kind": "custom",
+      "refersTo": "alloc-bar",
+      "description": "Monochromatic smooth volume indicator.",
+      "html": "<div class=\"ds-alloc-wrap\"><div class=\"ds-alloc-fill ds-fill-dominant\" style=\"width: 65%;\"></div></div>",
+      "css": ".ds-alloc-wrap { height: 4px; background: rgba(255,235,245,0.05); border-radius: 10px; overflow: hidden; width: 100px; } .ds-alloc-fill { height: 100%; border-radius: 10px; transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1); } .ds-fill-dominant { background: rgba(139, 147, 168, 0.85); }"
     }
   ],
   "narrative": {
     "northStar": "The Clarity Console",
-    "overview": "This system is built to provide an instant and clear view of the portfolio to aid in decision-making. It operates in a precise, calm, and serious register. It is designed for personal use and interview demonstrations, avoiding generic SaaS templates and AI clichés. The interface relies on a distinctive TradingView-inspired dark navy ground, utilizing hot crimson exclusively for primary actions. Crucially, financial gains are represented in yellow-gold and losses in soft purple, breaking from the traditional green/red to establish a personal, highly readable aesthetic.",
+    "overview": "This system is built to provide an instant and clear view of the portfolio to aid in decision-making. It operates in a precise, calm, serious, and warm register. It is designed for personal use and interview demonstrations, avoiding generic SaaS templates and AI clichés. The interface relies on a distinctive terminal-native dark ground, utilizing a ghosted Hot Crimson for primary actions. Crucially, financial gains are represented in yellow-gold and losses in soft purple, breaking from the traditional green/red to establish a personal, highly readable aesthetic.",
     "keyCharacteristics": [
-      "Terminal Warmth & TradingView Navy: A specific #131722 dark navy background.",
-      "Extreme Restraint: The primary accent (#FF0054) is used sparingly (≤10% of the surface).",
-      "Distinctive Semantics: Gains are gold (#F2C14E), losses are soft purple (#9B8EFD).",
-      "Data as Material: Strong typographic hierarchy with Inter."
+      "Terminal Warmth: A deep Midnight Crimson dark background (#171216), avoiding pure black or standard grays to create a warmer, bespoke feel.",
+      "Extreme Restraint: The primary accent (#FF0054) is used sparingly (≤10% of the surface) to highlight only the most critical actions, often as a ghost button to reduce visual noise.",
+      "Distinctive Semantics: Gains are gold (#FAFF70), losses are soft purple (#9B8EFD).",
+      "Data as Material: Strong typographic hierarchy with Manrope for structural text and Work Sans (tabular nums) for financial data.",
+      "Proportional Weight: Data visualization scales opacity gradually within a neutral color family rather than introducing new bright colors for large values."
     ],
     "rules": [
       { "name": "The One Voice Rule", "body": "The primary accent (#FF0054) is used on ≤10% of any given screen. Its rarity is the point.", "section": "colors" },
@@ -62,10 +54,11 @@
       { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Shadows appear only as a response to state (hover, elevation, focus).", "section": "elevation" }
     ],
     "dos": [
-      "Do use Gold (#F2C14E) and Purple (#9B8EFD) for all financial gain/loss indicators.",
+      "Do use Yellow (#FAFF70) and Purple (#9B8EFD) for all financial gain/loss indicators.",
       "Do rely on typographic size and weight to establish hierarchy instead of borders and boxes.",
       "Do use asymmetry and purposeful negative space to create visual interest.",
-      "Do use subtle micro-animations that enhance usability and reward attention."
+      "Do use subtle micro-animations that enhance usability and reward attention.",
+      "Do use gradual opacity scales of neutral colors for data visualizations representing volume or weight."
     ],
     "donts": [
       "Don't use generic AI UI slop: glowing purple/indigo/cyan neon gradients as default \"futuristic energy\".",
@@ -73,7 +66,8 @@
       "Don't use overused dashboard clichés like big pulsing glowing metric numbers with dramatic bloom and animated rings.",
       "Don't use rainbow/chrome gradient text on headings.",
       "Don't use identical card grids (same-sized cards with icon + heading + text, repeated endlessly).",
-      "Don't use side-stripe borders greater than 1px as a colored accent on cards."
+      "Don't use side-stripe borders greater than 1px as a colored accent on cards.",
+      "Don't use semantic profit/loss colors or primary action colors for pure volume data visualizations."
     ]
   }
 }

@@ -7,14 +7,14 @@
 
 /* ── Design System Tokens (DESIGN.md: "The Clarity Console") ── */
 :root {
-    --color-bg-base: #131722;
-    --color-bg-surface: #1e2236;
+    --color-bg-base: #171216;
+    --color-bg-surface: #221C20;
+    --color-border: rgba(255, 235, 245, 0.05);
     --color-primary: #FF0054;
     --color-text: #E8ECF4;
     --color-text-muted: #8B93A8;
     --color-gain: #FAFF70;
     --color-loss: #9B8EFD;
-    --color-border: rgba(255, 255, 255, 0.06);
 
     /* Typography Scale (Base 16px) */
     --text-micro: 0.625rem;
@@ -44,37 +44,6 @@
     --radius-md: 8px;
     --radius-lg: 16px;
     --radius-xl: 20px;
-}
-
-/* ── Warmth Theme Options ──────────────────────────────────────
-   Switch by setting data-theme on <body> in index.html:
-     <body data-theme="espresso">
-   Remove data-theme to return to the default navy.
-   ──────────────────────────────────────────────────────────── */
-
-body[data-theme="espresso"] {
-    --color-bg-base: #1A1615;
-    --color-bg-surface: #251F1E;
-    --color-border: rgba(255, 240, 245, 0.04);
-}
-
-body[data-theme="aubergine"] {
-    --color-bg-base: #19151A;
-    --color-bg-surface: #241E26;
-    --color-border: rgba(240, 230, 255, 0.04);
-}
-
-body[data-theme="oxblood"] {
-    --color-bg-base: #171216;
-    --color-bg-surface: #221C20;
-    --color-border: rgba(255, 235, 245, 0.05);
-}
-
-body[data-theme="no-crimson"] {
-    --color-bg-base: #1C1C1A;
-    --color-bg-surface: #272725;
-    --color-border: rgba(255, 255, 255, 0.05);
-    --color-primary: #383836;
 }
 
 html,
