@@ -54,7 +54,7 @@ components:
 
 **Creative North Star: "The Clarity Console"**
 
-This system is built to provide an instant and clear view of the portfolio to aid in decision-making. It operates in a precise, calm, and serious register. It is designed for personal use and interview demonstrations, avoiding generic SaaS templates and AI clichés. The interface relies on a distinctive TradingView-inspired dark navy ground, utilizing hot crimson exclusively for primary actions. Crucially, financial gains are represented in yellow-gold and losses in soft purple, breaking from the traditional green/red to establish a personal, highly readable aesthetic.
+This system is built to provide an instant and clear view of the portfolio to aid in decision-making. It operates in a precise, calm, serious, and warm register. It is designed for personal use and interview demonstrations, avoiding generic SaaS templates and AI clichés. The interface relies on a distinctive TradingView-inspired dark navy ground, utilizing hot crimson exclusively for primary actions. Crucially, financial gains are represented in yellow-gold and losses in soft purple, breaking from the traditional green/red to establish a personal, highly readable aesthetic.
 
 **Key Characteristics:**
 - **Terminal Warmth & TradingView Navy**: A specific `#131722` dark navy background, avoiding pure black or standard grays.
@@ -131,7 +131,7 @@ Components are refined and restrained, remaining near-invisible until interacted
 ## 6. Do's and Don'ts
 
 ### Do:
-- **Do** use Gold (#F2C14E) and Purple (#9B8EFD) for all financial gain/loss indicators.
+- **Do** use Yellow (#FAFF70) and Purple (#9B8EFD) for all financial gain/loss indicators.
 - **Do** rely on typographic size and weight to establish hierarchy instead of borders and boxes.
 - **Do** use asymmetry and purposeful negative space to create visual interest.
 - **Do** use subtle micro-animations that enhance usability and reward attention.

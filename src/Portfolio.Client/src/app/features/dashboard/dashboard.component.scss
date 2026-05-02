@@ -15,16 +15,18 @@
 }
 
 /* ── TOKENS ─────────────────────────────────── */
-$bg-card: #1e2236; // Navy Surface
-$bg-deeper: #171c2c; // stat strip (darker than card)
-$border: rgba(255, 255, 255, 0.06);
-$text: #E8ECF4;
-$muted: #8B93A8;
-$gain: #FAFF70; // Bull Yellow
-$gain-soft: rgba(250, 255, 112, 0.10);
-$loss: #9B8EFD; // Purple Loss
-$loss-soft: rgba(155, 142, 253, 0.10);
-$crimson: #FF0054; // Hot Crimson — primary action only
+$bg-card: var(--color-bg-surface);
+$bg-deeper: var(--color-bg-base); // sync with base or slightly adjusted
+$border: var(--color-border);
+$text: var(--color-text);
+$muted: var(--color-text-muted);
+$gain: var(--color-gain);
+$loss: var(--color-loss);
+$crimson: var(--color-primary);
+
+// Soft versions (using color-mix if available or just the variables)
+$gain-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
+$loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 
 /* ── ANIMATIONS ─────────────────────────────── */
 @keyframes fadeInUp {
@@ -400,7 +402,7 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #252945;
+    background: color-mix(in srgb, var(--color-bg-surface), white 5%);
     border: 1px solid $border;
     display: flex;
     align-items: center;
@@ -573,7 +575,11 @@ $crimson: #FF0054; // Hot Crimson — primary action only
     }
 }
 
-$skel-shine: linear-gradient(90deg, #1e2236 25%, #252945 50%, #1e2236 75%);
+$skel-shine: linear-gradient(90deg, 
+    var(--color-bg-surface) 25%, 
+    color-mix(in srgb, var(--color-bg-surface), white 3%) 50%, 
+    var(--color-bg-surface) 75%
+);
 
 %skel {
     background: $skel-shine;

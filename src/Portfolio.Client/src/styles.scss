@@ -36,6 +36,43 @@
     --radius-xl: 20px;
 }
 
+/* ── Warmth Theme Options ──────────────────────────────────────
+   Switch by setting data-theme on <body> in index.html:
+     <body data-theme="espresso">
+   Remove data-theme to return to the default navy.
+   ──────────────────────────────────────────────────────────── */
+
+body[data-theme="espresso"] {
+    --color-bg-base: #1A1615;
+    --color-bg-surface: #251F1E;
+    --color-border: rgba(255, 240, 245, 0.04);
+}
+
+body[data-theme="aubergine"] {
+    --color-bg-base: #19151A;
+    --color-bg-surface: #241E26;
+    --color-border: rgba(240, 230, 255, 0.04);
+}
+
+body[data-theme="carbon"] {
+    --color-bg-base: #1C1C1A;
+    --color-bg-surface: #272725;
+    --color-border: rgba(255, 255, 255, 0.05);
+}
+
+body[data-theme="oxblood"] {
+    --color-bg-base: #171216;
+    --color-bg-surface: #221C20;
+    --color-border: rgba(255, 235, 245, 0.05);
+}
+
+body[data-theme="no-crimson"] {
+    --color-bg-base: #1C1C1A;
+    --color-bg-surface: #272725;
+    --color-border: rgba(255, 255, 255, 0.05);
+    --color-primary: #383836;
+}
+
 html,
 body {
     height: 100%;

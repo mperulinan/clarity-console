@@ -14,7 +14,7 @@ A personal crypto portfolio tracker with tax computation. Tracks holdings, cost 
 
 ## Brand Personality
 
-Precise, calm, serious. Not austere — there is warmth and craft in the details — but never decorative for its own sake. The emotional register is confident understatement: a tool that knows what it is.
+Precise, calm, serious, warm. Not austere — there is warmth and craft in the details — but never decorative for its own sake. The emotional register is confident understatement: a tool that knows what it is.
 
 ## Anti-references
 

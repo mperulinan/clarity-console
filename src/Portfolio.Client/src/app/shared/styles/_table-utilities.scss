@@ -3,14 +3,14 @@
    ═══════════════════════════════════════════════ */
 
 /* ── TOKENS (DESIGN.md: The Clarity Console) ─── */
-$border: rgba(255, 255, 255, 0.06);
-$text-primary: #E8ECF4;
-$text-muted: #8B93A8;
-$green: #FAFF70; // Bull Yellow
-$green-soft: rgba(250, 255, 112, 0.10);
-$red: #9B8EFD; // Purple Loss
-$red-soft: rgba(155, 142, 253, 0.10);
-$amber: #FAFF70; // alias → Bull Yellow
+$border: var(--color-border);
+$text-primary: var(--color-text);
+$text-muted: var(--color-text-muted);
+$green: var(--color-gain);
+$green-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
+$red: var(--color-loss);
+$red-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
+$amber: var(--color-gain); // alias → Bull Yellow
 
 /* ── CELLS & BADGES ─────────────────────────── */
 .col-num {
@@ -195,8 +195,12 @@ $amber: #FAFF70; // alias → Bull Yellow
     }
 }
 
-$skel-shine: linear-gradient(90deg, #1e2236 25%, #252945 50%, #1e2236 75%);
-$bg-card: #1e2236;
+$skel-shine: linear-gradient(90deg, 
+    var(--color-bg-surface) 25%, 
+    color-mix(in srgb, var(--color-bg-surface), white 3%) 50%, 
+    var(--color-bg-surface) 75%
+);
+$bg-card: var(--color-bg-surface);
 
 %skel {
     background: $skel-shine;

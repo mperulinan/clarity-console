@@ -14,25 +14,25 @@
 }
 
 /* ── TOKENS ─────────────────────────────────── */
-$bg-card: #16213e;
-$bg-card-alt: #1e2a45;
-$border: rgba(255, 255, 255, 0.07);
-$text-primary: #f0f0f0;
-$text-muted: #8892a4;
-$green: #00e676;
-$green-soft: rgba(0, 230, 118, 0.08);
-$red: #ff5252;
-$red-soft: rgba(255, 82, 82, 0.08);
-$accent: #7c6cfc;
-$amber: #ffab40;
-$amber-soft: rgba(255, 171, 64, 0.1);
+$bg-card: var(--color-bg-surface);
+$bg-card-alt: color-mix(in srgb, var(--color-bg-surface), white 2%);
+$border: var(--color-border);
+$text-primary: var(--color-text);
+$text-muted: var(--color-text-muted);
+$green: var(--color-gain);
+$green-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
+$red: var(--color-loss);
+$red-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
+$accent: var(--color-primary);
+$amber: var(--color-gain);
+$amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 
 /* ── GLASSMORPHISM ───────────────────────────── */
 .glass {
-    background: rgba(22, 33, 62, 0.7) !important;
+    background: color-mix(in srgb, var(--color-bg-base), transparent 30%) !important;
     backdrop-filter: blur(12px) saturate(180%);
     -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid var(--color-border) !important;
 }
 
 /* ── ANIMATIONS ─────────────────────────────── */
@@ -82,7 +82,7 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: linear-gradient(135deg, $accent, #5c4ee8);
+    background: linear-gradient(135deg, $accent, color-mix(in srgb, $accent, black 15%));
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -91,7 +91,7 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.2s, transform 0.2s;
-    box-shadow: 0 4px 16px rgba(124, 108, 252, 0.4);
+    box-shadow: 0 4px 16px color-mix(in srgb, $accent, transparent 60%);
 
     mat-icon {
         font-size: 18px;
