@@ -182,6 +182,19 @@ $text-muted: var(--color-text-muted);
     &:hover {
         color: $text-primary;
     }
+
+    &.is-sorted {
+        color: var(--color-primary);
+        
+        .sort-icon {
+            opacity: 1;
+        }
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: -2px;
+    }
 }
 
 .sort-icon {

@@ -112,6 +112,11 @@ export class TransactionsComponent implements OnInit {
         return this.sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward';
     }
 
+    getAriaSort(field: SortField): 'ascending' | 'descending' | 'none' {
+        if (this.sortField() !== field) return 'none';
+        return this.sortDir() === 'asc' ? 'ascending' : 'descending';
+    }
+
     openNewTransaction() {
         this.router.navigate(['/new-transaction']);
     }

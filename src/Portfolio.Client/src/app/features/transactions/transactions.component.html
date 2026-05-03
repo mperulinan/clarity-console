@@ -43,33 +43,82 @@
         <table class="txn-table">
             <thead>
                 <tr>
-                    <th class="col-date sortable" (click)="toggleSort('date')">
+                    <th class="col-date sortable" 
+                        [class.is-sorted]="sortField() === 'date'" 
+                        (click)="toggleSort('date')"
+                        (keydown.enter)="toggleSort('date')"
+                        (keydown.space)="toggleSort('date')"
+                        tabindex="0"
+                        role="columnheader"
+                        [attr.aria-sort]="getAriaSort('date')">
                         Date
-                        <mat-icon class="sort-icon">{{ getSortIcon('date') }}</mat-icon>
+                        <mat-icon class="sort-icon" aria-hidden="true">{{ getSortIcon('date') }}</mat-icon>
                     </th>
-                    <th class="col-type sortable" (click)="toggleSort('type')">
+                    <th class="col-type sortable" 
+                        [class.is-sorted]="sortField() === 'type'" 
+                        (click)="toggleSort('type')"
+                        (keydown.enter)="toggleSort('type')"
+                        (keydown.space)="toggleSort('type')"
+                        tabindex="0"
+                        role="columnheader"
+                        [attr.aria-sort]="getAriaSort('type')">
                         Type
-                        <mat-icon class="sort-icon">{{ getSortIcon('type') }}</mat-icon>
+                        <mat-icon class="sort-icon" aria-hidden="true">{{ getSortIcon('type') }}</mat-icon>
                     </th>
-                    <th class="col-asset sortable" (click)="toggleSort('from')">
+                    <th class="col-asset sortable" 
+                        [class.is-sorted]="sortField() === 'from'" 
+                        (click)="toggleSort('from')"
+                        (keydown.enter)="toggleSort('from')"
+                        (keydown.space)="toggleSort('from')"
+                        tabindex="0"
+                        role="columnheader"
+                        [attr.aria-sort]="getAriaSort('from')">
                         From
-                        <mat-icon class="sort-icon">{{ getSortIcon('from') }}</mat-icon>
+                        <mat-icon class="sort-icon" aria-hidden="true">{{ getSortIcon('from') }}</mat-icon>
                     </th>
-                    <th class="col-asset sortable" (click)="toggleSort('to')">
+                    <th class="col-asset sortable" 
+                        [class.is-sorted]="sortField() === 'to'" 
+                        (click)="toggleSort('to')"
+                        (keydown.enter)="toggleSort('to')"
+                        (keydown.space)="toggleSort('to')"
+                        tabindex="0"
+                        role="columnheader"
+                        [attr.aria-sort]="getAriaSort('to')">
                         To
-                        <mat-icon class="sort-icon">{{ getSortIcon('to') }}</mat-icon>
+                        <mat-icon class="sort-icon" aria-hidden="true">{{ getSortIcon('to') }}</mat-icon>
                     </th>
-                    <th class="col-num sortable hide-on-mobile" (click)="toggleSort('spotPrice')">
+                    <th class="col-num sortable hide-on-mobile" 
+                        [class.is-sorted]="sortField() === 'spotPrice'" 
+                        (click)="toggleSort('spotPrice')"
+                        (keydown.enter)="toggleSort('spotPrice')"
+                        (keydown.space)="toggleSort('spotPrice')"
+                        tabindex="0"
+                        role="columnheader"
+                        [attr.aria-sort]="getAriaSort('spotPrice')">
                         Spot Price
-                        <mat-icon class="sort-icon">{{ getSortIcon('spotPrice') }}</mat-icon>
+                        <mat-icon class="sort-icon" aria-hidden="true">{{ getSortIcon('spotPrice') }}</mat-icon>
                     </th>
-                    <th class="col-num sortable hide-on-mobile" (click)="toggleSort('fee')">
+                    <th class="col-num sortable hide-on-mobile" 
+                        [class.is-sorted]="sortField() === 'fee'" 
+                        (click)="toggleSort('fee')"
+                        (keydown.enter)="toggleSort('fee')"
+                        (keydown.space)="toggleSort('fee')"
+                        tabindex="0"
+                        role="columnheader"
+                        [attr.aria-sort]="getAriaSort('fee')">
                         Fee
-                        <mat-icon class="sort-icon">{{ getSortIcon('fee') }}</mat-icon>
+                        <mat-icon class="sort-icon" aria-hidden="true">{{ getSortIcon('fee') }}</mat-icon>
                     </th>
-                    <th class="col-num col-pl sortable" (click)="toggleSort('profitLoss')">
+                    <th class="col-num col-pl sortable" 
+                        [class.is-sorted]="sortField() === 'profitLoss'" 
+                        (click)="toggleSort('profitLoss')"
+                        (keydown.enter)="toggleSort('profitLoss')"
+                        (keydown.space)="toggleSort('profitLoss')"
+                        tabindex="0"
+                        role="columnheader"
+                        [attr.aria-sort]="getAriaSort('profitLoss')">
                         P/L
-                        <mat-icon class="sort-icon">{{ getSortIcon('profitLoss') }}</mat-icon>
+                        <mat-icon class="sort-icon" aria-hidden="true">{{ getSortIcon('profitLoss') }}</mat-icon>
                     </th>
                     <th class="col-status">Status</th>
                 </tr>
