@@ -19,13 +19,6 @@ $bg-card-alt: color-mix(in srgb, var(--color-bg-surface), white 2%);
 $border: var(--color-border);
 $text-primary: var(--color-text);
 $text-muted: var(--color-text-muted);
-$green: var(--color-gain);
-$green-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
-$red: var(--color-loss);
-$red-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
-$accent: var(--color-primary);
-$amber: var(--color-gain);
-$amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 
 
 /* ── ANIMATIONS ─────────────────────────────── */

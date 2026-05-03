@@ -58,7 +58,7 @@
         <!-- ① Portfolio Value -->
         <div class="bento-cell bento-value">
             <div class="bento-label">
-                <span class="bento-dot dot-blue" aria-hidden="true"></span>
+                <span class="bento-dot dot-muted" aria-hidden="true"></span>
                 Portfolio Value
             </div>
             <div class="bento-amount">{{ totalValue() | currency:baseCurrency:'symbol':'1.2-2' }}</div>
@@ -70,8 +70,8 @@
              [class.bento-neg]="!isPlPositive()">
             <div class="bento-label">
                 <span class="bento-dot"
-                      [class.dot-green]="isPlPositive()"
-                      [class.dot-red]="!isPlPositive()"
+                      [class.dot-gain]="isPlPositive()"
+                      [class.dot-loss]="!isPlPositive()"
                       aria-hidden="true"></span>
                 Profit &amp; Loss
             </div>
@@ -81,8 +81,8 @@
                 {{ plSign() }}{{ totalPL() | currency:baseCurrency:'symbol':'1.2-2' }}
             </div>
             <span class="bento-return-badge"
-                  [class.badge-green]="isReturnPositive()"
-                  [class.badge-red]="!isReturnPositive()">
+                  [class.badge-gain]="isReturnPositive()"
+                  [class.badge-loss]="!isReturnPositive()">
                 <mat-icon class="badge-icon" aria-hidden="true">
                     {{ isReturnPositive() ? 'trending_up' : 'trending_down' }}
                 </mat-icon>

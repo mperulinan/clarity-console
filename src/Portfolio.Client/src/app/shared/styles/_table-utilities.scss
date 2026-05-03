@@ -6,11 +6,10 @@
 $border: var(--color-border);
 $text-primary: var(--color-text);
 $text-muted: var(--color-text-muted);
-$green: var(--color-gain);
-$green-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
-$red: var(--color-loss);
-$red-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
-$amber: var(--color-gain);
+$gain: var(--color-gain);
+$gain-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
+$loss: var(--color-loss);
+$loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 
 /* ── CELLS & BADGES ─────────────────────────── */
 .col-num {
@@ -105,11 +104,11 @@ $amber: var(--color-gain);
     border-radius: 6px;
 
     &.positive .pl-amount {
-        color: $green;
+        color: $gain;
     }
 
     &.negative .pl-amount {
-        color: $red;
+        color: $loss;
     }
 
     &.pl-disallowed {
@@ -148,7 +147,7 @@ $amber: var(--color-gain);
 }
 
 .status-error {
-    color: $red;
+    color: $loss;
 }
 
 .status-neutral {

@@ -22,7 +22,7 @@ $text: var(--color-text);
 $muted: var(--color-text-muted);
 $gain: var(--color-gain);
 $loss: var(--color-loss);
-$crimson: var(--color-primary);
+$primary: var(--color-primary);
 
 // Soft versions (using color-mix if available or just the variables)
 $gain-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
@@ -159,17 +159,17 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     border-radius: 50%;
     flex-shrink: 0;
 
-    &.dot-blue {
+    &.dot-muted {
         background: $muted;
     }
 
-    // neutral — portfolio value
-    &.dot-green {
+    // Yellow — gain signal
+    &.dot-gain {
         background: $gain;
     }
 
-    // gold — gain signal
-    &.dot-red {
+    // Purple — loss signal
+    &.dot-loss {
         background: $loss;
     }
 
@@ -204,16 +204,16 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     padding: 4px 10px;
     border-radius: 20px;
 
-    &.badge-green {
-        background: rgba(255, 214, 0, 0.10);
+    &.badge-gain {
+        background: color-mix(in srgb, $gain, transparent 90%);
         color: $gain;
-        border: 1px solid rgba(255, 214, 0, 0.2);
+        border: 1px solid color-mix(in srgb, $gain, transparent 80%);
     }
 
-    &.badge-red {
+    &.badge-loss {
         background: $loss-soft;
         color: $loss;
-        border: 1px solid rgba(155, 142, 253, 0.2);
+        border: 1px solid color-mix(in srgb, $loss, transparent 80%);
     }
 
     .badge-icon {

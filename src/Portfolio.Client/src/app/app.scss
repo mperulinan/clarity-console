@@ -10,9 +10,9 @@ $bg-sidebar-hover: rgba(255, 255, 255, 0.04);
 $border: var(--color-border);
 $text-primary: var(--color-text);
 $text-muted: var(--color-text-muted);
-$accent: var(--color-primary);
-$accent-glow: color-mix(in srgb, var(--color-primary), transparent 70%);
-$green: var(--color-gain);
+$primary: var(--color-primary);
+$primary-glow: color-mix(in srgb, var(--color-primary), transparent 70%);
+$gain: var(--color-gain);
 $transition-speed: 0.25s;
 
 /* ── SHELL LAYOUT ───────────────────────────── */
@@ -122,11 +122,11 @@ $transition-speed: 0.25s;
     }
 
     &.active {
-        background: color-mix(in srgb, $accent, transparent 92%);
-        color: $accent;
+        background: color-mix(in srgb, $primary, transparent 92%);
+        color: $primary;
 
         .nav-icon {
-            color: $accent;
+            color: $primary;
         }
     }
 }
@@ -152,25 +152,25 @@ $transition-speed: 0.25s;
 /* ── CTA BUTTON ─────────────────────────────── */
 .nav-cta {
     background: transparent;
-    color: $accent !important;
-    border: 1px solid color-mix(in srgb, $accent, transparent 60%);
+    color: $primary !important;
+    border: 1px solid color-mix(in srgb, $primary, transparent 60%);
     margin-top: 8px;
     justify-content: center;
     transition: background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
                 border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     .nav-icon {
-        color: $accent;
+        color: $primary;
     }
 
     &:hover {
-        background: color-mix(in srgb, $accent, transparent 95%);
-        border-color: $accent;
+        background: color-mix(in srgb, $primary, transparent 95%);
+        border-color: $primary;
     }
 
     &.active {
-        background: color-mix(in srgb, $accent, transparent 90%);
-        border-color: $accent;
+        background: color-mix(in srgb, $primary, transparent 90%);
+        border-color: $primary;
     }
 
     .expanded & {
