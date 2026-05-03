@@ -59,11 +59,11 @@
                         To
                         <mat-icon class="sort-icon">{{ getSortIcon('to') }}</mat-icon>
                     </th>
-                    <th class="col-num sortable" (click)="toggleSort('spotPrice')">
+                    <th class="col-num sortable hide-on-mobile" (click)="toggleSort('spotPrice')">
                         Spot Price
                         <mat-icon class="sort-icon">{{ getSortIcon('spotPrice') }}</mat-icon>
                     </th>
-                    <th class="col-num sortable" (click)="toggleSort('fee')">
+                    <th class="col-num sortable hide-on-mobile" (click)="toggleSort('fee')">
                         Fee
                         <mat-icon class="sort-icon">{{ getSortIcon('fee') }}</mat-icon>
                     </th>
@@ -131,7 +131,7 @@
                     </td>
 
                     <!-- Spot Price -->
-                    <td class="col-num">
+                    <td class="col-num hide-on-mobile">
                         @if (getSpotPrice(row)) {
                         <span class="cell-primary">{{ getSpotPrice(row) | currency:baseCurrency():'symbol':'1.2-6'
                             }}</span>
@@ -142,7 +142,7 @@
                     </td>
 
                     <!-- Fee -->
-                    <td class="col-num">
+                    <td class="col-num hide-on-mobile">
                         @if (row.transaction.fee > 0) {
                         <span class="cell-primary">{{ row.transaction.fee | number:'1.2-8' }}</span>
                         <span class="cell-secondary">{{ row.transaction.feeAsset?.symbol || '' }}</span>

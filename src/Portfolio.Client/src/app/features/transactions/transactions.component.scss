@@ -10,7 +10,7 @@
     padding: 28px 32px;
     max-width: 1400px;
     margin: 0 auto;
-    min-height: 100vh;
+    min-height: 400px;
 }
 
 /* ── TOKENS ─────────────────────────────────── */
@@ -101,7 +101,8 @@ $text-muted: var(--color-text-muted);
     background: $bg-card;
     border: 1px solid $border;
     border-radius: 8px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 /* ── TYPOGRAPHY OVERRIDES (scoped to this component) ─────────
@@ -146,6 +147,7 @@ $text-muted: var(--color-text-muted);
 
 .txn-table {
     width: 100%;
+    min-width: 650px;
     border-collapse: collapse;
 
     th,
@@ -249,4 +251,28 @@ $text-muted: var(--color-text-muted);
 
 .highlight-glow {
     animation: pulseGlowComponent 2.5s ease-out forwards !important;
+}
+
+/* ── RESPONSIVE DESIGN ───────────────────────── */
+@media (max-width: 768px) {
+    .transactions-page {
+        padding: 16px 16px;
+    }
+
+    .page-header {
+        align-items: center;
+        padding-left: 60px; /* Clear the floating mobile menu button */
+    }
+
+    .hide-on-mobile {
+        display: none !important;
+    }
+
+    /* Hide the 5th and 6th skeleton columns (Spot Price and Fee) to match the hidden live columns */
+    ::ng-deep .skel-table-header > :nth-child(5),
+    ::ng-deep .skel-table-header > :nth-child(6),
+    ::ng-deep .skel-row > :nth-child(5),
+    ::ng-deep .skel-row > :nth-child(6) {
+        display: none !important;
+    }
 }
