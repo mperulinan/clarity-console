@@ -2,33 +2,41 @@
 name: Portfolio
 description: A personal crypto portfolio tracker with tax computation.
 colors:
-  bg-base: "#131722"
-  bg-surface: "#1e2236"
+  bg-base: "#171216"
+  bg-surface: "#221C20"
   primary: "#FF0054"
   text: "#E8ECF4"
   text-muted: "#8B93A8"
   gain: "#FAFF70"
   loss: "#9B8EFD"
-  border: "rgba(255, 255, 255, 0.06)"
+  error: "#D62828"
+  border: "rgba(255, 235, 245, 0.05)"
 typography:
   display:
     fontFamily: "'Manrope', system-ui, sans-serif"
     fontSize: "2.5rem"
     fontWeight: 300
     lineHeight: 1.1
+  headline:
+    fontFamily: "'Manrope', system-ui, sans-serif"
+    fontSize: "2.125rem"
+    fontWeight: 500
+    lineHeight: 1.2
   title:
     fontFamily: "'Manrope', system-ui, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 500
+    fontSize: "1.125rem"
+    fontWeight: 600
     lineHeight: 1.3
   body:
     fontFamily: "'Manrope', system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
+    lineHeight: 1.5
   label:
     fontFamily: "'Work Sans', system-ui, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 600
+    letterSpacing: "0.05em"
 rounded:
   md: "8px"
   lg: "16px"
@@ -48,6 +56,10 @@ components:
     backgroundColor: "{colors.bg-surface}"
     rounded: "{rounded.xl}"
     padding: "24px 28px"
+  table-header-sortable:
+    textColor: "{colors.text-muted}"
+    typography: "{typography.label}"
+    padding: "12px 16px"
 ---
 
 # Design System: Portfolio
@@ -56,14 +68,14 @@ components:
 
 **Creative North Star: "The Clarity Console"**
 
-This system is built to provide an instant and clear view of the portfolio to aid in decision-making. It operates in a precise, calm, serious, and warm register. It is designed for personal use and interview demonstrations, avoiding generic SaaS templates and AI clichés. The interface relies on a distinctive terminal-native dark ground, with support for warm theme variations. It utilizes a ghosted Hot Crimson for primary actions. Crucially, financial gains are represented in yellow-gold and losses in soft purple, breaking from the traditional green/red to establish a personal, highly readable aesthetic.
+This system is built to provide an instant and clear view of the portfolio to aid in decision-making. It operates in a precise, calm, serious, and warm register. It is designed for personal use and interview demonstrations, avoiding generic SaaS templates and AI clichés. The interface relies on a distinctive terminal-native dark ground, utilizing a Midnight Crimson palette that avoids pure black. It employs a "Flat-By-Default" philosophy where depth is conveyed through tonal layering rather than elevation or shadows.
 
 **Key Characteristics:**
-- **Terminal Warmth**: A deep Midnight Crimson dark background (`#171216`), avoiding pure black or standard grays to create a warmer, bespoke feel.
-- **Extreme Restraint**: The primary accent (`#FF0054`) is used sparingly (≤10% of the surface) to highlight only the most critical actions, often as a ghost button to reduce visual noise.
-- **Distinctive Semantics**: Gains are gold (`#FAFF70`), losses are soft purple (`#9B8EFD`).
+- **Terminal Warmth**: A deep Midnight Crimson dark background (`#171216`), providing a warmer, more bespoke feel than standard neutral grays.
+- **Extreme Restraint**: The primary accent (`#FF0054`) is used sparingly (≤10% of the surface) to preserve its impact for critical actions and status indicators.
+- **Semantic Precision**: Gains are yellow (`#FAFF70`), losses are soft purple (`#9B8EFD`), and data integrity errors are deep red (`#D62828`).
 - **Data as Material**: Strong typographic hierarchy with Manrope for structural text and Work Sans (tabular nums) for financial data.
-- **Proportional Weight**: Data visualization (like allocation bars) scales opacity gradually within a neutral color family rather than introducing new bright colors for large values.
+- **Flat-By-Default**: No drop shadows or elevation transforms; depth is achieved through color-mix layering and surface tonal shifts.
 
 ## 2. Colors
 
@@ -81,7 +93,8 @@ A Restrained strategy rooted in a custom Midnight Crimson dark mode.
 
 ### Semantic
 - **Gold Gain** (#FAFF70): Used exclusively for positive financial values and upward trends.
-- **Purple Loss** (#9B8EFD): Used exclusively for negative financial values and downward trends.
+- **Purple Loss** (#9B8EFD): Used exclusively for negative financial values, downward trends and wash-sale warnings.
+- **Deep Red Error** (#D62828): Used for data integrity errors and system-level warnings, distinguishing them from financial loss.
 
 **The One Voice Rule.** The primary accent (#FF0054) is used on ≤10% of any given screen. Its rarity is the point.
 
@@ -105,7 +118,7 @@ A Restrained strategy rooted in a custom Midnight Crimson dark mode.
 
 Surfaces are strictly flat. Depth is established through subtle tonal shifts between the base background and surface panels. No drop shadows are used.
 
-**The Flat-By-Default Rule.** Surfaces are strictly flat. Buttons and interactive elements do not elevate or cast shadows on hover.
+**The Flat-By-Default Rule.** Surfaces are strictly flat. Interactive elements do not elevate or cast shadows on hover. State changes are communicated via color shifts and border solidification.
 
 ## 5. Components
 
@@ -130,19 +143,29 @@ Components are refined and restrained, remaining near-invisible until interacted
 ### Data Tables
 - **Style:** Full width, dense. Minimal horizontal row separators (`var(--color-border)`).
 - **Hover:** Row background subtly shifts lighter. No card-like wrappers around individual rows.
+- **Sortable Headers:** Use `var(--color-text-muted)` at rest with low-opacity icons.
+- **Active Sort State:** The sorted column label and icon shift to `var(--color-primary)` with full icon opacity.
+- **Keyboard Access:** Focused headers display a `2px` primary-colored outline with a `-2px` offset.
 
 ### Allocation Bars
 - **Style:** Smooth monochromatic neutral scale. Faint neutral (<15%), Solid neutral (15-39%), and Strongest neutral (>40%).
 - **Rule:** Uses volume/opacity to encode size, completely avoiding semantic gain/loss colors or primary interaction colors to prevent false emphasis.
 
+### Status Indicators
+- **Success/OK**: Neutral grey (`var(--color-text-muted)`) checkmark.
+- **Warning/Wash Sale**: Purple (`var(--color-loss)`) block icon.
+- **Error**: Red (`var(--color-error)`) error icon.
+
 ## 6. Do's and Don'ts
 
 ### Do:
 - **Do** use Yellow (#FAFF70) and Purple (#9B8EFD) for all financial gain/loss indicators.
+- **Do** use Deep Red (#D62828) for data errors to separate them from financial losses.
 - **Do** rely on typographic size and weight to establish hierarchy instead of borders and boxes.
 - **Do** use asymmetry and purposeful negative space to create visual interest.
 - **Do** use subtle micro-animations that enhance usability and reward attention.
 - **Do** use gradual opacity scales of neutral colors for data visualizations representing volume or weight.
+- **Do** use `focus-visible` rings in the primary color for all keyboard-accessible elements.
 
 ### Don't:
 - **Don't** use generic AI UI slop: glowing purple/indigo/cyan neon gradients as default "futuristic energy".

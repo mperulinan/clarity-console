@@ -215,8 +215,8 @@ $text-muted: var(--color-text-muted);
     }
 
     &.row-error {
-        /* Subtle error tint using loss token, not brand crimson. */
-        background: color-mix(in srgb, var(--color-loss), transparent 96%);
+        /* Distinct error tint using error token. */
+        background: color-mix(in srgb, var(--color-error), transparent 96%);
     }
 
     &.row-disallowed {
@@ -241,6 +241,11 @@ $text-muted: var(--color-text-muted);
     &.status-warn {
         /* Explicitly loss-semantic purple — no gold/gain. */
         color: var(--color-loss) !important;
+    }
+
+    &.status-error {
+        /* Distinct error-semantic red — separate from financial loss. */
+        color: var(--color-error) !important;
     }
 }
 

@@ -1,16 +1,20 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-05-02T14:25:00Z",
+  "generatedAt": "2026-05-03T14:05:10Z",
   "title": "Design System: Portfolio",
   "extensions": {
     "colorMeta": {
       "primary": { "role": "primary", "displayName": "Hot Crimson", "canonical": "#FF0054", "tonalRamp": ["#ffccd8", "#ff99b1", "#ff668a", "#ff3363", "#FF0054", "#cc0043", "#990032", "#660021"] },
       "gain": { "role": "tertiary", "displayName": "Gold Gain", "canonical": "#FAFF70", "tonalRamp": ["#feffde", "#fdffbc", "#fbff9b", "#f9ff79", "#FAFF70", "#c8cc5a", "#969943", "#64662d"] },
       "loss": { "role": "secondary", "displayName": "Purple Loss", "canonical": "#9B8EFD", "tonalRamp": ["#eae7ff", "#d5cfff", "#c0b8ff", "#aba0ff", "#9B8EFD", "#7c72ca", "#5d5598", "#3e3965"] },
+      "error": { "role": "error", "displayName": "Deep Red Error", "canonical": "#D62828", "tonalRamp": ["#fbd5d5", "#f7abab", "#f28080", "#ee5656", "#D62828", "#ab2020", "#801818", "#561010"] },
       "bg-base": { "role": "neutral", "displayName": "Midnight Crimson Dark", "canonical": "#171216", "tonalRamp": ["#ffffff", "#ebd1df", "#d3a1bf", "#b56c9a", "#953874", "#6f2152", "#471534", "#171216"] }
     },
     "typographyMeta": {
       "display": { "displayName": "Display", "purpose": "Massive quiet numbers in hero summary." },
+      "headline": { "displayName": "Headline", "purpose": "Primary page titles." },
+      "title": { "displayName": "Title", "purpose": "Section headers and component titles." },
+      "body": { "displayName": "Body", "purpose": "Standard data table rows and general prose." },
       "label": { "displayName": "Label", "purpose": "Tabular numbers for financial data and column headers." }
     },
     "shadows": [],
@@ -28,6 +32,14 @@
       "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #FF0054; border: 1px solid rgba(255, 0, 84, 0.4); border-radius: 8px; padding: 7px 17px; font-size: 0.875rem; font-weight: 600; font-family: 'Manrope', system-ui, sans-serif; cursor: pointer; transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-ghost:hover { background: rgba(255, 0, 84, 0.05); border-color: #FF0054; } .ds-btn-ghost:active { background: rgba(255, 0, 84, 0.1); }"
     },
     {
+      "name": "Sortable Header",
+      "kind": "custom",
+      "refersTo": "table-header-sortable",
+      "description": "Table header with active sort state and keyboard focus support.",
+      "html": "<div class=\"ds-th-sortable ds-is-sorted\">Date <span class=\"ds-icon\">↑</span></div>",
+      "css": ".ds-th-sortable { display: flex; align-items: center; gap: 4px; color: #8B93A8; font-family: 'Work Sans', system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: color 0.2s cubic-bezier(0.25, 1, 0.5, 1); } .ds-th-sortable:hover { color: #E8ECF4; } .ds-th-sortable.ds-is-sorted { color: #FF0054; } .ds-th-sortable:focus-visible { outline: 2px solid #FF0054; outline-offset: -2px; } .ds-icon { font-size: 14px; opacity: 0.6; } .ds-is-sorted .ds-icon { opacity: 1; }"
+    },
+    {
       "name": "Allocation Bar",
       "kind": "custom",
       "refersTo": "alloc-bar",
@@ -42,17 +54,18 @@
     "keyCharacteristics": [
       "Terminal Warmth: A deep Midnight Crimson dark background (#171216), avoiding pure black or standard grays to create a warmer, bespoke feel.",
       "Extreme Restraint: The primary accent (#FF0054) is used sparingly (≤10% of the surface) to highlight only the most critical actions, often as a ghost button to reduce visual noise.",
-      "Distinctive Semantics: Gains are gold (#FAFF70), losses are soft purple (#9B8EFD).",
+      "Distinctive Semantics: Gains are gold (#FAFF70), losses are soft purple (#9B8EFD), and data integrity errors are deep red (#D62828).",
       "Data as Material: Strong typographic hierarchy with Manrope for structural text and Work Sans (tabular nums) for financial data.",
       "Proportional Weight: Data visualization scales opacity gradually within a neutral color family rather than introducing new bright colors for large values."
     ],
     "rules": [
       { "name": "The One Voice Rule", "body": "The primary accent (#FF0054) is used on ≤10% of any given screen. Its rarity is the point.", "section": "colors" },
       { "name": "The Data Dominance Rule", "body": "Typography, spacing, and color exist to make financial data legible. Aesthetics serve readability, not the reverse.", "section": "typography" },
-      { "name": "The Flat-By-Default Rule", "body": "Surfaces are strictly flat. Buttons and interactive elements do not elevate or cast shadows on hover.", "section": "elevation" }
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are strictly flat. Interactive elements do not elevate or cast shadows on hover. State changes are communicated via color shifts and border solidification.", "section": "elevation" }
     ],
     "dos": [
       "Do use Yellow (#FAFF70) and Purple (#9B8EFD) for all financial gain/loss indicators.",
+      "Do use Deep Red (#D62828) for data errors to separate them from financial losses.",
       "Do rely on typographic size and weight to establish hierarchy instead of borders and boxes.",
       "Do use asymmetry and purposeful negative space to create visual interest.",
       "Do use subtle micro-animations that enhance usability and reward attention.",
