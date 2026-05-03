@@ -10,6 +10,7 @@ $gain: var(--color-gain);
 $gain-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 $loss: var(--color-loss);
 $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
+$error: var(--color-error);
 
 /* ── CELLS & BADGES ─────────────────────────── */
 .col-num {
@@ -64,7 +65,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 }
 
 .cell-muted {
-    color: rgba(255, 255, 255, 0.2);
+    color: color-mix(in srgb, $text-muted, transparent 50%);
     font-size: var(--text-sm);
     font-family: var(--font-text);
 }
@@ -147,7 +148,8 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 }
 
 .status-error {
-    color: $loss;
+    /* Data integrity error — distinct from financial loss ($loss). */
+    color: $error;
 }
 
 .status-neutral {

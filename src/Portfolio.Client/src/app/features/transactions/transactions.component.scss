@@ -139,12 +139,6 @@ $text-muted: var(--color-text-muted);
     font-family: var(--font-numbers);
 }
 
-/* Table column headers — text labels */
-.txn-table th {
-    font-family: var(--font-text);
-}
-
-
 .txn-table {
     width: 100%;
     min-width: 650px;
@@ -159,12 +153,12 @@ $text-muted: var(--color-text-muted);
 
     th {
         font-size: var(--text-xs);
-        font-family: var(--font-numbers);
+        font-family: var(--font-text);
         font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: $text-muted;
-        background: rgba(255, 255, 255, 0.02);
+        background: color-mix(in srgb, $text-primary, transparent 98%);
         white-space: nowrap;
         user-select: none;
     }
@@ -211,7 +205,7 @@ $text-muted: var(--color-text-muted);
     transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     &:hover {
-        background: rgba(255, 255, 255, 0.03);
+        background: color-mix(in srgb, $text-primary, transparent 97%);
     }
 
     &.row-error {
@@ -229,20 +223,7 @@ $text-muted: var(--color-text-muted);
     }
 }
 
-/* ── COMPONENT-SCOPED ICON OVERRIDES ─────────── */
-/* Forcing these here to ensure they override any cached global styles. */
-
 .status-icon {
-    &.status-ok {
-        /* Explicitly neutral grey — no green. */
-        color: var(--color-text-muted) !important;
-    }
-
-    &.status-warn {
-        /* Explicitly loss-semantic purple — no gold/gain. */
-        color: var(--color-loss) !important;
-    }
-
     &.status-error {
         /* Distinct error-semantic red — separate from financial loss. */
         color: var(--color-error) !important;
@@ -293,4 +274,4 @@ $text-muted: var(--color-text-muted);
     ::ng-deep .skel-row > :nth-child(6) {
         display: none !important;
     }
-}
+}
