@@ -207,14 +207,53 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
     }
 
     &.row-error {
-        background: rgba(255, 82, 82, 0.04);
+        /* Subtle error tint using loss token, not brand crimson. */
+        background: color-mix(in srgb, var(--color-loss), transparent 96%);
     }
 
     &.row-disallowed {
-        background: $amber-soft;
+        /* Flat row for disallowed losses per feedback — no background tint. */
+        background: transparent;
 
         td {
-            opacity: 0.75;
+            opacity: 0.7;
         }
     }
 }
+
+/* ── COMPONENT-SCOPED ICON OVERRIDES ─────────── */
+/* Forcing these here to ensure they override any cached global styles. */
+
+.status-icon {
+    &.status-ok {
+        /* Explicitly neutral grey — no green. */
+        color: var(--color-text-muted) !important;
+    }
+
+    &.status-warn {
+        /* Explicitly loss-semantic purple — no gold/gain. */
+        color: var(--color-loss) !important;
+    }
+}
+
+.clickable-icon {
+    opacity: 0.55;
+    transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+
+    &:hover {
+        opacity: 1;
+        /* Stay purple on hover, just brighter. */
+        color: var(--color-loss) !important;
+    }
+}
+
+/* ── UX ANIMATIONS ───────────────────────────── */
+@keyframes pulseGlowComponent {
+    0% { background-color: transparent; }
+    30% { background-color: color-mix(in srgb, var(--color-primary), transparent 85%); }
+    100% { background-color: transparent; }
+}
+
+.highlight-glow {
+    animation: pulseGlowComponent 2.5s ease-out forwards !important;
+}

@@ -180,7 +180,7 @@
                         } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {
                         <mat-icon class="status-icon status-ok">check_circle</mat-icon>
                         } @else {
-                        <mat-icon class="status-icon status-neutral">check_circle_outline</mat-icon>
+                        <mat-icon class="status-icon status-neutral" matTooltip="No P/L (deposit or transfer)">radio_button_unchecked</mat-icon>
                         }
                     </td>
 
