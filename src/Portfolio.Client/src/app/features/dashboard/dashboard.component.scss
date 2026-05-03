@@ -295,7 +295,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     /* 1px less padding to compensate for 1px border */
     font-size: var(--text-base);
     font-weight: 600;
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
     cursor: pointer;
     transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
                 border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);

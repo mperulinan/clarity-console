@@ -60,7 +60,7 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 .page-title {
     font-size: var(--text-2xl);
     font-weight: 700;
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
     color: $text-primary;
     margin: 0;
     letter-spacing: -0.02em;
@@ -68,7 +68,7 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 
 .page-subtitle {
     font-size: var(--text-sm);
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
     color: $text-muted;
     margin: 4px 0 0;
 }
@@ -85,7 +85,7 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
     padding: 7px 17px;
     font-size: var(--text-base, 14px);
     font-weight: 600;
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
     cursor: pointer;
     transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
         border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
@@ -132,12 +132,12 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 
 /* Symbol labels: BTC, ETH, EUR — always text */
 .cell-secondary {
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
 }
 
 /* Type badge: BUY, SELL — always text */
 .type-badge {
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
 }
 
 /* P/L amounts — numeric */
@@ -147,7 +147,7 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 
 /* Table column headers — text labels */
 .txn-table th {
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
 }
 
 

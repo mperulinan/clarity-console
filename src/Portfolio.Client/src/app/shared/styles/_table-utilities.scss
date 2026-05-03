@@ -40,7 +40,7 @@ $amber: var(--color-gain); // alias → Bull Yellow
 .cell-secondary {
     display: block;
     font-size: var(--text-xs);
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
     color: $text-muted;
     margin-top: 1px;
 }
@@ -67,7 +67,7 @@ $amber: var(--color-gain); // alias → Bull Yellow
 .cell-muted {
     color: rgba(255, 255, 255, 0.2);
     font-size: var(--text-sm);
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
 }
 
 .asset-cell {
@@ -87,7 +87,7 @@ $amber: var(--color-gain); // alias → Bull Yellow
 .type-badge {
     display: inline-block;
     font-size: var(--text-xs);
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;

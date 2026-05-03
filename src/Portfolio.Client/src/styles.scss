@@ -38,7 +38,7 @@
     --text-3xl: 2.5rem;
     /* 40px */
 
-    --font-sans: 'Manrope', system-ui, sans-serif;
+    --font-text: 'Manrope', system-ui, sans-serif;
     --font-numbers: 'Work Sans', system-ui, sans-serif;
     --shadow-lifted: 0 4px 12px rgba(0, 0, 0, 0.2);
     --radius-md: 8px;
@@ -53,7 +53,7 @@ body {
 
 body {
     margin: 0;
-    font-family: var(--font-sans);
+    font-family: var(--font-text);
     background-color: var(--color-bg-base);
     color: var(--color-text);
     -webkit-font-smoothing: antialiased;
