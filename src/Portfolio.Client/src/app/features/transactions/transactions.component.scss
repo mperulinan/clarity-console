@@ -27,13 +27,6 @@ $accent: var(--color-primary);
 $amber: var(--color-gain);
 $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 
-/* ── GLASSMORPHISM ───────────────────────────── */
-.glass {
-    background: color-mix(in srgb, var(--color-bg-base), transparent 30%) !important;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid var(--color-border) !important;
-}
 
 /* ── ANIMATIONS ─────────────────────────────── */
 @keyframes fadeInUp {
@@ -49,11 +42,11 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 }
 
 .page-header {
-    animation: fadeInUp 0.4s ease backwards;
+    animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) backwards;
 }
 
 .table-wrap {
-    animation: fadeInUp 0.5s ease 0.15s backwards;
+    animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) 0.15s backwards;
 }
 
 /* ── HEADER ─────────────────────────────────── */
@@ -65,15 +58,17 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 }
 
 .page-title {
-    font-size: 28px;
+    font-size: var(--text-2xl);
     font-weight: 700;
+    font-family: var(--font-sans);
     color: $text-primary;
     margin: 0;
     letter-spacing: -0.02em;
 }
 
 .page-subtitle {
-    font-size: 13px;
+    font-size: var(--text-sm);
+    font-family: var(--font-sans);
     color: $text-muted;
     margin: 4px 0 0;
 }
@@ -93,7 +88,7 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
     font-family: var(--font-sans);
     cursor: pointer;
     transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-                border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     mat-icon {
         font-size: 18px;
@@ -112,10 +107,49 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 .table-wrap {
     background: $bg-card;
     border: 1px solid $border;
-    border-radius: 16px;
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
+
+/* ── TYPOGRAPHY OVERRIDES (scoped to this component) ─────────
+   Global _table-utilities.scss rules are overrideable by
+   Tailwind/Material cascade. These encapsulated rules win always.
+   Rule: Work Sans = numbers/amounts. Manrope = labels/symbols.
+   ──────────────────────────────────────────────────────────── */
+
+/* Numeric amounts: dates, quantities, prices, fees, P/L */
+.cell-primary {
+    font-family: var(--font-numbers);
+}
+
+/* Timestamps (HH:mm:ss) — tabular data, not prose.
+   Compound selector needed: element has both classes, and .cell-secondary
+   (Manrope) has the same scoped specificity, so order decides. The
+   compound beats both individual rules at 0,2,0 vs 0,1,0. */
+.cell-secondary.time-hover {
+    font-family: var(--font-numbers);
+}
+
+/* Symbol labels: BTC, ETH, EUR — always text */
+.cell-secondary {
+    font-family: var(--font-sans);
+}
+
+/* Type badge: BUY, SELL — always text */
+.type-badge {
+    font-family: var(--font-sans);
+}
+
+/* P/L amounts — numeric */
+.pl-amount {
+    font-family: var(--font-numbers);
+}
+
+/* Table column headers — text labels */
+.txn-table th {
+    font-family: var(--font-sans);
+}
+
 
 .txn-table {
     width: 100%;
@@ -129,7 +163,8 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
     }
 
     th {
-        font-size: 11px;
+        font-size: var(--text-xs);
+        font-family: var(--font-numbers);
         font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -147,7 +182,7 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 /* ── SORTABLE HEADERS ───────────────────────── */
 .sortable {
     cursor: pointer;
-    transition: color 0.15s;
+    transition: color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     &:hover {
         color: $text-primary;
@@ -165,7 +200,7 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 
 /* ── ROW STYLES ─────────────────────────────── */
 .txn-row {
-    transition: background 0.15s;
+    transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     &:hover {
         background: rgba(255, 255, 255, 0.03);
@@ -183,4 +218,3 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
         }
     }
 }
-

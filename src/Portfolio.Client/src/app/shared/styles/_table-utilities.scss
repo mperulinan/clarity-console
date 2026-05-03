@@ -31,14 +31,16 @@ $amber: var(--color-gain); // alias → Bull Yellow
 
 .cell-primary {
     display: block;
-    font-size: 13px;
+    font-size: var(--text-sm);
+    font-family: var(--font-numbers);
     font-weight: 600;
     color: $text-primary;
 }
 
 .cell-secondary {
     display: block;
-    font-size: 11px;
+    font-size: var(--text-xs);
+    font-family: var(--font-sans);
     color: $text-muted;
     margin-top: 1px;
 }
@@ -47,6 +49,7 @@ $amber: var(--color-gain); // alias → Bull Yellow
     display: inline-flex;
     align-items: center;
     cursor: default;
+    font-family: var(--font-numbers);
 
     .time-secs {
         max-width: 0;
@@ -63,7 +66,8 @@ $amber: var(--color-gain); // alias → Bull Yellow
 
 .cell-muted {
     color: rgba(255, 255, 255, 0.2);
-    font-size: 13px;
+    font-size: var(--text-sm);
+    font-family: var(--font-sans);
 }
 
 .asset-cell {
@@ -82,7 +86,8 @@ $amber: var(--color-gain); // alias → Bull Yellow
 
 .type-badge {
     display: inline-block;
-    font-size: 11px;
+    font-size: var(--text-xs);
+    font-family: var(--font-sans);
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -122,7 +127,8 @@ $amber: var(--color-gain); // alias → Bull Yellow
 }
 
 .pl-amount {
-    font-size: 13px;
+    font-size: var(--text-sm);
+    font-family: var(--font-numbers);
     font-weight: 700;
     white-space: nowrap;
 }
