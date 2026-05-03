@@ -206,7 +206,7 @@ $bg-card: var(--color-bg-surface);
     background: $skel-shine;
     background-size: 600px 100%;
     animation: shimmer 1.5s infinite linear;
-    border-radius: 6px;
+    border-radius: 4px;
 }
 
 .skel-wrap {
@@ -242,14 +242,14 @@ $bg-card: var(--color-bg-surface);
 .skel-table {
     background: $bg-card;
     border: 1px solid $border;
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 4px;
+    padding: 0 16px; /* Horizontal padding match cell padding */
 }
 
 .skel-table-header {
     display: flex;
     gap: 16px;
-    padding-bottom: 14px;
+    padding: 12px 0 14px 0; /* Top padding match cell padding */
     border-bottom: 1px solid $border;
     margin-bottom: 14px;
 

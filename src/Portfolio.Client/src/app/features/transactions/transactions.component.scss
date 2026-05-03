@@ -97,12 +97,16 @@ $text-muted: var(--color-text-muted);
 }
 
 /* ── TABLE ───────────────────────────────────── */
-.table-wrap {
+.table-wrap,
+.skel-table {
     background: $bg-card;
     border: 1px solid $border;
-    border-radius: 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
+    border-radius: 4px; /* Tighter radius for skeletons */
+    padding: 0 16px; /* Horizontal padding match cell padding */
+}
+
+.skel-table {
+    border-radius: 4px !important;
 }
 
 /* ── TYPOGRAPHY OVERRIDES (scoped to this component) ─────────
