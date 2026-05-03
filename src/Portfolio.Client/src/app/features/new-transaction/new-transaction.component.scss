@@ -273,32 +273,44 @@ $accent-hover: #5c4ee8;
     border-top: 1px solid $border;
 
     .cancel-btn {
-        color: $text-primary;
+        background: transparent;
+        border: 1px solid transparent;
+        color: $text-muted;
         font-weight: 600;
+        padding: 0 24px;
+        border-radius: 8px;
+        transition: background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+                    color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
         &:hover {
             background: rgba(255, 255, 255, 0.05);
+            color: $text-primary;
         }
     }
 
     .submit-btn {
-        background: linear-gradient(135deg, $accent, $accent-hover);
-        color: #fff;
+        background: transparent !important;
+        color: $accent !important;
+        border: 1px solid color-mix(in srgb, $accent, transparent 60%) !important;
         font-weight: 600;
         padding: 0 24px;
         border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(124, 108, 252, 0.3);
-        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: none !important;
+        transition: background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+                    border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
         &:not(:disabled):hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(124, 108, 252, 0.4);
+            background: color-mix(in srgb, $accent, transparent 90%) !important;
+            border-color: $accent !important;
+            box-shadow: none !important;
         }
 
         &:disabled {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.3);
-            box-shadow: none;
+            background: transparent !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: rgba(255, 255, 255, 0.3) !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
         }
     }
 }

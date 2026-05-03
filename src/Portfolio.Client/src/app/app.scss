@@ -157,8 +157,7 @@ $transition-speed: 0.25s;
     border: 1px solid color-mix(in srgb, $accent, transparent 60%);
     margin-top: 8px;
     justify-content: center;
-    transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), 
-                background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+    transition: background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
                 border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     .nav-icon {
@@ -166,7 +165,6 @@ $transition-speed: 0.25s;
     }
 
     &:hover {
-        transform: translateY(-1px);
         background: color-mix(in srgb, $accent, transparent 95%);
         border-color: $accent;
     }

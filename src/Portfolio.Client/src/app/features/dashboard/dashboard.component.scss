@@ -298,9 +298,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     font-family: var(--font-sans);
     cursor: pointer;
     transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-        transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-        box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-        border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+                border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     mat-icon {
         font-size: var(--text-lg);
@@ -312,12 +310,6 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     &:hover {
         background: color-mix(in srgb, var(--color-primary), transparent 95%);
         border-color: var(--color-primary);
-        transform: translateY(-1px);
-    }
-
-    &:active {
-        transform: translateY(0);
-        box-shadow: none;
     }
 }
 

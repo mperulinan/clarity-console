@@ -81,27 +81,30 @@ $amber-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 .add-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    background: linear-gradient(135deg, $accent, color-mix(in srgb, $accent, black 15%));
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 9px 20px;
-    font-size: 14px;
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid color-mix(in srgb, var(--color-primary), transparent 60%);
+    border-radius: 8px;
+    padding: 7px 17px;
+    font-size: var(--text-base, 14px);
     font-weight: 600;
+    font-family: var(--font-sans);
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.2s;
-    box-shadow: 0 4px 16px color-mix(in srgb, $accent, transparent 60%);
+    transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+                border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     mat-icon {
         font-size: 18px;
         width: 18px;
         height: 18px;
+        line-height: 18px;
     }
 
     &:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
+        background: color-mix(in srgb, var(--color-primary), transparent 95%);
+        border-color: var(--color-primary);
     }
 }
 

@@ -103,12 +103,9 @@ A Restrained strategy rooted in a custom Midnight Crimson dark mode.
 
 ## 4. Elevation
 
-Surfaces are flat by default. Depth is established through subtle tonal shifts between the base background and surface panels.
+Surfaces are strictly flat. Depth is established through subtle tonal shifts between the base background and surface panels. No drop shadows are used.
 
-### Shadow Vocabulary
-- **Lifted Interaction** (`box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25)`): Used exclusively when an interactive element (like a button) is hovered or active.
-
-**The Flat-By-Default Rule.** Surfaces are flat at rest. Shadows appear only as a response to state (hover, elevation, focus).
+**The Flat-By-Default Rule.** Surfaces are strictly flat. Buttons and interactive elements do not elevate or cast shadows on hover.
 
 ## 5. Components
 
@@ -117,7 +114,7 @@ Components are refined and restrained, remaining near-invisible until interacted
 ### Buttons
 - **Shape:** Gently curved edges (8px radius).
 - **Primary Ghost:** Transparent background with 1px Hot Crimson border (`color-mix` tinted) and Hot Crimson text.
-- **Hover / Focus:** Fills slightly with a 5% Crimson tint, border solidifies to full primary color, and lifts slightly with the Lifted Interaction shadow.
+- **Hover / Focus:** Fills slightly with a 5% Crimson tint, and border solidifies to full primary color. Buttons remain perfectly flat without elevation or shadows.
 
 ### Cards / Containers
 - **Corner Style:** 20px radius for the bento summary grid, 8px for standard panels.

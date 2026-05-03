@@ -13,9 +13,7 @@
       "display": { "displayName": "Display", "purpose": "Massive quiet numbers in hero summary." },
       "label": { "displayName": "Label", "purpose": "Tabular numbers for financial data and column headers." }
     },
-    "shadows": [
-      { "name": "lifted-interaction", "value": "0 4px 12px rgba(0, 0, 0, 0.25)", "purpose": "Used on interactive elements during hover or active states." }
-    ],
+    "shadows": [],
     "motion": [
       { "name": "ease-standard", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default exponential easing for state transitions." }
     ]
@@ -27,7 +25,7 @@
       "refersTo": "button-ghost",
       "description": "Primary CTA in a data-dense environment. Restrained until interacted with.",
       "html": "<button class=\"ds-btn-ghost\">New Transaction</button>",
-      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #FF0054; border: 1px solid rgba(255, 0, 84, 0.4); border-radius: 8px; padding: 7px 17px; font-size: 0.875rem; font-weight: 600; font-family: 'Manrope', system-ui, sans-serif; cursor: pointer; transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-ghost:hover { background: rgba(255, 0, 84, 0.05); border-color: #FF0054; transform: translateY(-1px); } .ds-btn-ghost:active { transform: translateY(0); box-shadow: none; }"
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #FF0054; border: 1px solid rgba(255, 0, 84, 0.4); border-radius: 8px; padding: 7px 17px; font-size: 0.875rem; font-weight: 600; font-family: 'Manrope', system-ui, sans-serif; cursor: pointer; transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-ghost:hover { background: rgba(255, 0, 84, 0.05); border-color: #FF0054; } .ds-btn-ghost:active { background: rgba(255, 0, 84, 0.1); }"
     },
     {
       "name": "Allocation Bar",
@@ -51,7 +49,7 @@
     "rules": [
       { "name": "The One Voice Rule", "body": "The primary accent (#FF0054) is used on ≤10% of any given screen. Its rarity is the point.", "section": "colors" },
       { "name": "The Data Dominance Rule", "body": "Typography, spacing, and color exist to make financial data legible. Aesthetics serve readability, not the reverse.", "section": "typography" },
-      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Shadows appear only as a response to state (hover, elevation, focus).", "section": "elevation" }
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are strictly flat. Buttons and interactive elements do not elevate or cast shadows on hover.", "section": "elevation" }
     ],
     "dos": [
       "Do use Yellow (#FAFF70) and Purple (#9B8EFD) for all financial gain/loss indicators.",
