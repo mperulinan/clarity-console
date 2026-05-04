@@ -294,11 +294,13 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
     background: $bg-card;
     border: 1px solid $border;
     border-radius: var(--radius-md);
-    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .report-table {
     width: 100%;
+    min-width: 800px;
     border-collapse: collapse;
 
     th,
