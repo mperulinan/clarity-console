@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════
-   Tax Report Page — Dark Theme (Fiscal Document)
+   Tax Report Page — The Clarity Console
+   DESIGN.md tokens · product register
    ═══════════════════════════════════════════════ */
 
 :host {
@@ -14,26 +15,19 @@
 }
 
 /* ── TOKENS ─────────────────────────────────── */
-$bg-card: #16213e;
-$border: rgba(255, 255, 255, 0.07);
-$text-primary: #f0f0f0;
-$text-muted: #8892a4;
-$green: #00e676;
-$green-soft: rgba(0, 230, 118, 0.08);
-$red: #ff5252;
-$red-soft: rgba(255, 82, 82, 0.08);
-$accent: #7c6cfc;
-$accent-glow: rgba(124, 108, 252, 0.25);
-$amber: #ffab40;
-$amber-soft: rgba(255, 171, 64, 0.1);
+$bg-card: var(--color-bg-surface);
+$bg-deeper: var(--color-bg-base);
+$border: var(--color-border);
+$text: var(--color-text);
+$muted: var(--color-text-muted);
+$gain: var(--color-gain);
+$loss: var(--color-loss);
+$primary: var(--color-primary);
+$error: var(--color-error);
 
-/* ── GLASSMORPHISM ───────────────────────────── */
-.glass {
-    background: rgba(22, 33, 62, 0.7) !important;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
+$gain-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
+$loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
+$error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
 
 /* ── ANIMATIONS ─────────────────────────────── */
 @keyframes fadeInUp {
@@ -49,23 +43,23 @@ $amber-soft: rgba(255, 171, 64, 0.1);
 }
 
 .page-header {
-    animation: fadeInUp 0.4s ease backwards;
+    animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) backwards;
 }
 
 .year-grid {
-    animation: fadeInUp 0.45s ease 0.1s backwards;
+    animation: fadeInUp 0.45s cubic-bezier(0.25, 1, 0.5, 1) 0.1s backwards;
 }
 
 .kpi-strip {
-    animation: fadeInUp 0.45s ease 0.15s backwards;
+    animation: fadeInUp 0.45s cubic-bezier(0.25, 1, 0.5, 1) 0.15s backwards;
 }
 
 .filter-bar {
-    animation: fadeInUp 0.4s ease backwards;
+    animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) backwards;
 }
 
 .table-wrap {
-    animation: fadeInUp 0.5s ease 0.2s backwards;
+    animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) 0.2s backwards;
 }
 
 /* ── HEADER ─────────────────────────────────── */
@@ -74,16 +68,18 @@ $amber-soft: rgba(255, 171, 64, 0.1);
 }
 
 .page-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: $text-primary;
+    font-size: var(--text-2xl);
+    font-weight: 500;
+    font-family: var(--font-text);
+    color: $text;
     margin: 0;
     letter-spacing: -0.02em;
 }
 
 .page-subtitle {
-    font-size: 13px;
-    color: $text-muted;
+    font-size: var(--text-sm);
+    font-family: var(--font-text);
+    color: $muted;
     margin: 4px 0 0;
 }
 
@@ -100,69 +96,77 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     flex-direction: column;
     gap: 8px;
     padding: 20px;
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     background: $bg-card;
     border: 1px solid $border;
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    transition: border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+                background 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     text-align: left;
     color: inherit;
     font-family: inherit;
 
     &:hover {
-        border-color: rgba(255, 255, 255, 0.15);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        border-color: color-mix(in srgb, $muted, transparent 50%);
+        background: color-mix(in srgb, $bg-card, white 2%);
     }
 
     &.year-selected {
-        border-color: $accent;
-        box-shadow: 0 0 0 1px $accent, 0 8px 24px $accent-glow;
+        border-color: $primary;
+        background: color-mix(in srgb, $primary, transparent 95%);
     }
 }
 
 .year-label {
-    font-size: 14px;
-    font-weight: 700;
-    color: $text-muted;
-    letter-spacing: 0.05em;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    font-family: var(--font-text);
+    color: $muted;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
+/* Primary display number in the year card. Weight 300 matches bento-amount. */
 .year-pl {
-    font-size: 24px;
-    font-weight: 700;
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--text-2xl);
+    font-weight: 300;
     letter-spacing: -0.02em;
     line-height: 1.1;
 
     &.positive {
-        color: $green;
+        color: $gain;
     }
 
     &.negative {
-        color: $red;
+        color: $loss;
     }
 }
 
 .year-meta {
     display: flex;
     gap: 12px;
-    font-size: 11px;
-    color: $text-muted;
+    font-size: var(--text-mini);
+    font-family: var(--font-text);
+    color: $muted;
     align-items: center;
 }
 
+/* Disallowed losses (wash sales) use loss token (purple) */
 .year-disallowed {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    color: $amber;
+    color: $loss;
 }
 
+/* Data errors use the dedicated error token (red), separate from financial loss */
 .year-errors {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    color: $red;
+    color: $error;
 }
 
 .meta-icon {
@@ -171,32 +175,21 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     height: 13px;
 }
 
+/* Grid-context fix for the shared .empty-cards utility */
 .empty-cards {
     grid-column: 1 / -1;
-    text-align: center;
-    padding: 48px 24px;
-    color: $text-muted;
-
-    mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-        margin-bottom: 12px;
-        opacity: 0.4;
-    }
-
-    p {
-        font-size: 15px;
-        margin: 0;
-        opacity: 0.7;
-    }
 }
 
 /* ── KPI SUMMARY STRIP ──────────────────────── */
+/* Hairline-divided strip, matching dashboard bento-stat aesthetic */
 .kpi-strip {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    gap: 1px;
+    background: $border;
+    border: 1px solid $border;
+    border-radius: var(--radius-md);
+    overflow: hidden;
     margin-bottom: 16px;
 }
 
@@ -205,35 +198,41 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     flex-direction: column;
     gap: 4px;
     padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid $border;
-    border-radius: 10px;
+    background: $bg-card;
+    transition: background 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
 }
 
 .kpi-label {
-    font-size: 11px;
+    font-size: var(--text-mini);
     font-weight: 600;
+    font-family: var(--font-text);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: $text-muted;
+    letter-spacing: 0.08em;
+    color: $muted;
 }
 
 .kpi-value {
-    font-size: 20px;
-    font-weight: 700;
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--text-lg);
+    font-weight: 500;
     letter-spacing: -0.01em;
-    color: $text-primary;
+    color: $text;
 
     &.positive {
-        color: $green;
+        color: $gain;
     }
 
     &.negative {
-        color: $red;
+        color: $loss;
     }
 
     &.disallowed {
-        color: $amber;
+        color: $loss;
     }
 }
 
@@ -244,17 +243,18 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     justify-content: space-between;
     padding: 10px 16px;
     margin-bottom: 16px;
-    background: rgba(124, 108, 252, 0.06);
-    border: 1px solid rgba(124, 108, 252, 0.15);
-    border-radius: 10px;
+    background: color-mix(in srgb, $primary, transparent 96%);
+    border: 1px solid color-mix(in srgb, $primary, transparent 80%);
+    border-radius: var(--radius-md);
 }
 
 .filter-text {
-    font-size: 13px;
-    color: $text-muted;
+    font-size: var(--text-sm);
+    font-family: var(--font-text);
+    color: $muted;
 
     strong {
-        color: $text-primary;
+        color: $text;
         font-weight: 600;
     }
 }
@@ -264,15 +264,17 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     align-items: center;
     gap: 4px;
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: $text-muted;
-    font-size: 12px;
-    font-weight: 600;
+    border: 1px solid $border;
+    color: $muted;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    font-family: var(--font-text);
     padding: 4px 12px;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    font-family: inherit;
+    transition: background 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+                color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+                border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 
     mat-icon {
         font-size: 14px;
@@ -281,18 +283,18 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     }
 
     &:hover {
-        background: rgba(255, 255, 255, 0.06);
-        color: $text-primary;
+        background: rgba(255, 255, 255, 0.04);
+        color: $text;
+        border-color: color-mix(in srgb, $muted, transparent 50%);
     }
 }
 
-/* ── TABLE (Fiscal Document Style) ──────────── */
+/* ── TABLE ───────────────────────────────────── */
 .table-wrap {
-    background: #1a2235;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: var(--radius-md);
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .report-table {
@@ -301,20 +303,20 @@ $amber-soft: rgba(255, 171, 64, 0.1);
 
     th,
     td {
-        padding: 14px 16px;
+        padding: 12px 16px;
         text-align: left;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid $border;
     }
 
     th {
-        font-size: 11px;
-        font-weight: 700;
+        font-size: var(--text-xs);
+        font-family: var(--font-text);
+        font-weight: 500;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #a0aec0;
-        background: #232d45;
+        color: $muted;
+        background: rgba(255, 255, 255, 0.02);
         white-space: nowrap;
-        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     }
 
     tbody tr:last-child td {
@@ -323,21 +325,22 @@ $amber-soft: rgba(255, 171, 64, 0.1);
 }
 
 .report-row {
-    transition: background 0.15s;
+    transition: background 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 
     &:hover {
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.025);
     }
 
     &.row-error {
-        background: rgba(255, 82, 82, 0.04);
+        background: $error-soft;
     }
 
+    /* Flat — no background tint for wash-sale rows (Flat-By-Default) */
     &.row-wash-sale {
-        background: rgba(255, 255, 255, 0.02);
+        background: transparent;
 
         td {
-            opacity: 0.85;
+            opacity: 0.7;
         }
     }
 }
@@ -382,7 +385,7 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     font-size: 16px;
     width: 16px;
     height: 16px;
-    color: $text-muted;
+    color: $muted;
     opacity: 0.8;
 }
 
@@ -390,24 +393,57 @@ $amber-soft: rgba(255, 171, 64, 0.1);
     font-size: 16px;
     width: 16px;
     height: 16px;
-    color: $text-muted;
+    color: $muted;
     opacity: 0.5;
     flex-shrink: 0;
 }
 
-/* ── SKELETON (KPI Strip Addition) ──────────── */
+/* ── SKELETON (Page-specific additions) ──────── */
+/* Shared table skeletons are inherited from _table-utilities.scss */
+
+.skel-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.skel-card {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .skel-kpi-strip {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    gap: 1px;
+    background: var(--color-border);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 16px;
 }
 
 .skel-kpi-cell {
-    background: $bg-card;
-    border: 1px solid $border;
-    border-radius: 10px;
+    background: var(--color-bg-surface);
     padding: 16px 20px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+/* ── REDUCED MOTION ──────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .page-header,
+    .year-grid,
+    .kpi-strip,
+    .filter-bar,
+    .table-wrap {
+        animation: none;
+    }
 }

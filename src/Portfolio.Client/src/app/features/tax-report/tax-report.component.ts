@@ -84,7 +84,6 @@ export class TaxReportComponent implements OnInit {
             )
             .subscribe({
                 next: report => {
-                    console.log(report);
                     this.reportCurrency.set(report.reportingCurrency);
                     this.allTransactions.set(report.transactions);
                     this.yearSummaries.set(report.yearSummaries || []);
