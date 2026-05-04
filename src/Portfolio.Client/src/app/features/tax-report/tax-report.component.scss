@@ -317,7 +317,7 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: $muted;
-        background: rgba(255, 255, 255, 0.02);
+        background: color-mix(in srgb, $text, transparent 98%);
         white-space: nowrap;
     }
 
@@ -340,14 +340,42 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
     /* Flat — no background tint for wash-sale rows (Flat-By-Default) */
     &.row-wash-sale {
         background: transparent;
-
-        td {
-            opacity: 0.7;
-        }
     }
 }
 
-/* ── EVENT FLOW COLUMN ──────────────────────── */
+/* ── P/L CELL ───────────────────────────────── */
+.pl-cell {
+    &.pl-disallowed .pl-amount {
+        color: $muted;
+        text-decoration: line-through;
+        opacity: 0.8;
+    }
+}
+
+/* Empty state cell inside the @empty block */
+.report-table td.empty-state {
+    padding: 56px 24px;
+    text-align: center;
+    color: $muted;
+
+    mat-icon {
+        display: block;
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 12px;
+        opacity: 0.35;
+    }
+
+    p {
+        font-size: var(--text-sm);
+        font-family: var(--font-text);
+        margin: 0;
+        opacity: 0.7;
+    }
+}
+
+
 .col-event {
     min-width: 220px;
 }
@@ -370,7 +398,7 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: rgba(255, 255, 255, 0.04);
+    background: color-mix(in srgb, $text, transparent 96%);
     padding: 2px 6px;
     border-radius: 4px;
     margin-left: 2px;
