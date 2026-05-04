@@ -33,14 +33,12 @@ $error: var(--color-error);
     display: block;
     font-size: var(--text-sm);
     font-family: var(--font-numbers);
-    font-weight: 600;
-    color: $text-primary;
+    font-weight: 500;
 }
 
 .cell-secondary {
     display: block;
     font-size: var(--text-xs);
-    font-family: var(--font-text);
     color: $text-muted;
     margin-top: 1px;
 }
@@ -87,8 +85,7 @@ $error: var(--color-error);
 .type-badge {
     display: inline-block;
     font-size: var(--text-xs);
-    font-family: var(--font-text);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     padding: 3px 10px;
@@ -121,7 +118,7 @@ $error: var(--color-error);
 .pl-amount {
     font-size: var(--text-sm);
     font-family: var(--font-numbers);
-    font-weight: 700;
+    font-weight: 500;
     white-space: nowrap;
 }
 

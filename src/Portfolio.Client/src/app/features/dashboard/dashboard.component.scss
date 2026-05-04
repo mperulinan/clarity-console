@@ -200,7 +200,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     align-items: center;
     gap: 4px;
     font-size: var(--text-sm);
-    font-weight: 600;
+    font-weight: 500;
     padding: 4px 10px;
     border-radius: 20px;
 
@@ -275,7 +275,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     background: color-mix(in srgb, var(--color-primary), transparent 90%);
     color: var(--color-primary);
     font-size: var(--text-xs);
-    font-weight: 700;
+    font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
     margin-left: 8px;
@@ -456,10 +456,6 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     &.positive {
         background: $gain-soft;
 
-        .pl-amount {
-            color: $gain;
-        }
-
         .pl-pct {
             color: $gain;
         }
@@ -468,10 +464,6 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     &.negative {
         background: $loss-soft;
 
-        .pl-amount {
-            color: $loss;
-        }
-
         .pl-pct {
             color: $loss;
         }
@@ -479,17 +471,14 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 }
 
 .pl-amount {
-    font-size: var(--text-sm);
-    font-weight: 600;
     line-height: 1;
-    white-space: nowrap;
 }
 
 .pl-pct {
     display: flex;
     align-items: center;
     font-size: var(--text-mini);
-    font-weight: 600;
+    font-weight: 500;
     opacity: 0.85;
 }
 
@@ -540,7 +529,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
     font-size: var(--text-xs);
-    font-weight: 600;
+    font-weight: 500;
     color: $muted;
     min-width: 38px;
     text-align: right;

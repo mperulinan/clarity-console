@@ -110,9 +110,12 @@ A Restrained strategy rooted in a custom Midnight Crimson dark mode.
 - **Display** (300, 2.5rem, 1.1): Used for the massive, quiet numbers in the hero summary (e.g., Portfolio Value).
 - **Title** (500, 1.25rem, 1.3): Used for section headers and prominent component titles.
 - **Body** (400, 0.875rem, 1.5): Used for the standard data table rows and general text. Cap line length at 65–75ch for prose.
-- **Label** (600, 0.75rem, tabular-nums): Used for table column headers, secondary stat labels, and all financial figures. Small, tight, and highly structured.
+- **Label** (600, 0.75rem, tabular-nums): Used for table column headers, structural labels, and non-colored secondary text. Small, tight, and highly structured.
+- **Semantic Data** (500, tabular-nums): Used for financial figures, colored badges, and secondary stats.
 
 **The Data Dominance Rule.** Typography, spacing, and color exist to make financial data legible. Aesthetics serve readability, not the reverse.
+
+**The Semantic Weight Rule.** When data is semantically colored (Gain/Loss), its font-weight drops to 500. Color carries the hierarchy signal; extra weight is redundant.
 
 ## 4. Elevation
 

@@ -2,8 +2,8 @@
 @use "tailwindcss";
 
 /* Global Styles */
-@import "@angular/material/prebuilt-themes/pink-bluegrey.css";
-@import "app/shared/styles/table-utilities";
+@use "@angular/material/prebuilt-themes/pink-bluegrey.css";
+@use "app/shared/styles/table-utilities";
 
 /* ── Design System Tokens (DESIGN.md: "The Clarity Console") ── */
 :root {
