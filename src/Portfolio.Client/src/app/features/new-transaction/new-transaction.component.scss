@@ -14,19 +14,18 @@
 }
 
 /* ── TOKENS ─────────────────────────────────── */
-$bg-card: #16213e;
-$border: rgba(255, 255, 255, 0.07);
-$text-primary: #f0f0f0;
-$text-muted: #8892a4;
-$accent: #7c6cfc;
-$accent-hover: #5c4ee8;
+$bg-card: var(--color-bg-surface);
+$bg-base: var(--color-bg-base);
+$border: var(--color-border);
+$text-primary: var(--color-text);
+$text-muted: var(--color-text-muted);
+$accent: var(--color-primary);
 
 /* ── GLASSMORPHISM ───────────────────────────── */
 .glass {
-    background: rgba(22, 33, 62, 0.7) !important;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    /* Keep the class name, but align to "Flat-By-Default" tokens */
+    background: $bg-card !important;
+    border: 1px solid $border !important;
 }
 
 /* ── ANIMATIONS ─────────────────────────────── */
@@ -47,18 +46,13 @@ $accent-hover: #5c4ee8;
     position: relative;
     background: $bg-card;
     border: 1px solid $border;
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     padding: 32px;
     overflow: hidden;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: none;
 
     &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: 16px;
-        pointer-events: none;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+        content: none;
     }
 }
 
@@ -79,9 +73,9 @@ $accent-hover: #5c4ee8;
 
 /* ── FORM SECTIONS ──────────────────────────── */
 .section-card {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    border-radius: 12px;
+    background: color-mix(in srgb, $bg-base, $bg-card 70%);
+    border: 1px solid color-mix(in srgb, $border, transparent 10%);
+    border-radius: var(--radius-md);
     padding: 20px;
     margin-bottom: 24px;
 
@@ -111,11 +105,11 @@ $accent-hover: #5c4ee8;
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    background: rgba(124, 108, 252, 0.08);
-    border: 1px solid rgba(124, 108, 252, 0.25);
+    background: color-mix(in srgb, $accent, transparent 92%);
+    border: 1px solid color-mix(in srgb, $accent, transparent 70%);
     border-radius: 8px;
     font-size: 12px;
-    color: rgba(124, 108, 252, 0.9);
+    color: color-mix(in srgb, $accent, white 10%);
     font-weight: 500;
 
     .badge-icon {
@@ -134,8 +128,8 @@ $accent-hover: #5c4ee8;
 
 /* ── TYPE BUTTONS ───────────────────────────── */
 .type-toggle-grid {
-    background: rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: color-mix(in srgb, $bg-base, $bg-card 40%) !important;
+    border: 1px solid $border !important;
     border-radius: 8px;
     padding: 4px;
     display: flex;
@@ -154,18 +148,18 @@ $accent-hover: #5c4ee8;
         width: auto;
 
         &.mat-button-toggle-checked {
-            background: rgba(124, 108, 252, 0.2) !important;
+            background: color-mix(in srgb, $accent, transparent 88%) !important;
             color: $accent !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: none;
         }
     }
 }
 
 /* ── NATIVE DATETIME ────────────────────────── */
 .native-datetime-wrapper {
-    background: rgba(255, 255, 255, 0.03);
+    background: color-mix(in srgb, $bg-base, $bg-card 45%);
     border-radius: 8px 8px 0 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid color-mix(in srgb, $border, transparent 20%);
     height: 56px;
     display: flex;
     align-items: center;
@@ -223,8 +217,8 @@ $accent-hover: #5c4ee8;
         &.mat-step-header-active {
             .mat-step-icon {
                 background-color: $accent !important;
-                color: #fff !important;
-                box-shadow: 0 0 10px rgba(124, 108, 252, 0.5);
+                color: $bg-base !important;
+                box-shadow: none;
             }
         }
     }
@@ -234,12 +228,12 @@ $accent-hover: #5c4ee8;
     }
 
     .mat-mdc-text-field-wrapper {
-        background-color: rgba(255, 255, 255, 0.03) !important;
+        background-color: color-mix(in srgb, $bg-base, $bg-card 45%) !important;
         border-radius: 8px 8px 0 0;
     }
 
     .mdc-line-ripple::before {
-        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+        border-bottom-color: color-mix(in srgb, $border, transparent 20%) !important;
     }
 
     .mdc-line-ripple::after {
