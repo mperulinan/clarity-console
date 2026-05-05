@@ -97,16 +97,19 @@ $text-muted: var(--color-text-muted);
 }
 
 /* ── TABLE ───────────────────────────────────── */
-.table-wrap,
-.skel-table {
+.table-wrap {
     background: $bg-card;
     border: 1px solid $border;
-    border-radius: 4px; /* Tighter radius for skeletons */
-    padding: 0 16px; /* Horizontal padding match cell padding */
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .skel-table {
-    border-radius: 4px !important;
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: 4px !important; /* Tighter radius for skeletons */
+    padding: 0 16px; /* Keep: aligns skeleton columns with table cell padding */
 }
 
 /* ── TYPOGRAPHY OVERRIDES (scoped to this component) ─────────
