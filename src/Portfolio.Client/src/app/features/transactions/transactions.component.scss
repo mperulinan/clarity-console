@@ -155,6 +155,18 @@ $text-muted: var(--color-text-muted);
     }
 }
 
+/* Wash-sale (loss disallowed): keep row flat, but de-emphasize the P/L
+   to avoid reading it as a normal realized loss. Mirrors tax-report. */
+.pl-cell.pl-disallowed {
+    opacity: 1; /* override shared utility's global fade */
+
+    .pl-amount {
+        color: $text-muted;
+        text-decoration: line-through;
+        opacity: 0.8;
+    }
+}
+
 /* ── SORTABLE HEADERS ───────────────────────── */
 .sortable {
     cursor: pointer;
