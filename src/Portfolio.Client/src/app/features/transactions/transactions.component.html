@@ -204,7 +204,7 @@
                     <td class="col-num col-pl">
                         @if (row.profitLoss !== undefined && row.profitLoss !== null) {
                         <div class="pl-cell" [class.positive]="row.profitLoss >= 0"
-                            [class.negative]="row.profitLoss < 0">
+                            [class.negative]="row.profitLoss < 0" [class.pl-disallowed]="row.isLossDisallowed">
                             <span class="pl-amount">
                                 {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss |
                                 currency:baseCurrency():'symbol':'1.2-2'

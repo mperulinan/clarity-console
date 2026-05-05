@@ -203,10 +203,6 @@ $text-muted: var(--color-text-muted);
     &.row-disallowed {
         /* Flat row for disallowed losses per feedback — no background tint. */
         background: transparent;
-
-        td {
-            opacity: 0.7;
-        }
     }
 }
 
