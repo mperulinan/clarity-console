@@ -88,7 +88,7 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
 /* ── YEAR CARDS GRID ────────────────────────── */
 .year-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 12px;
     margin-bottom: 16px;
 }
@@ -132,10 +132,11 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
 .year-pl {
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
-    font-size: var(--text-2xl);
+    font-size: var(--text-xl);
     font-weight: 300;
     letter-spacing: -0.02em;
     line-height: 1.1;
+    white-space: nowrap;
 
     &.positive {
         color: $gain;
@@ -143,6 +144,12 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
 
     &.negative {
         color: $loss;
+    }
+}
+
+@media (min-width: 1024px) {
+    .year-pl {
+        font-size: var(--text-2xl);
     }
 }
 
