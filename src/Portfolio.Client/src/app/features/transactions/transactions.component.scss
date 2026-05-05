@@ -214,28 +214,6 @@ $text-muted: var(--color-text-muted);
     }
 }
 
-.clickable-icon {
-    opacity: 0.55;
-    transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-
-    &:hover {
-        opacity: 1;
-        /* Stay purple on hover, just brighter. */
-        color: var(--color-loss) !important;
-    }
-}
-
-/* ── UX ANIMATIONS ───────────────────────────── */
-@keyframes pulseGlowComponent {
-    0% { background-color: transparent; }
-    30% { background-color: color-mix(in srgb, var(--color-primary), transparent 85%); }
-    100% { background-color: transparent; }
-}
-
-.highlight-glow {
-    animation: pulseGlowComponent 2.5s ease-out forwards !important;
-}
-
 /* ── EMPTY STATE ─────────────────────────────── */
 .txn-table td.empty-state {
     padding: 56px 24px;

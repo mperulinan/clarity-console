@@ -287,4 +287,31 @@ $bg-card: var(--color-bg-surface);
     }
 }
 
-/* Animations and interactive icons are now scoped to components to ensure theme consistency. */
+@keyframes pulseGlowComponent {
+    0%   { background-color: transparent; }
+    30%  { background-color: color-mix(in srgb, var(--color-primary), transparent 85%); }
+    100% { background-color: transparent; }
+}
+
+.highlight-glow {
+    animation: pulseGlowComponent 2.5s ease-out forwards !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .highlight-glow {
+        animation: none !important;
+    }
+}
+
+.clickable-icon {
+    opacity: 0.55;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+
+    &:hover {
+        opacity: 1;
+        transform: scale(1.1);
+        /* Stay purple on hover, just brighter. */
+        color: var(--color-loss) !important;
+    }
+}

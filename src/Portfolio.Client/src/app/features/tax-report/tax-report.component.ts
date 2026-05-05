@@ -115,10 +115,6 @@ export class TaxReportComponent implements OnInit {
         return EVENT_ICONS[typeValue?.toUpperCase()] || { fromIcon: 'swap_horiz', toIcon: 'swap_horiz' };
     }
 
-    getWashSaleTooltip(row: ProcessedTransaction): string {
-        return 'Wash sale (Loss disallowed) — Click to see details';
-    }
-
     viewWashSaleDetails(row: ProcessedTransaction) {
         if (!row.disallowedByTransactionId) return;
 

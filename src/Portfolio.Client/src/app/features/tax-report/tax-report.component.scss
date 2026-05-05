@@ -29,7 +29,7 @@ $gain-soft: color-mix(in srgb, var(--color-gain), transparent 90%);
 $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
 
-/* ── ANIMATIONS ─────────────────────────────── */
+/* ── UX ANIMATIONS ─────────────────────────────── */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -42,15 +42,7 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
     }
 }
 
-@keyframes pulseGlowComponent {
-    0%   { background-color: transparent; }
-    30%  { background-color: color-mix(in srgb, var(--color-primary), transparent 85%); }
-    100% { background-color: transparent; }
-}
 
-.highlight-glow {
-    animation: pulseGlowComponent 2.5s ease-out forwards !important;
-}
 
 .page-header {
     animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) backwards;
@@ -483,8 +475,7 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
     .year-grid,
     .kpi-strip,
     .filter-bar,
-    .table-wrap,
-    .highlight-glow {
+    .table-wrap {
         animation: none;
     }
 }

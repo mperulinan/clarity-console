@@ -235,11 +235,15 @@
                         @if (row.error) {
                         <mat-icon class="status-icon status-error" [matTooltip]="'Error: ' + row.error">error</mat-icon>
                         } @else if (row.isLossDisallowed) {
-                        <mat-icon class="status-icon status-warn clickable-icon" [matTooltip]="getWashSaleTooltip(row)" (click)="viewWashSaleDetails(row)">
+                        <mat-icon class="status-icon status-warn clickable-icon"
+                            [matTooltip]="'Wash sale (Loss disallowed) — Click to view connection'"
+                            (click)="viewWashSaleDetails(row)">
                             block
                         </mat-icon>
                         } @else if (row.profitLoss !== undefined && row.profitLoss !== null) {
                         <mat-icon class="status-icon status-ok">check_circle</mat-icon>
+                        } @else {
+                        <mat-icon class="status-icon status-neutral" matTooltip="No P/L (deposit or transfer)">radio_button_unchecked</mat-icon>
                         }
                     </td>
 
