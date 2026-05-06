@@ -56,8 +56,8 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- SEARCH state -->
-                            <app-asset-selector formControlName="fromAssetId" [label]="'Asset Symbol or Name'"
-                                [placeholder]="'e.g. BTC, ETH'">
+                            <app-asset-selector formControlName="fromAssetId" label="Search Asset"
+                                placeholder="e.g. BTC, ETH">
                             </app-asset-selector>
                             <mat-form-field appearance="fill">
                                 <mat-label>{{ uiLabels().fromAmount }}</mat-label>
@@ -75,8 +75,8 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- SEARCH state -->
-                            <app-asset-selector formControlName="toAssetId" [label]="'Asset Symbol or Name'"
-                                [placeholder]="'e.g. BTC, ETH'">
+                            <app-asset-selector formControlName="toAssetId" label="Search Asset"
+                                placeholder="e.g. BTC, ETH">
                             </app-asset-selector>
                             <mat-form-field appearance="fill">
                                 <mat-label>{{ uiLabels().toAmount }}</mat-label>
@@ -143,8 +143,8 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <app-asset-selector formControlName="feeAssetId" [label]="'Fee Asset'"
-                                        [placeholder]="'e.g. USD, BNB'">
+                                    <app-asset-selector formControlName="feeAssetId" label="Fee Asset"
+                                        placeholder="e.g. USD, BNB">
                                     </app-asset-selector>
                                 </div>
                                 <mat-form-field appearance="fill">
