@@ -399,11 +399,32 @@ $loss:         var(--color-loss);
 /* ── ACTIONS ────────────────────────────────── */
 .action-buttons {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 12px;
     margin-top: 32px;
     padding-top: 24px;
     border-top: 1px solid $border;
+
+    // Flush variant: sits directly below step content, no divider
+    &--flush {
+        padding-top: 0;
+        border-top: none;
+        margin-top: 16px;
+    }
+
+    // Left-anchors the back button, pushing all other actions to the right
+    .back-btn {
+        margin-right: auto;
+        color: $text-muted;
+        background: transparent;
+        font-weight: 500;
+        transition: color 0.15s ease;
+
+        &:hover {
+            color: $text-primary;
+        }
+    }
 
     .cancel-btn {
         background: transparent;
@@ -440,13 +461,23 @@ $loss:         var(--color-loss);
 
         &:disabled {
             background: transparent !important;
-            border-color: rgba(255, 255, 255, 0.1) !important;
-            color: rgba(255, 255, 255, 0.3) !important;
+            border-color: color-mix(in srgb, $border, transparent 30%) !important;
+            color: color-mix(in srgb, $text-muted, transparent 50%) !important;
             box-shadow: none !important;
             cursor: not-allowed;
         }
     }
 }
+
+/* ── SUMMARY TOTAL VALUE ─────────────────────── */
+// Large bold numeral for the computed total fiat amount
+.summary-total-value {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: $text-primary;
+}
+
 
 /* ── SKELETON ────────────────────────────────── */
 @keyframes shimmer {

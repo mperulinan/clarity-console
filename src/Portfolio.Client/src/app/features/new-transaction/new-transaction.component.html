@@ -86,8 +86,8 @@
                     </div>
                     }
 
-                    <div class="action-buttons pt-0 border-t-0 mt-4">
-                        <button mat-button type="button" matStepperNext class="submit-btn ml-auto"
+                    <div class="action-buttons action-buttons--flush">
+                        <button mat-button type="button" matStepperNext class="submit-btn"
                             [disabled]="!isStep1Valid">Next</button>
                     </div>
                 </mat-step>
@@ -194,8 +194,8 @@
                         </div>
                     </div>
 
-                    <div class="action-buttons pt-0 border-t-0 mt-4 justify-between">
-                        <button mat-button type="button" matStepperPrevious class="text-white">Back</button>
+                    <div class="action-buttons action-buttons--flush">
+                        <button mat-button type="button" matStepperPrevious class="back-btn">Back</button>
                         <button mat-button type="button" matStepperNext class="submit-btn"
                             [disabled]="!isStep2Valid">Next</button>
                     </div>
@@ -287,7 +287,7 @@
                                             Total Fiat Value
                                         </span>
                                         <div class="flex items-center sm:justify-end gap-2">
-                                            <span class="text-3xl font-bold tracking-tight">
+                                            <span class="summary-total-value">
                                                 {{ (pricedAssetAmount() * (step2Value?.spotPrice || 0)) |
                                                 currency:step2Value.spotPriceCurrency:'symbol' }}
                                             </span>
@@ -358,10 +358,10 @@
                     </div>
 
                     <!-- ── ACTIONS ────────────────────────────────────────── -->
-                    <div class="action-buttons mt-4">
-                        <button mat-button type="button" matStepperPrevious class="text-white mr-auto">Back</button>
+                    <div class="action-buttons action-buttons--flush">
+                        <button mat-button type="button" matStepperPrevious class="back-btn">Back</button>
                         <button mat-button type="button" (click)="onCancel()"
-                            class="cancel-btn text-white">Cancel</button>
+                            class="cancel-btn">Cancel</button>
                         <button mat-raised-button color="primary" type="submit" class="submit-btn"
                             [disabled]="form.invalid || isSubmitting()">
                             @if (isSubmitting()) {
