@@ -94,6 +94,7 @@ export class NewTransactionComponent implements OnInit {
 
     // ── Writable state signals ───────────────────────────────────────────
     isSubmitting = signal<boolean>(false);
+    submitError = signal<string | null>(null);
     isLoadingTypes = signal<boolean>(true);
     transactionTypes = signal<TransactionType[]>([]);
     fiatCurrencies = signal<AssetDto[]>([]);
@@ -424,6 +425,7 @@ export class NewTransactionComponent implements OnInit {
         if (this.form.invalid || this.isSubmitting()) return;
 
         this.isSubmitting.set(true);
+        this.submitError.set(null);
         const step1Value = this.form.controls.step1.getRawValue();
         const step2Value = this.form.controls.step2.getRawValue();
         const step3Value = this.form.controls.step3.getRawValue();
@@ -450,7 +452,10 @@ export class NewTransactionComponent implements OnInit {
             .pipe(finalize(() => this.isSubmitting.set(false)))
             .subscribe({
                 next: () => this.router.navigate(['/']),
-                error: (err) => console.error('Failed to save transaction', err)
+                error: (err) => {
+                    console.error('Failed to save transaction', err);
+                    this.submitError.set('Failed to save transaction. Please check your connection and try again.');
+                }
             });
     }
 

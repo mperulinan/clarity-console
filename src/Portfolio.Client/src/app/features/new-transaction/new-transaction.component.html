@@ -357,6 +357,14 @@
                         </mat-form-field>
                     </div>
 
+                    <!-- ── ERROR BANNER ─────────────────────────────────────── -->
+                    @if (submitError()) {
+                    <div class="submit-error-banner mt-4 mb-2">
+                        <mat-icon>error_outline</mat-icon>
+                        <span>{{ submitError() }}</span>
+                    </div>
+                    }
+
                     <!-- ── ACTIONS ────────────────────────────────────────── -->
                     <div class="action-buttons action-buttons--flush">
                         <button mat-button type="button" matStepperPrevious class="back-btn">Back</button>
