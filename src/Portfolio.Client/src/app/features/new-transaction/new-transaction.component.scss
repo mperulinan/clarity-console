@@ -14,12 +14,19 @@
 }
 
 /* ── TOKENS ─────────────────────────────────── */
-$bg-card: var(--color-bg-surface);
-$bg-base: var(--color-bg-base);
-$border: var(--color-border);
+$bg-card:      var(--color-bg-surface);
+$bg-base:      var(--color-bg-base);
+$border:       var(--color-border);
 $text-primary: var(--color-text);
-$text-muted: var(--color-text-muted);
-$accent: var(--color-primary);
+$text-muted:   var(--color-text-muted);
+$accent:       var(--color-primary);
+$gain:         var(--color-gain);
+$loss:         var(--color-loss);
+
+/* ── SEMANTIC ICON COLORS ────────────────────── */
+.icon-loss { color: $loss; }
+.icon-gain { color: $gain; }
+
 
 /* ── GLASSMORPHISM ───────────────────────────── */
 .glass {
@@ -257,6 +264,138 @@ $accent: var(--color-primary);
     }
 }
 
+/* ── FIELD GROUP LABELS ─────────────────────── */
+.field-group-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-muted;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+/* ── REVIEW SUMMARY ──────────────────────────── */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.summary-cell {
+    padding: 8px 12px;
+    background: color-mix(in srgb, $bg-base, $bg-card 50%);
+    border-radius: var(--radius-md);
+    border: 1px solid $border;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.summary-cell--padded {
+    padding: 12px;
+}
+
+.summary-cell__label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+
+    mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        line-height: 14px;
+    }
+}
+
+.summary-cell__value {
+    font-weight: 500;
+    color: $text-primary;
+    font-size: 14px;
+}
+
+.summary-amount {
+    font-weight: 700;
+    color: $text-primary;
+    font-size: 18px;
+}
+
+.summary-symbol {
+    color: $text-muted;
+    font-size: 14px;
+}
+
+/* ── FINANCIALS TILE LABELS ───────────────────── */
+/* Prose-style label: no uppercase, no tracking override needed */
+.summary-tile-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: $text-muted;
+    margin-bottom: 4px;
+}
+
+/* Larger numeral for the spot price display */
+.summary-price-value {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: $text-primary;
+}
+
+/* ── FINANCIALS TILES ────────────────────────── */
+.summary-financials-tile {
+    background: color-mix(in srgb, $bg-base, $bg-card 30%);
+    border: 1px solid color-mix(in srgb, $accent, transparent 72%);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.summary-fee-tile {
+    background: color-mix(in srgb, var(--color-error), transparent 97%);
+    border: 1px solid color-mix(in srgb, var(--color-error), transparent 82%);
+    border-radius: var(--radius-lg);
+    padding: 12px 20px;
+    margin-top: 12px;
+
+    .fee-tile-label {
+        display: block;
+        font-size: 10px;
+        font-weight: 600;
+        color: color-mix(in srgb, var(--color-error), var(--color-text-muted) 40%);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 4px;
+    }
+
+    .fee-tile-amount {
+        color: var(--color-text);
+        font-weight: 500;
+    }
+
+    .fee-tile-badge {
+        font-size: 10px;
+        color: color-mix(in srgb, var(--color-error), var(--color-text) 30%);
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: color-mix(in srgb, var(--color-error), transparent 85%);
+        border: 1px solid color-mix(in srgb, var(--color-error), transparent 72%);
+    }
+
+    .fee-tile-total {
+        color: color-mix(in srgb, var(--color-error), var(--color-text) 20%);
+        font-weight: 700;
+    }
+}
+
 /* ── ACTIONS ────────────────────────────────── */
 .action-buttons {
     display: flex;
@@ -277,7 +416,7 @@ $accent: var(--color-primary);
                     color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
         &:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: color-mix(in srgb, $bg-card, transparent 40%);
             color: $text-primary;
         }
     }
