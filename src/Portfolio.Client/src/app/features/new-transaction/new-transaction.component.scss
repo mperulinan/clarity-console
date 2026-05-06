@@ -349,6 +349,28 @@ $loss:         var(--color-loss);
     color: $text-primary;
 }
 
+/* ── LINKED BADGE ────────────────────────────── */
+.fee-price-linked-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: color-mix(in srgb, $bg-base, transparent 50%);
+    border: 1px dashed color-mix(in srgb, $border, transparent 30%);
+    border-radius: 6px;
+    color: $text-muted;
+    font-size: 12px;
+    font-weight: 500;
+
+    .badge-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        line-height: 14px;
+        color: color-mix(in srgb, $text-muted, transparent 20%);
+    }
+}
+
 /* ── FINANCIALS TILES ────────────────────────── */
 .summary-financials-tile {
     background: color-mix(in srgb, $bg-base, $bg-card 30%);
