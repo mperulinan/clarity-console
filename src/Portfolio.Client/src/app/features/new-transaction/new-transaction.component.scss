@@ -14,19 +14,22 @@
 }
 
 /* ── TOKENS ─────────────────────────────────── */
-$bg-card:      var(--color-bg-surface);
-$bg-base:      var(--color-bg-base);
-$border:       var(--color-border);
+$bg-card: var(--color-bg-surface);
+$bg-base: var(--color-bg-base);
+$border: var(--color-border);
 $text-primary: var(--color-text);
-$text-muted:   var(--color-text-muted);
-$accent:       var(--color-primary);
-$gain:         var(--color-gain);
-$loss:         var(--color-loss);
+$text-muted: var(--color-text-muted);
+$accent: var(--color-primary);
+$gain: var(--color-gain);
+$loss: var(--color-loss);
 
 /* ── SEMANTIC ICON COLORS ────────────────────── */
-.icon-loss { color: $loss; }
-.icon-gain { color: $gain; }
-
+.icon-loss {
+    color: $loss;
+}
+.icon-gain {
+    color: $gain;
+}
 
 /* ── GLASSMORPHISM ───────────────────────────── */
 .glass {
@@ -64,7 +67,7 @@ $loss:         var(--color-loss);
 }
 
 .card-title {
-    font-size: 24px;
+    font-size: var(--text-xl);
     font-weight: 700;
     color: $text-primary;
     margin-bottom: 24px;
@@ -90,7 +93,7 @@ $loss:         var(--color-loss);
         display: flex;
         align-items: center;
         gap: 8px;
-        font-size: 13px;
+        font-size: var(--text-sm);
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -115,12 +118,12 @@ $loss:         var(--color-loss);
     background: color-mix(in srgb, $accent, transparent 92%);
     border: 1px solid color-mix(in srgb, $accent, transparent 70%);
     border-radius: 8px;
-    font-size: 12px;
+    font-size: var(--text-xs);
     color: color-mix(in srgb, $accent, white 10%);
     font-weight: 500;
 
     .badge-icon {
-        font-size: 15px;
+        font-size: var(--text-base);
         width: 15px;
         height: 15px;
         line-height: 15px;
@@ -183,7 +186,7 @@ $loss:         var(--color-loss);
     border: none;
     color: $text-primary;
     font-family: inherit;
-    font-size: 16px;
+    font-size: var(--text-md);
     outline: none;
     width: 100%;
 
@@ -200,7 +203,6 @@ $loss:         var(--color-loss);
 
 /* ── MATERIAL OVERRIDES ──────────────────────── */
 ::ng-deep {
-
     /* MatStepper Glassmorphism Overrides */
     .mat-stepper-horizontal {
         background: transparent !important;
@@ -209,6 +211,7 @@ $loss:         var(--color-loss);
     .mat-step-header {
         .mat-step-label {
             color: $text-muted !important;
+            font-family: var(--font-text) !important;
 
             &.mat-step-label-active {
                 color: $text-primary !important;
@@ -249,10 +252,12 @@ $loss:         var(--color-loss);
 
     .mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
         color: $text-muted !important;
+        font-family: var(--font-text) !important;
     }
 
-    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input {
+    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input:not([type="number"]) {
         color: $text-primary !important;
+        font-family: var(--font-text) !important;
     }
 
     .mat-mdc-select-value {
@@ -266,7 +271,7 @@ $loss:         var(--color-loss);
 
 /* ── FIELD GROUP LABELS ─────────────────────── */
 .field-group-label {
-    font-size: 12px;
+    font-size: var(--text-xs);
     font-weight: 600;
     color: $text-muted;
     letter-spacing: 0.08em;
@@ -281,7 +286,7 @@ $loss:         var(--color-loss);
     height: 18px;
     padding: 0 6px;
     border-radius: 4px;
-    font-size: 10px;
+    font-size: var(--text-micro);
     font-weight: 650;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -316,12 +321,14 @@ $loss:         var(--color-loss);
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 10px;
+    font-family: var(--font-text);
+    font-size: var(--text-micro);
     font-weight: 600;
     color: $text-muted;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 4px;
+    line-height: 1.2;
 
     mat-icon {
         font-size: 14px;
@@ -329,6 +336,12 @@ $loss:         var(--color-loss);
         height: 14px;
         line-height: 14px;
     }
+}
+
+.review-divider {
+    height: 1px;
+    background: $border;
+    margin: 18px 0;
 }
 
 .summary-grid {
@@ -349,7 +362,7 @@ $loss:         var(--color-loss);
 .summary-cell__value {
     font-weight: 500;
     color: $text-primary;
-    font-size: 14px;
+    font-size: var(--text-base);
 }
 
 .summary-amount {
@@ -357,7 +370,7 @@ $loss:         var(--color-loss);
     font-variant-numeric: tabular-nums;
     font-weight: 500;
     color: $text-primary;
-    font-size: 18px;
+    font-size: var(--text-lg);
 }
 
 .asset-row {
@@ -375,12 +388,12 @@ $loss:         var(--color-loss);
     border-radius: 4px;
     color: $text-primary;
     font-family: var(--font-text);
-    font-size: 12px;
+    font-size: var(--text-xs);
     font-weight: 600;
 
     &--compact {
         padding: 2px 6px;
-        font-size: 11px;
+        font-size: var(--text-mini);
     }
 }
 
@@ -400,7 +413,7 @@ $loss:         var(--color-loss);
 .summary-tile-label {
     display: block;
     font-family: var(--font-text);
-    font-size: 11px;
+    font-size: var(--text-mini);
     font-weight: 600;
     color: $text-muted;
     margin-bottom: 4px;
@@ -411,7 +424,7 @@ $loss:         var(--color-loss);
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
     font-weight: 500;
-    font-size: 1.25rem;
+    font-size: var(--text-lg);
     color: $text-primary;
 }
 
@@ -425,11 +438,11 @@ $loss:         var(--color-loss);
     border: 1px dashed color-mix(in srgb, $border, transparent 30%);
     border-radius: 6px;
     color: $text-muted;
-    font-size: 12px;
+    font-size: var(--text-xs);
     font-weight: 500;
 
     .badge-icon {
-        font-size: 14px;
+        font-size: var(--text-base);
         width: 14px;
         height: 14px;
         line-height: 14px;
@@ -439,25 +452,27 @@ $loss:         var(--color-loss);
 
 /* ── FINANCIALS TILES ────────────────────────── */
 .summary-financials-tile {
-    background: color-mix(in srgb, $bg-base, $bg-card 30%);
-    border: 1px solid color-mix(in srgb, $accent, transparent 72%);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    margin-bottom: 16px;
+    /* Avoid nested-card feel inside .section-card */
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
 }
 
 .summary-fee-tile {
-    /* Fee is not an error. Keep it secondary and calm. */
-    background: color-mix(in srgb, $bg-base, $bg-card 35%);
-    border: 1px dashed color-mix(in srgb, $border, transparent 0%);
-    border-radius: var(--radius-lg);
-    padding: 12px 20px;
-    margin-top: 12px;
+    /* Secondary block, separated by space not another card */
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 14px 0 0;
+    margin-top: 14px;
+    border-top: 1px dashed color-mix(in srgb, $border, transparent 0%);
 
     .fee-tile-label {
         display: block;
         font-family: var(--font-text);
-        font-size: 10px;
+        font-size: var(--text-micro);
         font-weight: 600;
         color: $text-muted;
         text-transform: uppercase;
@@ -473,7 +488,7 @@ $loss:         var(--color-loss);
     }
 
     .fee-tile-badge {
-        font-size: 10px;
+        font-size: var(--text-micro);
         color: $text-muted;
         text-transform: uppercase;
         padding: 2px 6px;
@@ -485,7 +500,7 @@ $loss:         var(--color-loss);
     .fee-tile-total {
         font-family: var(--font-numbers);
         font-variant-numeric: tabular-nums;
-        font-size: 1rem;
+        font-size: var(--text-md);
         color: color-mix(in srgb, $text-primary, transparent 25%);
         font-weight: 600;
     }
@@ -528,8 +543,9 @@ $loss:         var(--color-loss);
         font-weight: 600;
         padding: 0 24px;
         border-radius: 8px;
-        transition: background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-                    color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        transition:
+            background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+            color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
         &:hover {
             background: color-mix(in srgb, $bg-card, transparent 40%);
@@ -545,8 +561,9 @@ $loss:         var(--color-loss);
         padding: 0 24px;
         border-radius: 8px;
         box-shadow: none !important;
-        transition: background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-                    border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        transition:
+            background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+            border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
         &:not(:disabled):hover {
             background: color-mix(in srgb, $accent, transparent 90%) !important;
@@ -569,7 +586,7 @@ $loss:         var(--color-loss);
 .summary-total-value {
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
-    font-size: 2rem;
+    font-size: var(--text-2xl);
     font-weight: 300;
     letter-spacing: -0.02em;
     color: $text-primary;
@@ -585,7 +602,7 @@ $loss:         var(--color-loss);
     border: 1px solid color-mix(in srgb, var(--color-error), transparent 70%);
     border-radius: 8px;
     color: var(--color-error);
-    font-size: 14px;
+    font-size: var(--text-base);
     font-weight: 500;
 }
 
@@ -600,7 +617,12 @@ $loss:         var(--color-loss);
     }
 }
 
-$skel-shine: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+$skel-shine: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+);
 
 .skel-card {
     background: $bg-card;
