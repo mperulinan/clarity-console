@@ -229,13 +229,14 @@
                                         <mat-icon class="icon-loss">{{
                                             uiLabels().fromIcon }}</mat-icon> {{ uiLabels().fromTitle }}
                                     </span>
-                                    <div class="flex items-center gap-2 mt-2">
-                                        @if (step1Value?.fromAssetId?.imageUrl) {
-                                        <img [src]="step1Value?.fromAssetId?.imageUrl" alt="" class="w-5 h-5 rounded-full">
-                                        }
+                                    <div class="asset-row mt-2">
                                         <span class="summary-amount">{{ step1Value?.amountSpent }}</span>
-                                        <span class="summary-symbol">{{ step1Value?.fromAssetId?.symbol ||
-                                            step1Value?.fromAssetId || 'N/A' }}</span>
+                                        <span class="asset-badge" [attr.aria-label]="'Asset ' + (step1Value?.fromAssetId?.symbol || step1Value?.fromAssetId || 'N/A')">
+                                            @if (step1Value?.fromAssetId?.imageUrl) {
+                                            <img [src]="step1Value?.fromAssetId?.imageUrl" alt="" class="asset-badge__icon">
+                                            }
+                                            <span class="asset-badge__symbol">{{ step1Value?.fromAssetId?.symbol || step1Value?.fromAssetId || 'N/A' }}</span>
+                                        </span>
                                     </div>
                                 </div>
                                 }
@@ -246,13 +247,14 @@
                                         <mat-icon class="icon-gain">{{
                                             uiLabels().toIcon }}</mat-icon> {{ uiLabels().toTitle }}
                                     </span>
-                                    <div class="flex items-center gap-2 mt-2">
-                                        @if (step1Value?.toAssetId?.imageUrl) {
-                                        <img [src]="step1Value?.toAssetId?.imageUrl" alt="" class="w-5 h-5 rounded-full">
-                                        }
+                                    <div class="asset-row mt-2">
                                         <span class="summary-amount">{{ step1Value?.amountReceived }}</span>
-                                        <span class="summary-symbol">{{ step1Value?.toAssetId?.symbol ||
-                                            step1Value?.toAssetId || 'N/A' }}</span>
+                                        <span class="asset-badge" [attr.aria-label]="'Asset ' + (step1Value?.toAssetId?.symbol || step1Value?.toAssetId || 'N/A')">
+                                            @if (step1Value?.toAssetId?.imageUrl) {
+                                            <img [src]="step1Value?.toAssetId?.imageUrl" alt="" class="asset-badge__icon">
+                                            }
+                                            <span class="asset-badge__symbol">{{ step1Value?.toAssetId?.symbol || step1Value?.toAssetId || 'N/A' }}</span>
+                                        </span>
                                     </div>
                                 </div>
                                 }
@@ -309,8 +311,14 @@
                                             <div class="flex items-center gap-2">
                                                 <span class="fee-tile-amount">{{ step2Value?.fee }}</span>
                                                 @if (step2Value?.feeAssetId) {
-                                                <span class="fee-tile-badge">
-                                                    {{ step2Value?.feeAssetId?.symbol || step2Value?.feeAssetId }}
+                                                <span class="asset-badge asset-badge--compact"
+                                                    [attr.aria-label]="'Fee asset ' + (step2Value?.feeAssetId?.symbol || step2Value?.feeAssetId)">
+                                                    @if (step2Value?.feeAssetId?.imageUrl) {
+                                                    <img [src]="step2Value?.feeAssetId?.imageUrl" alt="" class="asset-badge__icon">
+                                                    }
+                                                    <span class="asset-badge__symbol">
+                                                        {{ step2Value?.feeAssetId?.symbol || step2Value?.feeAssetId }}
+                                                    </span>
                                                 </span>
                                                 }
                                             </div>
@@ -333,7 +341,7 @@
                                     <div class="lg:text-right mt-1 lg:mt-0">
                                         <span class="fee-tile-label">Total Fiat Fee</span>
                                         <div class="flex items-center lg:justify-end gap-2">
-                                            <span class="text-xl fee-tile-total">
+                                            <span class="fee-tile-total">
                                                 @if (hasFiatFee()) {
                                                 {{ step2Value.fee | currency:step2Value.feeSpotPriceCurrency:'symbol' }}
                                                 } @else {

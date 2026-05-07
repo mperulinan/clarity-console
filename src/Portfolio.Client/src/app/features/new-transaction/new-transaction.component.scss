@@ -322,20 +322,53 @@ $loss:         var(--color-loss);
 }
 
 .summary-amount {
-    font-weight: 700;
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
     color: $text-primary;
     font-size: 18px;
 }
 
-.summary-symbol {
-    color: $text-muted;
-    font-size: 14px;
+.asset-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.asset-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: color-mix(in srgb, $text-primary, transparent 96%);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: $text-primary;
+    font-family: var(--font-text);
+    font-size: 12px;
+    font-weight: 600;
+
+    &--compact {
+        padding: 2px 6px;
+        font-size: 11px;
+    }
+}
+
+.asset-badge__icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+
+.asset-badge__symbol {
+    line-height: 1;
 }
 
 /* ── FINANCIALS TILE LABELS ───────────────────── */
 /* Prose-style label: no uppercase, no tracking override needed */
 .summary-tile-label {
     display: block;
+    font-family: var(--font-text);
     font-size: 11px;
     font-weight: 600;
     color: $text-muted;
@@ -344,7 +377,9 @@ $loss:         var(--color-loss);
 
 /* Larger numeral for the spot price display */
 .summary-price-value {
-    font-weight: 700;
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
     font-size: 1.25rem;
     color: $text-primary;
 }
@@ -389,6 +424,7 @@ $loss:         var(--color-loss);
 
     .fee-tile-label {
         display: block;
+        font-family: var(--font-text);
         font-size: 10px;
         font-weight: 600;
         color: color-mix(in srgb, var(--color-error), var(--color-text-muted) 40%);
@@ -398,6 +434,8 @@ $loss:         var(--color-loss);
     }
 
     .fee-tile-amount {
+        font-family: var(--font-numbers);
+        font-variant-numeric: tabular-nums;
         color: var(--color-text);
         font-weight: 500;
     }
@@ -413,8 +451,11 @@ $loss:         var(--color-loss);
     }
 
     .fee-tile-total {
-        color: color-mix(in srgb, var(--color-error), var(--color-text) 20%);
-        font-weight: 700;
+        font-family: var(--font-numbers);
+        font-variant-numeric: tabular-nums;
+        font-size: 1rem;
+        color: color-mix(in srgb, var(--color-error), var(--color-text-muted) 55%);
+        font-weight: 600;
     }
 }
 
@@ -494,8 +535,10 @@ $loss:         var(--color-loss);
 /* ── SUMMARY TOTAL VALUE ─────────────────────── */
 // Large bold numeral for the computed total fiat amount
 .summary-total-value {
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: 300;
     letter-spacing: -0.02em;
     color: $text-primary;
 }
