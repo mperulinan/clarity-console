@@ -31,6 +31,7 @@ export enum PriceInputMode {
         MatTooltipModule
     ],
     templateUrl: './interactive-price-input.component.html',
+    styleUrl: './interactive-price-input.component.scss',
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,

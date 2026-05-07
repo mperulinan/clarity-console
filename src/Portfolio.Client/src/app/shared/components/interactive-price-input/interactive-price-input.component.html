@@ -7,7 +7,8 @@
     <span matTextPrefix class="mr-1 text-gray-300">{{ currencyPrefix() }}</span>
     }
 
-    <input matInput type="number" [formControl]="internalControl" [placeholder]="'0.00'" (blur)="onTouched()">
+    <input matInput type="number" class="price-input__number" [formControl]="internalControl" [placeholder]="'0.00'"
+        (blur)="onTouched()">
 
     <button matSuffix mat-icon-button (click)="toggleMode()" type="button"
         matTooltip="Toggle between Unit Price and Total Value">
@@ -17,10 +18,10 @@
     <mat-hint class="text-xs">
         @if (internalControl.value !== null && internalControl.value > 0) {
         @if (mode() === PriceInputMode.Unit) {
-        = <span class="font-bold text-green-400">{{ calculatedTotal() | currency:fiatCurrency():'symbol-narrow':'1.2-18'
+        = <span class="price-input__computed-value">{{ calculatedTotal() | currency:fiatCurrency():'symbol-narrow':'1.2-18'
             }}</span> Total
         } @else {
-        = <span class="font-bold text-green-400">{{ calculatedUnit() | currency:fiatCurrency():'symbol-narrow':'1.2-18'
+        = <span class="price-input__computed-value">{{ calculatedUnit() | currency:fiatCurrency():'symbol-narrow':'1.2-18'
             }}</span> per {{ assetSymbol() }}
         }
         } @else {

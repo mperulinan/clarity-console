@@ -1,0 +1,12 @@
+.price-input__number {
+    font-family: var(--font-numbers) !important;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+.price-input__computed-value {
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    font-weight: 600;
+}

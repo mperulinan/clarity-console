@@ -56,7 +56,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 }
 
 .table-wrap {
-    animation-delay: 0.20s;
+    animation-delay: 0.2s;
 }
 
 /* ── BENTO GRID ──────────────────────────────── */
@@ -65,8 +65,8 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: auto auto;
     grid-template-areas:
-        'value value  pl   pl'
-        'dep   cost   unr  real';
+        "value value  pl   pl"
+        "dep   cost   unr  real";
     gap: 1px; // gap color = hairline dividers between cells
     background: $border;
     border: 1px solid $border;
@@ -77,15 +77,15 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     @media (max-width: 900px) {
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
-            'value value'
-            'pl    pl'
-            'dep   cost'
-            'unr   real';
+            "value value"
+            "pl    pl"
+            "dep   cost"
+            "unr   real";
     }
 
     @media (max-width: 480px) {
         grid-template-columns: 1fr;
-        grid-template-areas: 'value' 'pl' 'dep' 'cost' 'unr' 'real';
+        grid-template-areas: "value" "pl" "dep" "cost" "unr" "real";
     }
 }
 
@@ -297,8 +297,9 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     font-weight: 600;
     font-family: var(--font-text);
     cursor: pointer;
-    transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-                border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    transition:
+        background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+        border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
     mat-icon {
         font-size: var(--text-lg);
@@ -357,7 +358,6 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 
 .col-num {
     text-align: right;
-    font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
 }
 
@@ -510,7 +510,8 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     border-radius: 10px;
     /* Base state (<15%): Very faint neutral */
     background: color-mix(in srgb, var(--color-text-muted), transparent 75%);
-    transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+    transition:
+        width 0.6s cubic-bezier(0.25, 1, 0.5, 1),
         background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     max-width: 100%;
 
@@ -568,15 +569,21 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 /* Shared table skeletons are inherited from _table-utilities.scss. */
 
 @keyframes shimmer {
-    0% { background-position: -600px 0; }
-    100% { background-position: 600px 0; }
+    0% {
+        background-position: -600px 0;
+    }
+    100% {
+        background-position: 600px 0;
+    }
 }
 
 %skel {
-    background: linear-gradient(90deg,
+    background: linear-gradient(
+        90deg,
         var(--color-bg-surface) 25%,
         color-mix(in srgb, var(--color-bg-surface), white 3%) 50%,
-        var(--color-bg-surface) 75%);
+        var(--color-bg-surface) 75%
+    );
     background-size: 600px 100%;
     animation: shimmer 1.5s infinite linear;
     border-radius: 4px;
@@ -651,7 +658,6 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
 
 /* ── REDUCED MOTION ──────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-
     .bento-grid,
     .table-wrap,
     .toolbar {

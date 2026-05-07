@@ -5,12 +5,14 @@
 :host {
     display: block;
     min-height: 100vh;
+    font-family: var(--font-text);
 }
 
 .transaction-page {
     padding: 28px 32px;
     max-width: 800px;
     margin: 0 auto;
+    font-family: var(--font-text);
 }
 
 /* ── TOKENS ─────────────────────────────────── */
@@ -151,6 +153,7 @@ $loss: var(--color-loss);
         color: $text-muted;
         border: none !important;
         border-radius: 6px !important;
+        font-family: var(--font-text) !important;
         font-weight: 600;
         text-align: center;
         flex: 1 1 auto;
@@ -162,6 +165,12 @@ $loss: var(--color-loss);
             color: $accent !important;
             box-shadow: none;
         }
+    }
+
+    ::ng-deep .mat-button-toggle-label-content,
+    ::ng-deep .mat-button-toggle-button .mat-button-toggle-label-content,
+    ::ng-deep .mdc-button__label {
+        font-family: var(--font-text) !important;
     }
 }
 
@@ -206,6 +215,7 @@ $loss: var(--color-loss);
     /* MatStepper Glassmorphism Overrides */
     .mat-stepper-horizontal {
         background: transparent !important;
+        font-family: var(--font-text) !important;
     }
 
     .mat-step-header {
@@ -235,6 +245,7 @@ $loss: var(--color-loss);
 
     .mat-mdc-form-field {
         width: 100%;
+        font-family: var(--font-text) !important;
     }
 
     .mat-mdc-text-field-wrapper {
@@ -257,6 +268,14 @@ $loss: var(--color-loss);
 
     .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input:not([type="number"]) {
         color: $text-primary !important;
+        font-family: var(--font-text) !important;
+    }
+
+    .mat-mdc-select-trigger,
+    .mat-mdc-select-value,
+    .mat-mdc-option .mdc-list-item__primary-text,
+    .mat-mdc-button,
+    .mat-mdc-raised-button {
         font-family: var(--font-text) !important;
     }
 
