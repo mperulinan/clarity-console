@@ -32,7 +32,7 @@
         }
     </mat-autocomplete>
     @if (syncError()) {
-    <mat-error>{{ syncError() }}</mat-error>
+    <mat-error aria-live="polite">{{ syncError() }}</mat-error>
     }
     @if (isSyncingAsset()) {
     <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>

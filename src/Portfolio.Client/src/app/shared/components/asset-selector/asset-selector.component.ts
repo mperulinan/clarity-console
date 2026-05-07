@@ -44,8 +44,8 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
     isSyncingAsset = signal<boolean>(false);
     syncError = signal<string | null>(null);
 
-    onChange: any = () => { };
-    onTouched: any = () => { };
+    onChange: (value: AssetDto | null) => void = () => { };
+    onTouched: () => void = () => { };
 
     private readonly destroyRef = inject(DestroyRef);
 
@@ -88,10 +88,11 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
                 })
             ).subscribe({
                 next: (syncedAsset: AssetDto) => this.setInternalValue(syncedAsset),
-                error: (err: any) => {
-                    console.error('Failed to sync asset', err);
+                error: () => {
                     this.syncError.set('Could not sync this asset right now. Please try again.');
-                    this.clearSelection();
+                    this.selectedAsset.set(null);
+                    this.searchControl.setValue(null, { emitEvent: false });
+                    this.onChange(null);
                 }
             });
         } else {
@@ -132,8 +133,8 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
         this.searchControl.setValue(value, { emitEvent: false });
     }
 
-    registerOnChange(fn: any): void { this.onChange = fn; }
-    registerOnTouched(fn: any): void { this.onTouched = fn; }
+    registerOnChange(fn: (value: AssetDto | null) => void): void { this.onChange = fn; }
+    registerOnTouched(fn: () => void): void { this.onTouched = fn; }
 
     setDisabledState(isDisabled: boolean): void {
         isDisabled
