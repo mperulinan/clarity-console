@@ -42,6 +42,7 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
     selectedAsset = signal<AssetDto | null>(null);
     filteredAssets = signal<AssetDto[]>([]);
     isSyncingAsset = signal<boolean>(false);
+    syncError = signal<string | null>(null);
 
     onChange: any = () => { };
     onTouched: any = () => { };
@@ -72,6 +73,7 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
     onAssetSelected(event: MatAutocompleteSelectedEvent) {
         const asset = event.option.value as AssetDto;
         if (!asset) return;
+        this.syncError.set(null);
 
         if (!asset.id || asset.id === '00000000-0000-0000-0000-000000000000') {
             this.isSyncingAsset.set(true);
@@ -86,6 +88,7 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
                 next: (syncedAsset: AssetDto) => this.setInternalValue(syncedAsset),
                 error: (err: any) => {
                     console.error('Failed to sync asset', err);
+                    this.syncError.set('Could not sync this asset right now. Please try again.');
                     this.clearSelection();
                 }
             });
@@ -117,6 +120,7 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
     private clearSelection() {
         this.selectedAsset.set(null);
         this.searchControl.setValue(null, { emitEvent: false });
+        this.syncError.set(null);
         this.onChange(null);
     }
 
