@@ -275,6 +275,22 @@ $loss:         var(--color-loss);
 }
 
 /* ── REVIEW SUMMARY ──────────────────────────── */
+.currency-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: var(--font-text);
+    color: $text-muted;
+    background: color-mix(in srgb, $text-primary, transparent 96%);
+    border: 1px solid $border;
+}
+
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -312,6 +328,21 @@ $loss:         var(--color-loss);
         width: 14px;
         height: 14px;
         line-height: 14px;
+    }
+}
+
+.summary-grid {
+    /* In Review, icons are supportive, not semantic states */
+    .summary-cell__label mat-icon {
+        color: $text-muted;
+        opacity: 0.9;
+    }
+
+    /* Override gain/loss classes when used as From/To direction hints */
+    .summary-cell__label .icon-gain,
+    .summary-cell__label .icon-loss {
+        color: $text-muted;
+        opacity: 0.9;
     }
 }
 
@@ -416,8 +447,9 @@ $loss:         var(--color-loss);
 }
 
 .summary-fee-tile {
-    background: color-mix(in srgb, var(--color-error), transparent 97%);
-    border: 1px solid color-mix(in srgb, var(--color-error), transparent 82%);
+    /* Fee is not an error. Keep it secondary and calm. */
+    background: color-mix(in srgb, $bg-base, $bg-card 35%);
+    border: 1px dashed color-mix(in srgb, $border, transparent 0%);
     border-radius: var(--radius-lg);
     padding: 12px 20px;
     margin-top: 12px;
@@ -427,7 +459,7 @@ $loss:         var(--color-loss);
         font-family: var(--font-text);
         font-size: 10px;
         font-weight: 600;
-        color: color-mix(in srgb, var(--color-error), var(--color-text-muted) 40%);
+        color: $text-muted;
         text-transform: uppercase;
         letter-spacing: 0.08em;
         margin-bottom: 4px;
@@ -442,19 +474,19 @@ $loss:         var(--color-loss);
 
     .fee-tile-badge {
         font-size: 10px;
-        color: color-mix(in srgb, var(--color-error), var(--color-text) 30%);
+        color: $text-muted;
         text-transform: uppercase;
         padding: 2px 6px;
         border-radius: 4px;
-        background: color-mix(in srgb, var(--color-error), transparent 85%);
-        border: 1px solid color-mix(in srgb, var(--color-error), transparent 72%);
+        background: color-mix(in srgb, $text-primary, transparent 96%);
+        border: 1px solid $border;
     }
 
     .fee-tile-total {
         font-family: var(--font-numbers);
         font-variant-numeric: tabular-nums;
         font-size: 1rem;
-        color: color-mix(in srgb, var(--color-error), var(--color-text-muted) 55%);
+        color: color-mix(in srgb, $text-primary, transparent 25%);
         font-weight: 600;
     }
 }

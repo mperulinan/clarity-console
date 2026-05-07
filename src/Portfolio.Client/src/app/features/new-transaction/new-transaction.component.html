@@ -220,7 +220,8 @@
                                 </div>
                                 <div class="summary-cell">
                                     <span class="summary-cell__label">Date &amp; Time</span>
-                                    <span class="summary-cell__value">{{ step1Value?.date | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                                    <span class="summary-cell__value">{{ step1Value?.date | date:'dd/MM/yyyy HH:mm:ss'
+                                        }}</span>
                                 </div>
 
                                 @if (selectedTypeData()?.requiresFromAsset) {
@@ -231,11 +232,14 @@
                                     </span>
                                     <div class="asset-row mt-2">
                                         <span class="summary-amount">{{ step1Value?.amountSpent }}</span>
-                                        <span class="asset-badge" [attr.aria-label]="'Asset ' + (step1Value?.fromAssetId?.symbol || step1Value?.fromAssetId || 'N/A')">
+                                        <span class="asset-badge"
+                                            [attr.aria-label]="'Asset ' + (step1Value?.fromAssetId?.symbol || step1Value?.fromAssetId || 'N/A')">
                                             @if (step1Value?.fromAssetId?.imageUrl) {
-                                            <img [src]="step1Value?.fromAssetId?.imageUrl" alt="" class="asset-badge__icon">
+                                            <img [src]="step1Value?.fromAssetId?.imageUrl" alt=""
+                                                class="asset-badge__icon">
                                             }
-                                            <span class="asset-badge__symbol">{{ step1Value?.fromAssetId?.symbol || step1Value?.fromAssetId || 'N/A' }}</span>
+                                            <span class="asset-badge__symbol">{{ step1Value?.fromAssetId?.symbol ||
+                                                step1Value?.fromAssetId || 'N/A' }}</span>
                                         </span>
                                     </div>
                                 </div>
@@ -249,11 +253,14 @@
                                     </span>
                                     <div class="asset-row mt-2">
                                         <span class="summary-amount">{{ step1Value?.amountReceived }}</span>
-                                        <span class="asset-badge" [attr.aria-label]="'Asset ' + (step1Value?.toAssetId?.symbol || step1Value?.toAssetId || 'N/A')">
+                                        <span class="asset-badge"
+                                            [attr.aria-label]="'Asset ' + (step1Value?.toAssetId?.symbol || step1Value?.toAssetId || 'N/A')">
                                             @if (step1Value?.toAssetId?.imageUrl) {
-                                            <img [src]="step1Value?.toAssetId?.imageUrl" alt="" class="asset-badge__icon">
+                                            <img [src]="step1Value?.toAssetId?.imageUrl" alt=""
+                                                class="asset-badge__icon">
                                             }
-                                            <span class="asset-badge__symbol">{{ step1Value?.toAssetId?.symbol || step1Value?.toAssetId || 'N/A' }}</span>
+                                            <span class="asset-badge__symbol">{{ step1Value?.toAssetId?.symbol ||
+                                                step1Value?.toAssetId || 'N/A' }}</span>
                                         </span>
                                     </div>
                                 </div>
@@ -274,8 +281,7 @@
                                         <div class="flex items-center gap-2">
                                             <span class="summary-price-value">{{ step2Value?.spotPrice || '-' }}</span>
                                             @if (step2Value?.spotPrice) {
-                                            <span
-                                                class="text-xs text-accent uppercase px-1.5 py-0.5 rounded-sm bg-accent/10 border border-accent/20">
+                                            <span class="currency-badge">
                                                 {{ step2Value?.spotPriceCurrency }}
                                             </span>
                                             }
@@ -314,7 +320,8 @@
                                                 <span class="asset-badge asset-badge--compact"
                                                     [attr.aria-label]="'Fee asset ' + (step2Value?.feeAssetId?.symbol || step2Value?.feeAssetId)">
                                                     @if (step2Value?.feeAssetId?.imageUrl) {
-                                                    <img [src]="step2Value?.feeAssetId?.imageUrl" alt="" class="asset-badge__icon">
+                                                    <img [src]="step2Value?.feeAssetId?.imageUrl" alt=""
+                                                        class="asset-badge__icon">
                                                     }
                                                     <span class="asset-badge__symbol">
                                                         {{ step2Value?.feeAssetId?.symbol || step2Value?.feeAssetId }}
@@ -330,7 +337,8 @@
                                             <span class="fee-tile-label">Fee Price per {{ feeAssetSymbol() }}</span>
                                             <div class="flex items-center gap-2">
                                                 <span class="fee-tile-amount">{{ step2Value?.feeSpotPrice }}</span>
-                                                <span class="fee-tile-badge">{{ step2Value?.feeSpotPriceCurrency }}</span>
+                                                <span class="fee-tile-badge">{{ step2Value?.feeSpotPriceCurrency
+                                                    }}</span>
                                             </div>
                                         </div>
                                         }
@@ -376,8 +384,7 @@
                     <!-- ── ACTIONS ────────────────────────────────────────── -->
                     <div class="action-buttons action-buttons--flush">
                         <button mat-button type="button" matStepperPrevious class="back-btn">Back</button>
-                        <button mat-button type="button" (click)="onCancel()"
-                            class="cancel-btn">Cancel</button>
+                        <button mat-button type="button" (click)="onCancel()" class="cancel-btn">Cancel</button>
                         <button mat-raised-button color="primary" type="submit" class="submit-btn"
                             [disabled]="form.invalid || isSubmitting()">
                             @if (isSubmitting()) {
