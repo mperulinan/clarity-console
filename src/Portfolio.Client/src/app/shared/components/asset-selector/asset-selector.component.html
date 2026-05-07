@@ -1,10 +1,11 @@
-@if (selectedAsset()) {
+@if (selectedAsset(); as asset) {
 <div [class]="chipClass()">
-    @if (selectedAsset()!.imageUrl) {
-    <img [src]="selectedAsset()!.imageUrl" [alt]="selectedAsset()!.name + ' logo'" class="asset-chip__img">
+    @if (asset.imageUrl) {
+    <img [src]="asset.imageUrl" [alt]="asset.name + ' logo'" class="asset-chip__img" width="20" height="20"
+        decoding="async">
     }
-    <span class="asset-chip__name">{{ selectedAsset()!.name }}</span>
-    <span class="asset-chip__symbol">{{ selectedAsset()!.symbol }}</span>
+    <span class="asset-chip__name">{{ asset.name }}</span>
+    <span class="asset-chip__symbol">{{ asset.symbol }}</span>
     <button type="button" class="asset-chip__clear" (click)="clearAsset($event)" title="Change asset"
         aria-label="Change selected asset">
         <mat-icon>close</mat-icon>
@@ -21,7 +22,8 @@
         <mat-option [value]="asset">
             <div class="asset-option__row">
                 @if (asset.imageUrl) {
-                <img [src]="asset.imageUrl" alt="" class="asset-option__img">
+                <img [src]="asset.imageUrl" alt="" class="asset-option__img" width="20" height="20" loading="lazy"
+                    decoding="async">
                 }
                 <span class="asset-option__name">{{ asset.name }}</span>
                 <span class="asset-option__symbol">{{ asset.symbol }}</span>

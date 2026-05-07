@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { PortfolioService, AssetDto } from '../../../services/portfolio.service';
-import { debounceTime, switchMap, catchError, of, startWith, filter, finalize } from 'rxjs';
+import { debounceTime, switchMap, catchError, of, startWith, filter, finalize, map, distinctUntilChanged } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -55,6 +55,8 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
         this.searchControl.valueChanges.pipe(
             startWith(''),
             filter(value => typeof value === 'string'),
+            map(value => value.trim()),
+            distinctUntilChanged(),
             debounceTime(300),
             switchMap((value: string) => {
                 if (!value || value.length < 2) return of([]);
