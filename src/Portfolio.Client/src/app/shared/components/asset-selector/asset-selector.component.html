@@ -21,7 +21,7 @@
         <mat-option [value]="asset">
             <div class="flex items-center gap-2">
                 @if (asset.imageUrl) {
-                <img [src]="asset.imageUrl" alt="" class="w-5 h-5 rounded-full bg-black">
+                <img [src]="asset.imageUrl" alt="" class="asset-option__img">
                 }
                 <span class="text-sm font-semibold">{{ asset.name }}</span>
                 <span class="text-sm">{{ asset.symbol }}</span>

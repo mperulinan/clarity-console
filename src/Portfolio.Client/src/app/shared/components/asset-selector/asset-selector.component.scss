@@ -1,6 +1,8 @@
-$text-primary: #f0f0f0;
-$text-muted: #8892a4;
-$accent: #7c6cfc;
+$text-primary: var(--color-text);
+$text-muted: var(--color-text-muted);
+$accent: var(--color-primary);
+$surface: var(--color-bg-surface);
+$border: var(--color-border);
 
 /* ── ANIMATIONS ─────────────────────────────── */
 @keyframes fadeInUp {
@@ -21,7 +23,7 @@ $accent: #7c6cfc;
     gap: 10px;
     height: 56px; // matches mat-form-field height
     padding: 0 12px 0 10px;
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, $surface, transparent 12%);
     border-radius: 8px 8px 0 0;
     border-bottom: 2px solid $accent;
     animation: fadeInUp 0.2s ease backwards;
@@ -30,7 +32,7 @@ $accent: #7c6cfc;
         width: 20px;
         height: 20px;
         border-radius: 50%;
-        background: rgba(0, 0, 0, 0.4);
+        background: color-mix(in srgb, $surface, transparent 20%);
         flex-shrink: 0;
     }
 
@@ -59,7 +61,7 @@ $accent: #7c6cfc;
         height: 24px;
         border-radius: 50%;
         border: none;
-        background: rgba(255, 255, 255, 0.08);
+        background: color-mix(in srgb, $surface, transparent 6%);
         color: $text-muted;
         cursor: pointer;
         flex-shrink: 0;
@@ -74,8 +76,8 @@ $accent: #7c6cfc;
         }
 
         &:hover {
-            background: rgba(255, 96, 96, 0.2);
-            color: #ff6060;
+            background: color-mix(in srgb, $accent, transparent 82%);
+            color: $accent;
         }
 
         &:focus-visible {
@@ -83,4 +85,12 @@ $accent: #7c6cfc;
             outline-offset: 2px;
         }
     }
+}
+
+.asset-option__img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: color-mix(in srgb, $surface, transparent 20%);
+    border: 1px solid $border;
 }
