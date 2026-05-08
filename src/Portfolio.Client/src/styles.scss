@@ -1,9 +1,53 @@
 /* Tailwind CSS */
 @use "tailwindcss";
 
-/* Global Styles */
-@use "@angular/material/prebuilt-themes/pink-bluegrey.css";
 @use "app/shared/styles/table-utilities";
+
+/* ── Angular Material Custom Theme (M3) ──────────────── */
+@use '@angular/material' as mat;
+
+// Include the core Material styles
+@include mat.core();
+
+// Define a modern Material 3 theme
+$portfolio-theme: mat.define-theme((
+  color: (
+    theme-type: dark,
+    primary: mat.$red-palette,
+  ),
+  typography: (
+    plain-family: "'Manrope', system-ui, sans-serif",
+    brand-family: "'Manrope', system-ui, sans-serif",
+  ),
+  density: (
+    scale: 0
+  )
+));
+
+// Apply the theme globally
+html {
+  @include mat.all-component-themes($portfolio-theme);
+
+  // ── M3 System Token Overrides (The Clarity Console) ──
+  // Map our specific hex codes to the Material 3 system variables
+  --mat-sys-primary: #FF0054;
+  --mat-sys-on-primary: #ffffff;
+  
+  --mat-sys-background: #171216;
+  --mat-sys-on-background: #E8ECF4;
+  
+  --mat-sys-surface: #221C20;
+  --mat-sys-surface-container: #221C20;
+  --mat-sys-surface-container-high: #221C20;
+  --mat-sys-surface-container-low: #171216;
+  --mat-sys-on-surface: #E8ECF4;
+  --mat-sys-on-surface-variant: #8B93A8;
+  
+  --mat-sys-outline: rgba(255, 235, 245, 0.05);
+  --mat-sys-outline-variant: rgba(255, 235, 245, 0.05);
+
+  --mat-sys-error: #D62828;
+}
 
 /* ── Design System Tokens (DESIGN.md: "The Clarity Console") ── */
 :root {
