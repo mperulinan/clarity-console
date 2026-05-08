@@ -39,7 +39,7 @@ $border: var(--color-border);
     &__symbol {
         font-size: 14px;
         font-weight: 400;
-        color: $text-primary;
+        color: $text-muted; // demoted for hierarchy: symbol is secondary to name
         letter-spacing: 0.01em;
         white-space: nowrap;
         flex-shrink: 0;
