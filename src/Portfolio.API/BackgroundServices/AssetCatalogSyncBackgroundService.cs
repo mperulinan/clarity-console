@@ -14,7 +14,7 @@ public class AssetCatalogSyncBackgroundService(
         {
             try
             {
-                using var scope = serviceProvider.CreateScope();
+                await using var scope = serviceProvider.CreateAsyncScope();
                 var catalogProvider = scope.ServiceProvider.GetRequiredService<IAssetCatalogProvider>();
                 var syncService = scope.ServiceProvider.GetRequiredService<IAssetSynchronizationService>();
                 var assetRepository = scope.ServiceProvider.GetRequiredService<IAssetRepository>();
