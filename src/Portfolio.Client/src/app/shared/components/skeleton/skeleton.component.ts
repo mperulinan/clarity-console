@@ -25,4 +25,7 @@ export class SkeletonComponent {
   get hostHeight() {
     return this.height();
   }
+
+  @HostBinding('attr.aria-hidden') ariaHidden = true;
+  @HostBinding('attr.aria-busy') ariaBusy = true;
 }

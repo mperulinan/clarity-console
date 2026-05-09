@@ -2,14 +2,46 @@
 
     @if (isLoadingTypes()) {
     <!-- ── SKELETON ───────────────────────────────────────────── -->
-    <div class="skel-card glass p-8" aria-busy="true" aria-label="Loading transaction form">
-        <app-skeleton type="line" width="33%" class="mb-8"></app-skeleton>
-        <div class="grid grid-cols-2 gap-4">
-            <app-skeleton type="line" width="100%"></app-skeleton>
-            <app-skeleton type="line" width="100%"></app-skeleton>
+    <div class="hero-card glass" aria-busy="true" aria-label="Loading transaction form">
+        <h2 class="card-title">
+            <app-skeleton type="circle" width="24px" height="24px" style="margin: 0"></app-skeleton>
+            <app-skeleton type="line" width="200px" height="28px" style="margin: 0 0 0 8px"></app-skeleton>
+        </h2>
+
+        <div class="flex flex-col mt-4">
+            <!-- mock stepper header -->
+            <div class="flex gap-8 mb-8 mt-2" style="border-bottom: 1px solid var(--color-border); padding-bottom: 16px;">
+                <app-skeleton type="line" width="100px" height="20px" style="margin: 0"></app-skeleton>
+                <app-skeleton type="line" width="100px" height="20px" style="margin: 0; opacity: 0.5"></app-skeleton>
+                <app-skeleton type="line" width="100px" height="20px" style="margin: 0; opacity: 0.5"></app-skeleton>
+            </div>
+
+            <!-- mock step 1 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-4">
+                <div>
+                    <app-skeleton type="line" width="120px" class="mb-2"></app-skeleton>
+                    <app-skeleton type="block" width="100%" height="40px"></app-skeleton>
+                </div>
+                <div>
+                    <app-skeleton type="line" width="120px" class="mb-2"></app-skeleton>
+                    <app-skeleton type="block" width="100%" height="56px"></app-skeleton>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">
+                    <app-skeleton type="line" width="150px" style="margin: 0"></app-skeleton>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <app-skeleton type="block" width="100%" height="56px"></app-skeleton>
+                    <app-skeleton type="block" width="100%" height="56px"></app-skeleton>
+                </div>
+            </div>
+
+            <div class="action-buttons action-buttons--flush">
+                <app-skeleton type="block" width="80px" height="36px" style="margin: 0"></app-skeleton>
+            </div>
         </div>
-        <app-skeleton type="line" width="100%" class="mt-4"></app-skeleton>
-        <app-skeleton type="line" width="100%" height="128px" class="mt-4"></app-skeleton>
     </div>
     }
 

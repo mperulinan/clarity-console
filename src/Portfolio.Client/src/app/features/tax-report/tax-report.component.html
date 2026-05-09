@@ -2,40 +2,83 @@
 
     @if (isLoading()) {
     <!-- ── SKELETON ───────────────────────────────────────────── -->
-    <div class="skel-wrap">
-        <div class="skel-header">
-            <app-skeleton type="line" width="40%" height="32px"></app-skeleton>
+    <div aria-busy="true" aria-label="Loading tax report">
+        <div class="page-header">
+            <div>
+                <app-skeleton type="line" width="200px" height="32px" style="margin-bottom: 8px"></app-skeleton>
+                <app-skeleton type="line" width="250px" height="16px" style="margin: 0"></app-skeleton>
+            </div>
         </div>
-        <div class="skel-cards">
+        
+        <div class="year-grid">
             @for (i of [1,2,3]; track $index) {
-            <div class="skel-card">
-                <app-skeleton type="line" width="60%"></app-skeleton>
-                <app-skeleton type="line" width="80%" height="32px"></app-skeleton>
-                <app-skeleton type="line" width="50%"></app-skeleton>
+            <div class="year-card" style="border: 1px solid var(--color-border)">
+                <app-skeleton type="line" width="60px" style="margin-bottom: 8px"></app-skeleton>
+                <app-skeleton type="line" width="120px" height="32px" style="margin-bottom: 8px"></app-skeleton>
+                <app-skeleton type="line" width="100px" style="margin: 0"></app-skeleton>
             </div>
             }
         </div>
-        <div class="skel-kpi-strip">
+
+        <div class="kpi-strip">
             @for (i of [1,2,3,4]; track $index) {
-            <div class="skel-kpi-cell">
-                <app-skeleton type="line" width="60%"></app-skeleton>
-                <app-skeleton type="line" width="80%" height="32px"></app-skeleton>
+            <div class="kpi-cell">
+                <app-skeleton type="line" width="80px" style="margin-bottom: 8px"></app-skeleton>
+                <app-skeleton type="line" width="120px" height="24px" style="margin: 0"></app-skeleton>
             </div>
             }
         </div>
-        <div class="skel-table">
-            <div class="skel-table-header">
-                @for (col of [1,2,3,4,5,6]; track $index) {
-                <app-skeleton type="line" width="80%"></app-skeleton>
-                }
-            </div>
-            @for (row of [1,2,3,4,5]; track $index) {
-            <div class="skel-row">
-                @for (col of [1,2,3,4,5,6]; track $index) {
-                <app-skeleton type="line" width="70%"></app-skeleton>
-                }
-            </div>
-            }
+
+        <div class="table-wrap">
+            <table class="report-table" aria-hidden="true">
+                <thead>
+                    <tr>
+                        <th class="col-date"><app-skeleton type="line" width="40px" style="margin:0"></app-skeleton></th>
+                        <th class="col-type"><app-skeleton type="line" width="40px" style="margin:0"></app-skeleton></th>
+                        <th class="col-event"><app-skeleton type="line" width="50px" style="margin:0"></app-skeleton></th>
+                        <th class="col-num"><app-skeleton type="line" width="70px" style="margin:0; display:inline-block"></app-skeleton></th>
+                        <th class="col-num col-pl"><app-skeleton type="line" width="70px" style="margin:0; display:inline-block"></app-skeleton></th>
+                        <th class="col-status"><app-skeleton type="line" width="50px" style="margin:0 auto"></app-skeleton></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of [1,2,3,4,5,6]; track $index) {
+                    <tr class="report-row">
+                        <td class="col-date">
+                            <app-skeleton type="line" width="70px" style="margin:0 0 4px 0"></app-skeleton>
+                            <app-skeleton type="line" width="50px" style="margin:0"></app-skeleton>
+                        </td>
+                        <td class="col-type">
+                            <app-skeleton type="block" width="60px" height="24px" style="margin:0"></app-skeleton>
+                        </td>
+                        <td class="col-event">
+                            <div class="event-flow">
+                                <div class="event-leg">
+                                    <app-skeleton type="circle" width="16px" height="16px" style="margin:0"></app-skeleton>
+                                    <app-skeleton type="line" width="40px" style="margin:0"></app-skeleton>
+                                    <app-skeleton type="block" width="40px" height="20px" style="margin:0; border-radius:4px"></app-skeleton>
+                                </div>
+                                <app-skeleton type="circle" width="16px" height="16px" style="margin:0"></app-skeleton>
+                                <div class="event-leg">
+                                    <app-skeleton type="circle" width="16px" height="16px" style="margin:0"></app-skeleton>
+                                    <app-skeleton type="line" width="40px" style="margin:0"></app-skeleton>
+                                    <app-skeleton type="block" width="40px" height="20px" style="margin:0; border-radius:4px"></app-skeleton>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="col-num">
+                            <app-skeleton type="line" width="70px" style="margin:0; display:inline-block"></app-skeleton>
+                        </td>
+                        <td class="col-num col-pl">
+                            <app-skeleton type="line" width="60px" style="margin:0; display:inline-block"></app-skeleton>
+                        </td>
+                        <td class="col-status">
+                            <app-skeleton type="circle" width="24px" height="24px" style="margin:0 auto"></app-skeleton>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
     }

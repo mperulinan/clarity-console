@@ -1,9 +1,9 @@
 @keyframes shimmer {
     0% {
-        background-position: -600px 0;
+        background-position: -200% 0;
     }
     100% {
-        background-position: 600px 0;
+        background-position: 200% 0;
     }
 }
 
@@ -11,19 +11,21 @@
     display: block;
     background: linear-gradient(
         90deg,
-        var(--mat-sys-surface) 25%,
-        color-mix(in srgb, var(--mat-sys-surface), white 3%) 50%,
-        var(--mat-sys-surface) 75%
+        var(--color-bg-surface) 25%,
+        color-mix(in srgb, var(--color-bg-surface), var(--color-text) 4%) 50%,
+        var(--color-bg-surface) 75%
     );
-    background-size: 600px 100%;
-    animation: shimmer 1.5s infinite linear;
-    border-radius: 4px;
+    background-size: 200% 100%;
+    /* Use ease-in-out for a more natural, breathing shimmer rather than rigid linear */
+    animation: shimmer 2.5s infinite ease-in-out;
+    border-radius: var(--radius-md);
     flex-shrink: 0;
 }
 
 :host(.skel-line) {
-    height: 16px;
-    margin-bottom: 8px;
+    /* 14px visually aligns better with --text-base (14px) line-height */
+    height: 14px;
+    margin-bottom: var(--spacing-xs);
     
     &:last-child {
         margin-bottom: 0;
@@ -35,11 +37,10 @@
 }
 
 :host(.skel-block) {
-    border-radius: 8px;
+    border-radius: var(--radius-md);
 }
 
 :host(.skel-bento) {
-    border: 1px solid var(--mat-sys-outline);
-    border-radius: var(--mat-sys-corner-extra-large, 20px);
-    background: var(--mat-sys-outline);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
 }
