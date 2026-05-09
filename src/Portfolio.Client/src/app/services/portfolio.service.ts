@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { PortfolioMetrics } from '../models/portfolio-metrics';
@@ -6,17 +6,7 @@ import { PortfolioReport } from '../models/portfolio-report';
 import { NewTransactionRequest } from '../models/new-transaction-request';
 import { environment } from '../../environments/environment';
 import { TransactionType, ProcessedTransaction, Transaction } from '../models/transaction';
-
-export interface AssetDto {
-    id: string; // The GUID from the DB, or empty if unsynced
-    symbol: string;
-    name: string;
-    externalId?: string;
-    imageUrl?: string;
-    type: string;
-    transactionCount: number;
-    marketCapRank?: number;
-}
+import { AssetDto } from '../models/asset';
 
 @Injectable({
     providedIn: 'root'
@@ -24,7 +14,7 @@ export interface AssetDto {
 export class PortfolioService {
     private apiUrl = environment.apiUrl;
 
-    constructor(private http: HttpClient) { }
+    private readonly http = inject(HttpClient);
 
     getPortfolioReport(): Observable<PortfolioReport> {
         return this.http.get<PortfolioReport>(`${this.apiUrl}/Portfolio/tax-report`).pipe(

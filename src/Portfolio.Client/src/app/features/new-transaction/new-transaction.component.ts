@@ -23,7 +23,8 @@ import { InteractivePriceInputComponent } from '../../shared/components/interact
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
-import { PortfolioService, AssetDto } from '../../services/portfolio.service';
+import { PortfolioService } from '../../services/portfolio.service';
+import { AssetDto } from '../../models/asset';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType } from '../../models/transaction';
 import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
@@ -123,10 +124,10 @@ export class NewTransactionComponent implements OnInit {
 
     private readonly destroyRef = inject(DestroyRef);
 
-    constructor(
-        private portfolioService: PortfolioService,
-        private router: Router
-    ) {
+    private readonly portfolioService = inject(PortfolioService);
+    private readonly router = inject(Router);
+
+    constructor() {
         this.form = new FormGroup<TransactionForm>({
             step1: new FormGroup<Step1Form>({
                 date: new FormControl<string>(new Date().toISOString().slice(0, 16), { nonNullable: true, validators: Validators.required }),

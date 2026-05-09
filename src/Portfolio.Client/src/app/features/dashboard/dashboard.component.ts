@@ -62,10 +62,8 @@ export class DashboardComponent implements OnInit {
 
     private readonly destroyRef = inject(DestroyRef);
 
-    constructor(
-        private portfolioService: PortfolioService,
-        private router: Router
-    ) { }
+    private readonly portfolioService = inject(PortfolioService);
+    private readonly router = inject(Router);
 
     ngOnInit() {
         this.loadData();

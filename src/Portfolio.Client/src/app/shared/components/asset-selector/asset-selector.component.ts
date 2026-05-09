@@ -6,7 +6,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
-import { PortfolioService, AssetDto } from '../../../services/portfolio.service';
+import { PortfolioService } from '../../../services/portfolio.service';
+import { AssetDto } from '../../../models/asset';
 import { debounceTime, switchMap, catchError, of, startWith, filter, finalize, map, distinctUntilChanged } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -49,7 +50,7 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
 
     private readonly destroyRef = inject(DestroyRef);
 
-    constructor(private portfolioService: PortfolioService) { }
+    private readonly portfolioService = inject(PortfolioService);
 
     ngOnInit() {
         this.searchControl.valueChanges.pipe(

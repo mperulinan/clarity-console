@@ -80,7 +80,7 @@ export class TaxReportComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private dialog = inject(MatDialog);
 
-    constructor(private portfolioService: PortfolioService) { }
+    private readonly portfolioService = inject(PortfolioService);
 
     ngOnInit() {
         this.portfolioService.getPortfolioReport()
