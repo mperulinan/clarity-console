@@ -3,10 +3,11 @@ import {
     ChangeDetectionStrategy, inject, DestroyRef
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DOCUMENT } from '@angular/common';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { finalize } from 'rxjs';
+import { finalize, timer } from 'rxjs';
 
 import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
@@ -78,7 +79,8 @@ export class TaxReportComponent implements OnInit {
     filteredCount = computed(() => this.filteredTransactions().length);
 
     private readonly destroyRef = inject(DestroyRef);
-    private dialog = inject(MatDialog);
+    private readonly dialog = inject(MatDialog);
+    private readonly document = inject(DOCUMENT);
 
     private readonly portfolioService = inject(PortfolioService);
 
@@ -126,15 +128,15 @@ export class TaxReportComponent implements OnInit {
 
         // Pattern 1: Try to find the related transaction element on screen to scroll to it
         const targetElementId = `tx-${row.disallowedByTransactionId}`;
-        const element = document.getElementById(targetElementId);
+        const element = this.document.getElementById(targetElementId);
 
         if (element) {
             // It's in the current view. Auto-scroll and glow.
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             element.classList.add('highlight-glow');
-            setTimeout(() => {
+            timer(2500).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
                 element.classList.remove('highlight-glow');
-            }, 2500);
+            });
             return;
         }
 

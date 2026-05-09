@@ -3,12 +3,13 @@ import {
     ChangeDetectionStrategy, inject, DestroyRef
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DOCUMENT } from '@angular/common';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, timer } from 'rxjs';
 
 import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
@@ -89,6 +90,7 @@ export class TransactionsComponent implements OnInit {
 
     private readonly portfolioService = inject(PortfolioService);
     private readonly router = inject(Router);
+    private readonly document = inject(DOCUMENT);
 
     ngOnInit() {
         this.portfolioService.getPortfolioReport()
@@ -136,14 +138,14 @@ export class TransactionsComponent implements OnInit {
         if (!row.disallowedByTransactionId) return;
 
         const targetElementId = `tx-${row.disallowedByTransactionId}`;
-        const element = document.getElementById(targetElementId);
+        const element = this.document.getElementById(targetElementId);
 
         if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             element.classList.add('highlight-glow');
-            setTimeout(() => {
+            timer(2500).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
                 element.classList.remove('highlight-glow');
-            }, 2500);
+            });
             return;
         }
 
