@@ -361,30 +361,6 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
     }
 }
 
-/* Empty state cell inside the @empty block */
-.report-table td.empty-state {
-    padding: 56px 24px;
-    text-align: center;
-    color: $muted;
-
-    mat-icon {
-        display: block;
-        font-size: 40px;
-        width: 40px;
-        height: 40px;
-        margin: 0 auto 12px;
-        opacity: 0.35;
-    }
-
-    p {
-        font-size: var(--text-sm);
-        font-family: var(--font-text);
-        margin: 0;
-        opacity: 0.7;
-    }
-}
-
-
 .col-event {
     min-width: 220px;
 }

@@ -14,6 +14,9 @@ import { YearSummary } from '../../models/portfolio-report';
 import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
 import { MatDialog } from '@angular/material/dialog';
 import { WashSaleDetailsDialogComponent } from '../../shared/components/wash-sale-details-dialog/wash-sale-details-dialog';
+import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
+import { BadgeComponent } from '../../shared/components/badge/badge.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 /**
  * Icon mapping per transaction type — consistent with new-transaction's UI_CONFIG.
@@ -28,7 +31,10 @@ const EVENT_ICONS: Record<string, { fromIcon: string; toIcon: string }> = {
 @Component({
     selector: 'app-tax-report',
     standalone: true,
-    imports: [CommonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DatePipe, DecimalPipe],
+    imports: [
+        CommonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DatePipe, DecimalPipe,
+        SkeletonComponent, BadgeComponent, EmptyStateComponent
+    ],
     templateUrl: './tax-report.component.html',
     styleUrl: './tax-report.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

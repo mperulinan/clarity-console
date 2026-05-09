@@ -4,35 +4,35 @@
     <!-- ── SKELETON ───────────────────────────────────────────── -->
     <div class="skel-wrap">
         <div class="skel-header">
-            <div class="skel-line w40 tall"></div>
+            <app-skeleton type="line" width="40%" height="32px"></app-skeleton>
         </div>
         <div class="skel-cards">
             @for (i of [1,2,3]; track $index) {
             <div class="skel-card">
-                <div class="skel-line w60"></div>
-                <div class="skel-line w80 tall"></div>
-                <div class="skel-line w50"></div>
+                <app-skeleton type="line" width="60%"></app-skeleton>
+                <app-skeleton type="line" width="80%" height="32px"></app-skeleton>
+                <app-skeleton type="line" width="50%"></app-skeleton>
             </div>
             }
         </div>
         <div class="skel-kpi-strip">
             @for (i of [1,2,3,4]; track $index) {
             <div class="skel-kpi-cell">
-                <div class="skel-line w60"></div>
-                <div class="skel-line w80 tall"></div>
+                <app-skeleton type="line" width="60%"></app-skeleton>
+                <app-skeleton type="line" width="80%" height="32px"></app-skeleton>
             </div>
             }
         </div>
         <div class="skel-table">
             <div class="skel-table-header">
                 @for (col of [1,2,3,4,5,6]; track $index) {
-                <div class="skel-line w80"></div>
+                <app-skeleton type="line" width="80%"></app-skeleton>
                 }
             </div>
             @for (row of [1,2,3,4,5]; track $index) {
             <div class="skel-row">
                 @for (col of [1,2,3,4,5,6]; track $index) {
-                <div class="skel-line w70"></div>
+                <app-skeleton type="line" width="70%"></app-skeleton>
                 }
             </div>
             }
@@ -81,9 +81,11 @@
             </div>
         </button>
         } @empty {
-        <div class="empty-cards">
-            <mat-icon>assessment</mat-icon>
-            <p>No taxable events found.</p>
+        <div style="grid-column: 1 / -1">
+            <app-empty-state 
+                icon="assessment"
+                message="No taxable events found.">
+            </app-empty-state>
         </div>
         }
     </div>
@@ -161,7 +163,7 @@
 
                     <!-- Type -->
                     <td class="col-type">
-                        <span class="type-badge">{{ row.transaction.type.name || '-' }}</span>
+                        <app-badge semantic="neutral" size="sm">{{ row.transaction.type.name || '-' }}</app-badge>
                     </td>
 
                     <!-- Event (combined From → To) -->
@@ -250,9 +252,11 @@
                 </tr>
                 } @empty {
                 <tr>
-                    <td colspan="6" class="empty-state">
-                        <mat-icon>assessment</mat-icon>
-                        <p>No taxable events for this period.</p>
+                    <td colspan="6">
+                        <app-empty-state 
+                            icon="assessment"
+                            message="No taxable events for this period.">
+                        </app-empty-state>
                     </td>
                 </tr>
                 }
