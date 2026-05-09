@@ -66,36 +66,6 @@ $text-muted: var(--color-text-muted);
     margin: 4px 0 0;
 }
 
-.add-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: transparent;
-    color: var(--color-primary);
-    border: 1px solid color-mix(in srgb, var(--color-primary), transparent 60%);
-    border-radius: 8px;
-    padding: 7px 17px;
-    font-size: var(--text-base, 14px);
-    font-weight: 600;
-    font-family: var(--font-text);
-    cursor: pointer;
-    transition: background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-        border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-
-    mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-        line-height: 18px;
-    }
-
-    &:hover {
-        background: color-mix(in srgb, var(--color-primary), transparent 95%);
-        border-color: var(--color-primary);
-    }
-}
-
 /* ── TABLE ───────────────────────────────────── */
 .table-wrap {
     background: $bg-card;
@@ -222,29 +192,6 @@ $text-muted: var(--color-text-muted);
     &.status-error {
         /* Distinct error-semantic red — separate from financial loss. */
         color: var(--color-error) !important;
-    }
-}
-
-/* ── EMPTY STATE ─────────────────────────────── */
-.txn-table td.empty-state {
-    padding: 56px 24px;
-    text-align: center;
-    color: var(--color-text-muted);
-
-    mat-icon {
-        display: block;
-        font-size: 40px;
-        width: 40px;
-        height: 40px;
-        margin: 0 auto 12px;
-        opacity: 0.35;
-    }
-
-    p {
-        font-size: var(--text-sm);
-        font-family: var(--font-text);
-        margin: 0;
-        opacity: 0.7;
     }
 }
 

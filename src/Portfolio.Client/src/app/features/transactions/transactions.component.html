@@ -4,19 +4,19 @@
     <!-- ── SKELETON ───────────────────────────────────────────── -->
     <div class="skel-wrap">
         <div class="skel-header">
-            <div class="skel-line w40 tall"></div>
-            <div class="skel-line w20"></div>
+            <app-skeleton type="line" width="40%" height="32px"></app-skeleton>
+            <app-skeleton type="line" width="20%"></app-skeleton>
         </div>
         <div class="skel-table">
             <div class="skel-table-header">
                 @for (col of [1,2,3,4,5,6,7,8]; track $index) {
-                <div class="skel-line w80"></div>
+                <app-skeleton type="line" width="80%"></app-skeleton>
                 }
             </div>
             @for (row of [1,2,3,4,5,6,7,8]; track $index) {
             <div class="skel-row">
                 @for (col of [1,2,3,4,5,6,7,8]; track $index) {
-                <div class="skel-line w70"></div>
+                <app-skeleton type="line" width="70%"></app-skeleton>
                 }
             </div>
             }
@@ -32,10 +32,10 @@
             <h1 class="page-title">Transactions</h1>
             <p class="page-subtitle">{{ totalCount() }} transactions processed</p>
         </div>
-        <button class="add-btn" (click)="openNewTransaction()">
+        <app-button variant="outline" color="primary" (click)="openNewTransaction()">
             <mat-icon>add</mat-icon>
             New Transaction
-        </button>
+        </app-button>
     </div>
 
     <!-- ── TABLE ──────────────────────────────────────────────── -->
@@ -140,7 +140,7 @@
 
                     <!-- Type -->
                     <td class="col-type">
-                        <span class="type-badge">{{ row.transaction.type.name || '-' }}</span>
+                        <app-badge semantic="neutral" size="sm">{{ row.transaction.type.name || '-' }}</app-badge>
                     </td>
 
                     <!-- From -->
@@ -236,9 +236,11 @@
                 </tr>
                 } @empty {
                 <tr>
-                    <td colspan="8" class="empty-state">
-                        <mat-icon>receipt_long</mat-icon>
-                        <p>No transactions found.</p>
+                    <td colspan="8">
+                        <app-empty-state 
+                            icon="receipt_long"
+                            message="No transactions found.">
+                        </app-empty-state>
                     </td>
                 </tr>
                 }

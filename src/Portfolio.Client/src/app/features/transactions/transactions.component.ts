@@ -16,13 +16,22 @@ import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants
 import { MatDialog } from '@angular/material/dialog';
 import { WashSaleDetailsDialogComponent } from '../../shared/components/wash-sale-details-dialog/wash-sale-details-dialog';
 
+import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
+import { BadgeComponent } from '../../shared/components/badge/badge.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+
 type SortField = 'date' | 'type' | 'from' | 'to' | 'spotPrice' | 'fee' | 'profitLoss';
 type SortDir = 'asc' | 'desc';
 
 @Component({
     selector: 'app-transactions',
     standalone: true,
-    imports: [CommonModule, MatIconModule, MatTooltipModule, MatButtonModule, CurrencyPipe, DatePipe, DecimalPipe],
+    imports: [
+        CommonModule, MatIconModule, MatTooltipModule, MatButtonModule, 
+        CurrencyPipe, DatePipe, DecimalPipe,
+        SkeletonComponent, BadgeComponent, ButtonComponent, EmptyStateComponent
+    ],
     templateUrl: './transactions.component.html',
     styleUrl: './transactions.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
