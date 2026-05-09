@@ -1,13 +1,21 @@
 import { Routes } from '@angular/router';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { NewTransactionComponent } from './features/new-transaction/new-transaction.component';
-import { TransactionsComponent } from './features/transactions/transactions.component';
-import { TaxReportComponent } from './features/tax-report/tax-report.component';
 
 export const routes: Routes = [
-    { path: '', component: DashboardComponent },
-    { path: 'transactions', component: TransactionsComponent },
-    { path: 'tax-report', component: TaxReportComponent },
-    { path: 'new-transaction', component: NewTransactionComponent },
+    {
+        path: '',
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+    },
+    {
+        path: 'transactions',
+        loadComponent: () => import('./features/transactions/transactions.component').then(m => m.TransactionsComponent)
+    },
+    {
+        path: 'tax-report',
+        loadComponent: () => import('./features/tax-report/tax-report.component').then(m => m.TaxReportComponent)
+    },
+    {
+        path: 'new-transaction',
+        loadComponent: () => import('./features/new-transaction/new-transaction.component').then(m => m.NewTransactionComponent)
+    },
     { path: '**', redirectTo: '' }
 ];
