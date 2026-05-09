@@ -7,13 +7,15 @@ import { Component, input, HostBinding } from '@angular/core';
   styleUrl: './button.component.scss'
 })
 export class ButtonComponent {
-  readonly variant = input<'primary' | 'ghost' | 'outline'>('ghost');
+  readonly variant = input<'text' | 'tonal' | 'outlined' | 'filled'>('text');
   readonly color = input<'primary' | 'muted' | 'error'>('primary');
+  readonly size = input<'sm' | 'md' | 'lg'>('md');
+  readonly justify = input<'start' | 'center' | 'end'>('center');
   readonly disabled = input<boolean>(false);
 
   @HostBinding('class')
   get hostClass() {
-    return `btn-${this.variant()} color-${this.color()}`;
+    return `btn-${this.variant()} color-${this.color()} size-${this.size()} justify-${this.justify()}`;
   }
 
   @HostBinding('attr.disabled')

@@ -15,9 +15,30 @@
         border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
         color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     
-    // Default Padding (matches the DESIGN.md ghost-button)
-    padding: 7px 17px;
+    padding: 0 16px;
+    height: 38px;
+    min-width: 40px;
     border: 1px solid transparent;
+    outline: none;
+    box-sizing: border-box;
+    line-height: 1;
+    user-select: none;
+    white-space: nowrap;
+
+    /* ── SIZES ──────────────────────────────────── */
+    &.size-sm { height: 32px; padding: 0 12px; font-size: var(--text-xs); gap: 4px; }
+    &.size-md { height: 38px; padding: 0 16px; }
+    &.size-lg { height: 44px; padding: 0 20px; }
+
+    /* ── JUSTIFY ────────────────────────────────── */
+    &.justify-start  { justify-content: flex-start; }
+    &.justify-center { justify-content: center; }
+    &.justify-end    { justify-content: flex-end; }
+
+    &:focus-visible {
+        outline: 2px solid var(--mat-sys-primary);
+        outline-offset: 2px;
+    }
 
     &:disabled {
         cursor: not-allowed;
@@ -34,25 +55,23 @@
 
 /* ── VARIANTS & COLORS ──────────────────────── */
 
-/* GHOST (Transparent bg, tinted border, colored text) */
-:host(.btn-ghost) {
+/* TEXT — lowest emphasis. No border. Pure text action (Back, Cancel). */
+:host(.btn-text) {
     background: transparent;
+    border-color: transparent;
 
     &.color-primary {
         color: var(--mat-sys-primary);
-        border-color: color-mix(in srgb, var(--mat-sys-primary), transparent 60%);
 
-        &:not(:disabled):hover {
-            background: color-mix(in srgb, var(--mat-sys-primary), transparent 90%);
-            border-color: var(--mat-sys-primary);
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
+            background: color-mix(in srgb, var(--mat-sys-primary), transparent 95%);
         }
     }
 
     &.color-muted {
         color: var(--mat-sys-on-surface-variant);
-        border-color: transparent;
 
-        &:not(:disabled):hover {
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
             background: color-mix(in srgb, var(--mat-sys-surface-variant), transparent 40%);
             color: var(--mat-sys-on-surface);
         }
@@ -60,38 +79,90 @@
 
     &.color-error {
         color: var(--mat-sys-error);
-        border-color: color-mix(in srgb, var(--mat-sys-error), transparent 60%);
 
-        &:not(:disabled):hover {
-            background: color-mix(in srgb, var(--mat-sys-error), transparent 90%);
-            border-color: var(--mat-sys-error);
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
+            background: color-mix(in srgb, var(--mat-sys-error), transparent 95%);
         }
     }
 }
 
-/* OUTLINE (Transparent bg, solid thick border, colored text) */
-:host(.btn-outline) {
+/* TONAL — medium-low emphasis. Tinted border at rest, slight tinted bg on hover (Next in steps). */
+:host(.btn-tonal) {
+    background: transparent;
+
+    &.color-primary {
+        color: var(--mat-sys-primary);
+        border-color: color-mix(in srgb, var(--mat-sys-primary), transparent 70%);
+
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
+            background: color-mix(in srgb, var(--mat-sys-primary), transparent 94%);
+            border-color: color-mix(in srgb, var(--mat-sys-primary), transparent 40%);
+        }
+    }
+
+    &.color-muted {
+        color: var(--mat-sys-on-surface-variant);
+        border-color: color-mix(in srgb, var(--mat-sys-outline), transparent 60%);
+
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
+            background: color-mix(in srgb, var(--mat-sys-surface-variant), transparent 40%);
+            color: var(--mat-sys-on-surface);
+        }
+    }
+
+    &.color-error {
+        color: var(--mat-sys-error);
+        border-color: color-mix(in srgb, var(--mat-sys-error), transparent 70%);
+
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
+            background: color-mix(in srgb, var(--mat-sys-error), transparent 94%);
+            border-color: color-mix(in srgb, var(--mat-sys-error), transparent 40%);
+        }
+    }
+}
+
+/* OUTLINED — medium-high emphasis. Solid full-weight border. Primary CTAs (New Transaction, Save). */
+:host(.btn-outlined) {
     background: transparent;
 
     &.color-primary {
         color: var(--mat-sys-primary);
         border-color: var(--mat-sys-primary);
 
-        &:not(:disabled):hover {
-            background: color-mix(in srgb, var(--mat-sys-primary), transparent 85%);
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
+            background: color-mix(in srgb, var(--mat-sys-primary), transparent 93%);
+        }
+    }
+
+    &.color-error {
+        color: var(--mat-sys-error);
+        border-color: var(--mat-sys-error);
+
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
+            background: color-mix(in srgb, var(--mat-sys-error), transparent 93%);
         }
     }
 }
 
-/* PRIMARY (Solid colored bg, inverted text) */
-:host(.btn-primary) {
+/* FILLED — highest emphasis. Solid color fill with on-color text. Use sparingly. */
+:host(.btn-filled) {
     &.color-primary {
         background: var(--mat-sys-primary);
         color: var(--mat-sys-on-primary);
         border-color: var(--mat-sys-primary);
 
-        &:not(:disabled):hover {
-            background: color-mix(in srgb, var(--mat-sys-primary), white 10%);
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
+            background: color-mix(in srgb, var(--mat-sys-primary), white 8%);
+        }
+    }
+
+    &.color-error {
+        background: var(--mat-sys-error);
+        color: var(--mat-sys-on-error);
+        border-color: var(--mat-sys-error);
+
+        &:not(:disabled):hover, &:not(:disabled):focus-visible {
+            background: color-mix(in srgb, var(--mat-sys-error), white 8%);
         }
     }
 }
