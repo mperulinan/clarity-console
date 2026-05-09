@@ -5,6 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
+import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
+import { BadgeComponent } from '../../shared/components/badge/badge.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 import { PortfolioService } from '../../services/portfolio.service';
 import { PortfolioMetrics } from '../../models/portfolio-metrics';
@@ -16,7 +20,7 @@ import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DecimalPipe],
+    imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DecimalPipe, SkeletonComponent, BadgeComponent, ButtonComponent, EmptyStateComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

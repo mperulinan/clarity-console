@@ -192,38 +192,6 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     }
 }
 
-/* ── RETURN BADGE ────────────────────────────── */
-.bento-return-badge {
-    font-family: var(--font-numbers);
-    font-variant-numeric: tabular-nums;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: var(--text-sm);
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: 20px;
-
-    &.badge-gain {
-        background: color-mix(in srgb, $gain, transparent 90%);
-        color: $gain;
-        border: 1px solid color-mix(in srgb, $gain, transparent 80%);
-    }
-
-    &.badge-loss {
-        background: $loss-soft;
-        color: $loss;
-        border: 1px solid color-mix(in srgb, $loss, transparent 80%);
-    }
-
-    .badge-icon {
-        font-size: 15px;
-        width: 15px;
-        height: 15px;
-        line-height: 15px;
-    }
-}
-
 /* ── STAT CELL TYPOGRAPHY ────────────────────── */
 .bento-stat-label {
     display: block;
@@ -280,38 +248,6 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     border-radius: 10px;
     margin-left: 8px;
     vertical-align: middle;
-}
-
-.add-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: transparent;
-    color: var(--color-primary);
-    border: 1px solid color-mix(in srgb, var(--color-primary), transparent 60%);
-    border-radius: 8px;
-    padding: 7px 17px;
-    /* 1px less padding to compensate for 1px border */
-    font-size: var(--text-base);
-    font-weight: 600;
-    font-family: var(--font-text);
-    cursor: pointer;
-    transition:
-        background 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-        border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-
-    mat-icon {
-        font-size: var(--text-lg);
-        width: 18px;
-        height: 18px;
-        line-height: 18px;
-    }
-
-    &:hover {
-        background: color-mix(in srgb, var(--color-primary), transparent 95%);
-        border-color: var(--color-primary);
-    }
 }
 
 /* ── HOLDINGS TABLE ──────────────────────────── */
@@ -536,125 +472,7 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     text-align: right;
 }
 
-/* ── EMPTY STATE ─────────────────────────────── */
-.empty-state {
-    text-align: center;
-    padding: 64px 24px !important;
-    border-bottom: none !important;
-    color: $muted;
 
-    .empty-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-
-    mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-        margin-bottom: 16px;
-        opacity: 0.3;
-    }
-
-    p {
-        font-size: var(--text-md);
-        margin: 0;
-        opacity: 0.7;
-    }
-}
-
-/* ── SKELETON (Dashboard Specific: Bento) ────── */
-/* Shared table skeletons are inherited from _table-utilities.scss. */
-
-@keyframes shimmer {
-    0% {
-        background-position: -600px 0;
-    }
-    100% {
-        background-position: 600px 0;
-    }
-}
-
-%skel {
-    background: linear-gradient(
-        90deg,
-        var(--color-bg-surface) 25%,
-        color-mix(in srgb, var(--color-bg-surface), white 3%) 50%,
-        var(--color-bg-surface) 75%
-    );
-    background-size: 600px 100%;
-    animation: shimmer 1.5s infinite linear;
-    border-radius: 4px;
-}
-
-.skel-bento {
-    border: 1px solid $border;
-    border-radius: var(--radius-xl); /* 20px match */
-    overflow: hidden;
-    background: $border;
-}
-
-.skel-bento-top {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: $border;
-
-    @media (max-width: 900px) {
-        grid-template-columns: 1fr;
-    }
-}
-
-.skel-bento-cell {
-    background: $bg-card;
-    padding: 24px 28px;
-}
-
-.skel-bento-bottom {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: $border;
-    border-top: 1px solid $border;
-
-    @media (max-width: 900px) {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    @media (max-width: 480px) {
-        grid-template-columns: 1fr;
-    }
-}
-
-.skel-bento-stat {
-    background: $bg-deeper;
-    padding: 16px 22px;
-
-    .skel-line {
-        margin-bottom: 6px;
-
-        &:last-child {
-            margin-bottom: 0;
-        }
-    }
-}
-
-.skel-coin {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1.5;
-}
-
-.skel-circle {
-    @extend %skel;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
 
 /* ── REDUCED MOTION ──────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
@@ -665,10 +483,6 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     }
 
     .alloc-bar-fill {
-        transition: none;
-    }
-
-    .add-btn {
         transition: none;
     }
 }

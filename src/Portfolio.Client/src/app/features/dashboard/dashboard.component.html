@@ -7,21 +7,21 @@
             <!-- Top row: Value | P&L -->
             <div class="skel-bento-top">
                 <div class="skel-bento-cell">
-                    <div class="skel-line w40"></div>
-                    <div class="skel-line w60 tall"></div>
+                    <app-skeleton type="line" width="40%"></app-skeleton>
+                    <app-skeleton type="line" width="60%" height="32px"></app-skeleton>
                 </div>
                 <div class="skel-bento-cell">
-                    <div class="skel-line w50"></div>
-                    <div class="skel-line w70 tall"></div>
-                    <div class="skel-line w30"></div>
+                    <app-skeleton type="line" width="50%"></app-skeleton>
+                    <app-skeleton type="line" width="70%" height="32px"></app-skeleton>
+                    <app-skeleton type="line" width="30%"></app-skeleton>
                 </div>
             </div>
             <!-- Bottom row: 4 stat cells -->
             <div class="skel-bento-bottom">
                 @for (i of [1,2,3,4]; track $index) {
                 <div class="skel-bento-stat">
-                    <div class="skel-line w50 sm"></div>
-                    <div class="skel-line w70"></div>
+                    <app-skeleton type="line" width="50%" height="10px"></app-skeleton>
+                    <app-skeleton type="line" width="70%"></app-skeleton>
                 </div>
                 }
             </div>
@@ -29,20 +29,20 @@
         <div class="skel-table">
             <div class="skel-table-header">
                 @for (col of [1,2,3,4,5,6,7]; track $index) {
-                <div class="skel-line w80"></div>
+                <app-skeleton type="line" width="80%"></app-skeleton>
                 }
             </div>
             @for (row of [1,2,3,4,5,6]; track $index) {
             <div class="skel-row">
                 <div class="skel-coin">
-                    <div class="skel-circle"></div>
-                    <div>
-                        <div class="skel-line w60"></div>
-                        <div class="skel-line w40 sm"></div>
+                    <app-skeleton type="circle" width="36px" height="36px"></app-skeleton>
+                    <div style="flex:1">
+                        <app-skeleton type="line" width="60%"></app-skeleton>
+                        <app-skeleton type="line" width="40%" height="10px"></app-skeleton>
                     </div>
                 </div>
                 @for (col of [1,2,3,4,5,6]; track $index) {
-                <div class="skel-line w70"></div>
+                <app-skeleton type="line" width="70%"></app-skeleton>
                 }
             </div>
             }
@@ -80,14 +80,14 @@
                  [class.negative]="!isPlPositive()">
                 {{ plSign() }}{{ totalPL() | currency:baseCurrency:'symbol':'1.2-2' }}
             </div>
-            <span class="bento-return-badge"
-                  [class.badge-gain]="isReturnPositive()"
-                  [class.badge-loss]="!isReturnPositive()">
-                <mat-icon class="badge-icon" aria-hidden="true">
+            <app-badge
+                  [semantic]="isReturnPositive() ? 'gain' : 'loss'"
+                  size="md">
+                <mat-icon aria-hidden="true">
                     {{ isReturnPositive() ? 'trending_up' : 'trending_down' }}
                 </mat-icon>
                 {{ returnSign() }}{{ totalReturn() | number:'1.2-2' }}%
-            </span>
+            </app-badge>
         </div>
 
         <!-- ③ Net Deposits -->
@@ -128,10 +128,10 @@
     <!-- ── ADD TRANSACTION ────────────────────────────────────── -->
     <div class="toolbar">
         <p class="holdings-title">Holdings <span class="holdings-count">{{ dataSource().length }}</span></p>
-        <button class="add-btn" (click)="openNewTransaction()">
+        <app-button variant="outline" color="primary" (click)="openNewTransaction()">
             <mat-icon>add</mat-icon>
             New Transaction
-        </button>
+        </app-button>
     </div>
 
     <!-- ── HOLDINGS TABLE ─────────────────────────────────────── -->
@@ -227,11 +227,11 @@
                 </tr>
                 } @empty {
                 <tr>
-                    <td colspan="7" class="empty-state">
-                        <div class="empty-content">
-                            <mat-icon>account_balance_wallet</mat-icon>
-                            <p>No holdings found. Add your first transaction!</p>
-                        </div>
+                    <td colspan="7">
+                        <app-empty-state 
+                            icon="account_balance_wallet"
+                            message="No holdings found. Add your first transaction!">
+                        </app-empty-state>
                     </td>
                 </tr>
                 }
