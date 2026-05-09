@@ -1,10 +1,11 @@
-import { Component, input, HostBinding } from '@angular/core';
+import { Component, input, HostBinding, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-button',
   standalone: true,
   templateUrl: './button.component.html',
-  styleUrl: './button.component.scss'
+  styleUrl: './button.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ButtonComponent {
   readonly variant = input<'text' | 'tonal' | 'outlined' | 'filled'>('text');

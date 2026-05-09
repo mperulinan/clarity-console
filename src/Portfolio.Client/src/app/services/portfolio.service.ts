@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { PortfolioMetrics } from '../models/portfolio-metrics';
 import { PortfolioReport } from '../models/portfolio-report';
@@ -58,11 +58,11 @@ export class PortfolioService {
     }
 
     searchAssets(query: string, type?: string): Observable<AssetDto[]> {
-        let params = `?query=${encodeURIComponent(query)}`;
+        let params = new HttpParams().set('query', query);
         if (type) {
-            params += `&type=${encodeURIComponent(type)}`;
+            params = params.set('type', type);
         }
-        return this.http.get<AssetDto[]>(`${this.apiUrl}/Asset/search${params}`);
+        return this.http.get<AssetDto[]>(`${this.apiUrl}/Asset/search`, { params });
     }
 
     syncAsset(asset: AssetDto): Observable<AssetDto> {

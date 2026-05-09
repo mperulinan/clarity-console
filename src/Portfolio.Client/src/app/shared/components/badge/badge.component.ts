@@ -1,10 +1,11 @@
-import { Component, input, HostBinding } from '@angular/core';
+import { Component, input, HostBinding, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-badge',
   standalone: true,
   templateUrl: './badge.component.html',
-  styleUrl: './badge.component.scss'
+  styleUrl: './badge.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BadgeComponent {
   readonly semantic = input<'gain' | 'loss' | 'error' | 'neutral' | 'linked'>('neutral');
