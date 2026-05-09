@@ -6,7 +6,7 @@
 $sidebar-width-collapsed: 64px;
 $sidebar-width-expanded: 220px;
 $bg-sidebar: var(--color-bg-base);
-$bg-sidebar-hover: rgba(255, 255, 255, 0.04);
+$bg-sidebar-hover: color-mix(in srgb, var(--color-text), transparent 96%);
 $border: var(--color-border);
 $text-primary: var(--color-text);
 $text-muted: var(--color-text-muted);
