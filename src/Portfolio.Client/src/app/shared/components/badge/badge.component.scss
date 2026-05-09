@@ -1,0 +1,57 @@
+:host {
+    font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    border-radius: 20px;
+    border: 1px solid transparent;
+}
+
+/* ── SIZES ──────────────────────────────────── */
+:host(.size-sm) {
+    font-size: var(--text-micro, 10px);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+:host(.size-md) {
+    font-size: var(--text-sm, 13px);
+    padding: 4px 10px;
+}
+
+/* ── SEMANTIC VARIANTS ───────────────────────── */
+:host(.badge-gain) {
+    background: color-mix(in srgb, var(--color-gain), transparent 90%);
+    color: var(--color-gain);
+    border-color: color-mix(in srgb, var(--color-gain), transparent 80%);
+}
+
+:host(.badge-loss) {
+    background: color-mix(in srgb, var(--color-loss), transparent 90%);
+    color: var(--color-loss);
+    border-color: color-mix(in srgb, var(--color-loss), transparent 80%);
+}
+
+:host(.badge-error) {
+    background: color-mix(in srgb, var(--mat-sys-error), transparent 90%);
+    color: var(--mat-sys-error);
+    border-color: color-mix(in srgb, var(--mat-sys-error), transparent 80%);
+}
+
+:host(.badge-neutral) {
+    background: color-mix(in srgb, var(--mat-sys-on-surface), transparent 96%);
+    color: var(--mat-sys-on-surface-variant);
+    border-color: var(--mat-sys-outline);
+    text-transform: uppercase;
+}
+
+/* Specific mapped style for new-transaction "linked" style */
+:host(.badge-linked) {
+    background: color-mix(in srgb, var(--mat-sys-background), transparent 50%);
+    border: 1px dashed color-mix(in srgb, var(--mat-sys-outline), transparent 30%);
+    border-radius: 6px;
+    color: var(--mat-sys-on-surface-variant);
+    font-weight: 500;
+}

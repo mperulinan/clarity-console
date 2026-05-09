@@ -1,0 +1,97 @@
+@use '@angular/material' as mat;
+
+:host {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: var(--font-text);
+    font-size: var(--text-base, 14px);
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition:
+        background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+        border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+        color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    
+    // Default Padding (matches the DESIGN.md ghost-button)
+    padding: 7px 17px;
+    border: 1px solid transparent;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    ::ng-deep .mat-mdc-icon-button .material-icons,
+    ::ng-deep mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* ── VARIANTS & COLORS ──────────────────────── */
+
+/* GHOST (Transparent bg, tinted border, colored text) */
+:host(.btn-ghost) {
+    background: transparent;
+
+    &.color-primary {
+        color: var(--mat-sys-primary);
+        border-color: color-mix(in srgb, var(--mat-sys-primary), transparent 60%);
+
+        &:not(:disabled):hover {
+            background: color-mix(in srgb, var(--mat-sys-primary), transparent 90%);
+            border-color: var(--mat-sys-primary);
+        }
+    }
+
+    &.color-muted {
+        color: var(--mat-sys-on-surface-variant);
+        border-color: transparent;
+
+        &:not(:disabled):hover {
+            background: color-mix(in srgb, var(--mat-sys-surface-variant), transparent 40%);
+            color: var(--mat-sys-on-surface);
+        }
+    }
+
+    &.color-error {
+        color: var(--mat-sys-error);
+        border-color: color-mix(in srgb, var(--mat-sys-error), transparent 60%);
+
+        &:not(:disabled):hover {
+            background: color-mix(in srgb, var(--mat-sys-error), transparent 90%);
+            border-color: var(--mat-sys-error);
+        }
+    }
+}
+
+/* OUTLINE (Transparent bg, solid thick border, colored text) */
+:host(.btn-outline) {
+    background: transparent;
+
+    &.color-primary {
+        color: var(--mat-sys-primary);
+        border-color: var(--mat-sys-primary);
+
+        &:not(:disabled):hover {
+            background: color-mix(in srgb, var(--mat-sys-primary), transparent 85%);
+        }
+    }
+}
+
+/* PRIMARY (Solid colored bg, inverted text) */
+:host(.btn-primary) {
+    &.color-primary {
+        background: var(--mat-sys-primary);
+        color: var(--mat-sys-on-primary);
+        border-color: var(--mat-sys-primary);
+
+        &:not(:disabled):hover {
+            background: color-mix(in srgb, var(--mat-sys-primary), white 10%);
+        }
+    }
+}

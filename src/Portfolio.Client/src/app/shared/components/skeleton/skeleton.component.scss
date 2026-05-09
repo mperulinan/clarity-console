@@ -1,0 +1,45 @@
+@keyframes shimmer {
+    0% {
+        background-position: -600px 0;
+    }
+    100% {
+        background-position: 600px 0;
+    }
+}
+
+:host {
+    display: block;
+    background: linear-gradient(
+        90deg,
+        var(--mat-sys-surface) 25%,
+        color-mix(in srgb, var(--mat-sys-surface), white 3%) 50%,
+        var(--mat-sys-surface) 75%
+    );
+    background-size: 600px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+:host(.skel-line) {
+    height: 16px;
+    margin-bottom: 8px;
+    
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+:host(.skel-circle) {
+    border-radius: 50%;
+}
+
+:host(.skel-block) {
+    border-radius: 8px;
+}
+
+:host(.skel-bento) {
+    border: 1px solid var(--mat-sys-outline);
+    border-radius: var(--mat-sys-corner-extra-large, 20px);
+    background: var(--mat-sys-outline);
+}

@@ -1,0 +1,9 @@
+<div class="empty-content">
+  <mat-icon>{{ icon() }}</mat-icon>
+  <h3>{{ message() }}</h3>
+  @if (subMessage()) {
+    <p>{{ subMessage() }}</p>
+  }
+  
+  <ng-content></ng-content>
+</div>
