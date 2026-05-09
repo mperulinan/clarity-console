@@ -52,17 +52,20 @@
             New Transaction
         </h2>
 
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col">
+        <form (ngSubmit)="onSubmit(); $event.preventDefault()" class="flex flex-col">
             <mat-stepper [linear]="true" #stepper class="bg-transparent">
 
                 <!-- ── STEP 1: CORE DETAILS ───────────────────────────── -->
-                <mat-step formGroupName="step1" [stepControl]="step1Group!">
+                <mat-step [completed]="isStep1Valid()">
                     <ng-template matStepLabel>Core Details</ng-template>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-4">
                         <div>
                             <div class="field-group-label">Transaction Type</div>
-                            <mat-button-toggle-group formControlName="type" class="type-toggle-grid w-full">
+                            <mat-button-toggle-group
+                                [value]="model().type"
+                                (change)="onTypeChange($event.value)"
+                                class="type-toggle-grid w-full">
                                 @for (type of transactionTypes(); track type.value) {
                                 <mat-button-toggle [value]="type.value">
                                     {{ type.name }}
@@ -72,9 +75,10 @@
                         </div>
 
                         <div>
-                            <div class="field-group-label">Date & Time</div>
+                            <div class="field-group-label">Date &amp; Time</div>
                             <div class="native-datetime-wrapper">
-                                <input type="datetime-local" step="1" formControlName="date"
+                                <input type="datetime-local" step="1"
+                                    [formField]="transactionForm.date"
                                     class="native-datetime-input w-full">
                             </div>
                         </div>
@@ -87,13 +91,15 @@
                             <mat-icon>{{ uiLabels().fromIcon }}</mat-icon> {{ uiLabels().fromTitle }}
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- SEARCH state -->
-                            <app-asset-selector formControlName="fromAssetId" label="Search Asset"
-                                placeholder="e.g. BTC, ETH">
+                            <app-asset-selector
+                                label="Search Asset"
+                                placeholder="e.g. BTC, ETH"
+                                [value]="fromAsset()"
+                                (assetChange)="fromAsset.set($event)">
                             </app-asset-selector>
                             <mat-form-field appearance="fill">
                                 <mat-label>{{ uiLabels().fromAmount }}</mat-label>
-                                <input matInput type="number" formControlName="amountSpent">
+                                <input matInput type="number" [formField]="transactionForm.amountSpent">
                             </mat-form-field>
                         </div>
                     </div>
@@ -106,26 +112,28 @@
                             <mat-icon>{{ uiLabels().toIcon }}</mat-icon> {{ uiLabels().toTitle }}
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- SEARCH state -->
-                            <app-asset-selector formControlName="toAssetId" label="Search Asset"
-                                placeholder="e.g. BTC, ETH">
+                            <app-asset-selector
+                                label="Search Asset"
+                                placeholder="e.g. BTC, ETH"
+                                [value]="toAsset()"
+                                (assetChange)="toAsset.set($event)">
                             </app-asset-selector>
                             <mat-form-field appearance="fill">
                                 <mat-label>{{ uiLabels().toAmount }}</mat-label>
-                                <input matInput type="number" formControlName="amountReceived">
+                                <input matInput type="number" [formField]="transactionForm.amountReceived">
                             </mat-form-field>
                         </div>
                     </div>
                     }
 
                     <div class="action-buttons action-buttons--flush">
-                        <app-button variant="tonal" color="primary" (click)="stepper.next()" [disabled]="!isStep1Valid">Next</app-button>
+                        <app-button variant="tonal" color="primary" (click)="stepper.next()" [disabled]="!isStep1Valid()">Next</app-button>
                     </div>
                 </mat-step>
 
                 <!-- ── STEP 2: PRICING & FEES ─────────────────────────── -->
-                <mat-step formGroupName="step2" [stepControl]="step2Group!">
-                    <ng-template matStepLabel>Pricing & Fees</ng-template>
+                <mat-step [completed]="isStep2Valid()">
+                    <ng-template matStepLabel>Pricing &amp; Fees</ng-template>
 
                     <div class="mt-4">
                         @if (!hasFiatLeg()) {
@@ -137,15 +145,17 @@
                             <div class="flex flex-row gap-4 items-start w-full md:w-2/3">
                                 <mat-form-field appearance="fill" class="w-1/3">
                                     <mat-label>Currency</mat-label>
-                                    <mat-select formControlName="spotPriceCurrency">
+                                    <mat-select
+                                        [value]="model().spotPriceCurrency"
+                                        (selectionChange)="onSpotCurrencyChange($event.value)">
                                         <mat-select-trigger>
                                             <div class="flex items-center gap-2">
                                                 @for (fiat of fiatCurrencies(); track fiat.symbol) {
-                                                @if (fiat.symbol === step2Value.spotPriceCurrency) {
+                                                @if (fiat.symbol === model().spotPriceCurrency) {
                                                 <img [src]="fiat.imageUrl" alt="Icon" class="w-5 h-5 rounded-full">
                                                 }
                                                 }
-                                                <span>{{ step2Value.spotPriceCurrency }}</span>
+                                                <span>{{ model().spotPriceCurrency }}</span>
                                             </div>
                                         </mat-select-trigger>
                                         @for (fiat of fiatCurrencies(); track fiat.symbol) {
@@ -159,9 +169,14 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <app-interactive-price-input class="flex-grow" formControlName="spotPrice"
-                                    [assetSymbol]="pricedAssetSymbol()" [assetAmount]="pricedAssetAmount()"
-                                    [fiatCurrency]="step2Value.spotPriceCurrency">
+                                <app-interactive-price-input
+                                    class="flex-grow"
+                                    [assetSymbol]="pricedAssetSymbol()"
+                                    [assetAmount]="pricedAssetAmount()"
+                                    [fiatCurrency]="model().spotPriceCurrency"
+                                    [value]="model().spotPrice || null"
+                                    [disabled]="hasFiatLeg()"
+                                    (valueChange)="onSpotPriceChange($event)">
                                 </app-interactive-price-input>
                             </div>
                         </div>
@@ -174,13 +189,16 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <app-asset-selector formControlName="feeAssetId" label="Fee Asset"
-                                        placeholder="e.g. USD, BNB">
+                                    <app-asset-selector
+                                        label="Fee Asset"
+                                        placeholder="e.g. USD, BNB"
+                                        [value]="feeAsset()"
+                                        (assetChange)="feeAsset.set($event)">
                                     </app-asset-selector>
                                 </div>
                                 <mat-form-field appearance="fill">
                                     <mat-label>Fee Amount</mat-label>
-                                    <input matInput type="number" formControlName="fee" min="0">
+                                    <input matInput type="number" [formField]="transactionForm.fee">
                                 </mat-form-field>
                             </div>
                             @if (showFeeFiatValuation()) {
@@ -193,15 +211,18 @@
                             <div class="flex flex-row gap-4 items-start w-full md:w-2/3 mt-2">
                                 <mat-form-field appearance="fill" class="w-1/3">
                                     <mat-label>Currency</mat-label>
-                                    <mat-select formControlName="feeSpotPriceCurrency">
+                                    <mat-select
+                                        [value]="model().feeSpotPriceCurrency"
+                                        (selectionChange)="onFeeCurrencyChange($event.value)"
+                                        [disabled]="!showFeeFiatValuation() || isFeeAssetSameAsSpotAsset()">
                                         <mat-select-trigger>
                                             <div class="flex items-center gap-2">
                                                 @for (fiat of fiatCurrencies(); track fiat.symbol) {
-                                                @if (fiat.symbol === step2Value.feeSpotPriceCurrency) {
+                                                @if (fiat.symbol === model().feeSpotPriceCurrency) {
                                                 <img [src]="fiat.imageUrl" alt="Icon" class="w-5 h-5 rounded-full">
                                                 }
                                                 }
-                                                <span>{{ step2Value.feeSpotPriceCurrency }}</span>
+                                                <span>{{ model().feeSpotPriceCurrency }}</span>
                                             </div>
                                         </mat-select-trigger>
                                         @for (fiat of fiatCurrencies(); track fiat.symbol) {
@@ -215,9 +236,14 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <app-interactive-price-input class="flex-grow" formControlName="feeSpotPrice"
-                                    [assetSymbol]="feeAssetSymbol()" [assetAmount]="step2Value.fee"
-                                    [fiatCurrency]="step2Value.feeSpotPriceCurrency">
+                                <app-interactive-price-input
+                                    class="flex-grow"
+                                    [assetSymbol]="feeAssetSymbol()"
+                                    [assetAmount]="model().fee"
+                                    [fiatCurrency]="model().feeSpotPriceCurrency"
+                                    [value]="model().feeSpotPrice || null"
+                                    [disabled]="!showFeeFiatValuation() || isFeeAssetSameAsSpotAsset()"
+                                    (valueChange)="onFeeSpotPriceChange($event)">
                                 </app-interactive-price-input>
                             </div>
                             }
@@ -227,12 +253,12 @@
 
                     <div class="action-buttons action-buttons--flush">
                         <app-button variant="text" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
-                        <app-button variant="tonal" color="primary" (click)="stepper.next()" [disabled]="!isStep2Valid">Next</app-button>
+                        <app-button variant="tonal" color="primary" (click)="stepper.next()" [disabled]="!isStep2Valid()">Next</app-button>
                     </div>
                 </mat-step>
 
                 <!-- ── STEP 3: REVIEW ─────────────────────────────────── -->
-                <mat-step formGroupName="step3">
+                <mat-step>
                     <ng-template matStepLabel>Review</ng-template>
 
                     <div class="mt-4">
@@ -250,26 +276,22 @@
                                 </div>
                                 <div class="summary-cell">
                                     <span class="summary-cell__label">Date &amp; Time</span>
-                                    <span class="summary-cell__value">{{ step1Value?.date | date:'dd/MM/yyyy HH:mm:ss'
-                                        }}</span>
+                                    <span class="summary-cell__value">{{ model().date | date:'dd/MM/yyyy HH:mm:ss' }}</span>
                                 </div>
 
                                 @if (selectedTypeData()?.requiresFromAsset) {
                                 <div class="summary-cell summary-cell--padded">
                                     <span class="summary-cell__label">
-                                        <mat-icon class="icon-loss">{{
-                                            uiLabels().fromIcon }}</mat-icon> {{ uiLabels().fromTitle }}
+                                        <mat-icon class="icon-loss">{{ uiLabels().fromIcon }}</mat-icon> {{ uiLabels().fromTitle }}
                                     </span>
                                     <div class="asset-row mt-2">
-                                        <span class="summary-amount">{{ step1Value?.amountSpent }}</span>
+                                        <span class="summary-amount">{{ model().amountSpent }}</span>
                                         <span class="asset-badge"
-                                            [attr.aria-label]="'Asset ' + (step1Value?.fromAssetId?.symbol || step1Value?.fromAssetId || 'N/A')">
-                                            @if (step1Value?.fromAssetId?.imageUrl) {
-                                            <img [src]="step1Value?.fromAssetId?.imageUrl" alt=""
-                                                class="asset-badge__icon">
+                                            [attr.aria-label]="'Asset ' + (fromAsset()?.symbol || 'N/A')">
+                                            @if (fromAsset()?.imageUrl) {
+                                            <img [src]="fromAsset()?.imageUrl" alt="" class="asset-badge__icon">
                                             }
-                                            <span class="asset-badge__symbol">{{ step1Value?.fromAssetId?.symbol ||
-                                                step1Value?.fromAssetId || 'N/A' }}</span>
+                                            <span class="asset-badge__symbol">{{ fromAsset()?.symbol || 'N/A' }}</span>
                                         </span>
                                     </div>
                                 </div>
@@ -278,19 +300,16 @@
                                 @if (selectedTypeData()?.requiresToAsset) {
                                 <div class="summary-cell summary-cell--padded">
                                     <span class="summary-cell__label">
-                                        <mat-icon class="icon-gain">{{
-                                            uiLabels().toIcon }}</mat-icon> {{ uiLabels().toTitle }}
+                                        <mat-icon class="icon-gain">{{ uiLabels().toIcon }}</mat-icon> {{ uiLabels().toTitle }}
                                     </span>
                                     <div class="asset-row mt-2">
-                                        <span class="summary-amount">{{ step1Value?.amountReceived }}</span>
+                                        <span class="summary-amount">{{ model().amountReceived }}</span>
                                         <span class="asset-badge"
-                                            [attr.aria-label]="'Asset ' + (step1Value?.toAssetId?.symbol || step1Value?.toAssetId || 'N/A')">
-                                            @if (step1Value?.toAssetId?.imageUrl) {
-                                            <img [src]="step1Value?.toAssetId?.imageUrl" alt=""
-                                                class="asset-badge__icon">
+                                            [attr.aria-label]="'Asset ' + (toAsset()?.symbol || 'N/A')">
+                                            @if (toAsset()?.imageUrl) {
+                                            <img [src]="toAsset()?.imageUrl" alt="" class="asset-badge__icon">
                                             }
-                                            <span class="asset-badge__symbol">{{ step1Value?.toAssetId?.symbol ||
-                                                step1Value?.toAssetId || 'N/A' }}</span>
+                                            <span class="asset-badge__symbol">{{ toAsset()?.symbol || 'N/A' }}</span>
                                         </span>
                                     </div>
                                 </div>
@@ -301,7 +320,6 @@
 
                             <!-- ── MAIN FINANCIALS TILE ────────────── -->
                             <div class="summary-financials-tile">
-
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <!-- Unit Price -->
                                     <div>
@@ -309,25 +327,20 @@
                                             Price per {{ pricedAssetSymbol() }}
                                         </span>
                                         <div class="flex items-center gap-2">
-                                            <span class="summary-price-value">{{ step2Value?.spotPrice || '-' }}</span>
-                                            @if (step2Value?.spotPrice) {
-                                            <span class="currency-badge">
-                                                {{ step2Value?.spotPriceCurrency }}
-                                            </span>
+                                            <span class="summary-price-value">{{ model().spotPrice || '-' }}</span>
+                                            @if (model().spotPrice) {
+                                            <span class="currency-badge">{{ model().spotPriceCurrency }}</span>
                                             }
                                         </div>
                                     </div>
 
                                     <!-- Total Fiat Value -->
-                                    @if (step2Value?.spotPrice) {
+                                    @if (model().spotPrice) {
                                     <div class="sm:text-right">
-                                        <span class="summary-tile-label">
-                                            Total Fiat Value
-                                        </span>
+                                        <span class="summary-tile-label">Total Fiat Value</span>
                                         <div class="flex items-center sm:justify-end gap-2">
                                             <span class="summary-total-value">
-                                                {{ (pricedAssetAmount() * (step2Value?.spotPrice || 0)) |
-                                                currency:step2Value.spotPriceCurrency:'symbol' }}
+                                                {{ (pricedAssetAmount() * model().spotPrice) | currency:model().spotPriceCurrency:'symbol' }}
                                             </span>
                                         </div>
                                     </div>
@@ -336,55 +349,49 @@
                             </div>
 
                             <!-- ── FEE FINANCIALS TILE ─────────────── -->
-                            @if (step2Value?.fee && step2Value.fee > 0 && step2Value?.feeAssetId) {
+                            @if (model().fee > 0 && feeAsset()) {
                             <div class="summary-fee-tile">
-
                                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                                     <!-- Fee Elements -->
                                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-6">
                                         <div>
                                             <span class="fee-tile-label">Fee Amount</span>
                                             <div class="flex items-center gap-2">
-                                                <span class="fee-tile-amount">{{ step2Value?.fee }}</span>
-                                                @if (step2Value?.feeAssetId) {
+                                                <span class="fee-tile-amount">{{ model().fee }}</span>
+                                                @if (feeAsset()) {
                                                 <span class="asset-badge asset-badge--compact"
-                                                    [attr.aria-label]="'Fee asset ' + (step2Value?.feeAssetId?.symbol || step2Value?.feeAssetId)">
-                                                    @if (step2Value?.feeAssetId?.imageUrl) {
-                                                    <img [src]="step2Value?.feeAssetId?.imageUrl" alt=""
-                                                        class="asset-badge__icon">
+                                                    [attr.aria-label]="'Fee asset ' + feeAsset()?.symbol">
+                                                    @if (feeAsset()?.imageUrl) {
+                                                    <img [src]="feeAsset()?.imageUrl" alt="" class="asset-badge__icon">
                                                     }
-                                                    <span class="asset-badge__symbol">
-                                                        {{ step2Value?.feeAssetId?.symbol || step2Value?.feeAssetId }}
-                                                    </span>
+                                                    <span class="asset-badge__symbol">{{ feeAsset()?.symbol }}</span>
                                                 </span>
                                                 }
                                             </div>
                                         </div>
 
-                                        @if (step2Value?.feeSpotPrice) {
+                                        @if (effectiveFeeSpotPrice()) {
                                         <div class="hidden sm:block border-l border-white/5 mx-1"></div>
                                         <div>
                                             <span class="fee-tile-label">Fee Price per {{ feeAssetSymbol() }}</span>
                                             <div class="flex items-center gap-2">
-                                                <span class="fee-tile-amount">{{ step2Value?.feeSpotPrice }}</span>
-                                                <span class="fee-tile-badge">{{ step2Value?.feeSpotPriceCurrency
-                                                    }}</span>
+                                                <span class="fee-tile-amount">{{ effectiveFeeSpotPrice() }}</span>
+                                                <span class="fee-tile-badge">{{ effectiveFeeSpotPriceCurrency() }}</span>
                                             </div>
                                         </div>
                                         }
                                     </div>
 
                                     <!-- Total Fee Value -->
-                                    @if (hasFiatFee() || step2Value?.feeSpotPrice) {
+                                    @if (hasFiatFee() || effectiveFeeSpotPrice()) {
                                     <div class="lg:text-right mt-1 lg:mt-0">
                                         <span class="fee-tile-label">Total Fiat Fee</span>
                                         <div class="flex items-center lg:justify-end gap-2">
                                             <span class="fee-tile-total">
                                                 @if (hasFiatFee()) {
-                                                {{ step2Value.fee | currency:step2Value.feeSpotPriceCurrency:'symbol' }}
+                                                {{ model().fee | currency:effectiveFeeSpotPriceCurrency():'symbol' }}
                                                 } @else {
-                                                {{ (step2Value.fee * (step2Value?.feeSpotPrice || 0)) |
-                                                currency:step2Value.feeSpotPriceCurrency:'symbol' }}
+                                                {{ (model().fee * (effectiveFeeSpotPrice() || 0)) | currency:effectiveFeeSpotPriceCurrency():'symbol' }}
                                                 }
                                             </span>
                                         </div>
@@ -398,7 +405,7 @@
                         <!-- ── NOTES ──────────────────────────────────────────── -->
                         <mat-form-field appearance="fill" class="w-full">
                             <mat-label>Additional Notes</mat-label>
-                            <textarea matInput formControlName="notes" rows="3"
+                            <textarea matInput [formField]="transactionForm.notes" rows="3"
                                 placeholder="Reasons, tx hashes, etc."></textarea>
                         </mat-form-field>
                     </div>
@@ -415,7 +422,8 @@
                     <div class="action-buttons action-buttons--flush">
                         <app-button variant="text" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
                         <app-button variant="text" color="muted" (click)="onCancel()">Cancel</app-button>
-                        <app-button variant="outlined" color="primary" type="submit" [disabled]="form.invalid || isSubmitting()">
+                        <app-button variant="outlined" color="primary" type="submit"
+                            [disabled]="transactionForm().invalid() || isSubmitting()">
                             @if (isSubmitting()) { Saving... } @else { Save Transaction }
                         </app-button>
                     </div>

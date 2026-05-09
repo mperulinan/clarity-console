@@ -1,12 +1,10 @@
 import {
-    Component, OnInit, signal, computed, Signal,
-    effect, untracked, inject, DestroyRef, ChangeDetectionStrategy
+    Component, OnInit, signal, computed,
+    effect, untracked, inject, ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
-import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 // Material
 import { MatCardModule } from '@angular/material/card';
@@ -18,44 +16,26 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
+
+// Signal Forms
+import {
+    FormField, form, submit,
+    required, validate, disabled
+} from '@angular/forms/signals';
+
+// Shared components
 import { AssetSelectorComponent } from '../../shared/components/asset-selector/asset-selector.component';
 import { InteractivePriceInputComponent } from '../../shared/components/interactive-price-input/interactive-price-input.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
+
+// Services & models
 import { PortfolioService } from '../../services/portfolio.service';
 import { AssetDto } from '../../models/asset';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType } from '../../models/transaction';
-import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
-
-export interface Step1Form {
-    date: FormControl<string>;
-    type: FormControl<string>;
-    fromAssetId: FormControl<AssetDto | null>;
-    toAssetId: FormControl<AssetDto | null>;
-    amountSpent: FormControl<number | null>;
-    amountReceived: FormControl<number | null>;
-}
-
-export interface Step2Form {
-    spotPrice: FormControl<number | null>;
-    spotPriceCurrency: FormControl<string>;
-    fee: FormControl<number | null>;
-    feeAssetId: FormControl<AssetDto | null>;
-    feeSpotPrice: FormControl<number | null>;
-    feeSpotPriceCurrency: FormControl<string>;
-}
-
-export interface Step3Form {
-    notes: FormControl<string | null>;
-}
-
-export interface TransactionForm {
-    step1: FormGroup<Step1Form>;
-    step2: FormGroup<Step2Form>;
-    step3: FormGroup<Step3Form>;
-}
+import { DEFAULT_FIAT_CURRENCY, SupportedFiatCurrency } from '../../shared/constants/currency.constants';
 
 const UI_CONFIG: Record<string, any> = {
     DEPOSIT: { toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited' },
@@ -76,7 +56,7 @@ const UI_CONFIG: Record<string, any> = {
     standalone: true,
     imports: [
         CommonModule,
-        ReactiveFormsModule,
+        FormField,
         MatCardModule,
         MatFormFieldModule,
         MatInputModule,
@@ -97,388 +77,286 @@ const UI_CONFIG: Record<string, any> = {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NewTransactionComponent implements OnInit {
-    form: FormGroup<TransactionForm>;
+    private readonly portfolioService = inject(PortfolioService);
+    private readonly router = inject(Router);
 
-    // ── Writable state signals ───────────────────────────────────────────
     isSubmitting = signal<boolean>(false);
     submitError = signal<string | null>(null);
     isLoadingTypes = signal<boolean>(true);
     transactionTypes = signal<TransactionType[]>([]);
     fiatCurrencies = signal<AssetDto[]>([]);
 
-    // ── Form-value signals (initialized in constructor after form is built)
-    private step1Raw!: Signal<any>;
-    private step2Raw!: Signal<any>;
-    private typeValueChange!: Signal<string>;
+    // ── Form model — flat, no nulls (Signal Forms requirement) ───────────
+    model = signal({
+        date: new Date().toISOString().slice(0, 16),
+        type: '',
+        amountSpent: 0,
+        amountReceived: 0,
+        spotPrice: 0,
+        spotPriceCurrency: DEFAULT_FIAT_CURRENCY as SupportedFiatCurrency,
+        fee: 0,
+        feeSpotPrice: 0,
+        feeSpotPriceCurrency: DEFAULT_FIAT_CURRENCY as SupportedFiatCurrency,
+        notes: '',
+    });
 
-    // ── Computed signals ─────────────────────────────────────────────────
-    selectedTypeData!: Signal<TransactionType | undefined>;
-    uiLabels!: Signal<any>;
-    hasFiatLeg!: Signal<boolean>;
-    hasFiatFee!: Signal<boolean>;
-    showFeeFiatValuation!: Signal<boolean>;
-    isFeeAssetSameAsSpotAsset!: Signal<boolean>;
-    pricedAssetSymbol!: Signal<string>;
-    pricedAssetAmount!: Signal<number>;
-    feeAssetSymbol!: Signal<string>;
+    // ── Asset objects managed alongside the form (objects cannot be in the signal form model) ──
+    fromAsset = signal<AssetDto | null>(null);
+    toAsset = signal<AssetDto | null>(null);
+    feeAsset = signal<AssetDto | null>(null);
 
-    private readonly destroyRef = inject(DestroyRef);
+    // ── Computed signals (same logic as before, now reading model() directly) ──
+    selectedTypeData = computed(() => {
+        const typeValue = this.model().type;
+        return this.transactionTypes().find(t => t.value === typeValue);
+    });
 
-    private readonly portfolioService = inject(PortfolioService);
-    private readonly router = inject(Router);
+    uiLabels = computed(() => {
+        const typeData = this.selectedTypeData();
+        if (!typeData) return UI_CONFIG['DEFAULT'];
+        return UI_CONFIG[typeData.value.toUpperCase()] || UI_CONFIG['DEFAULT'];
+    });
+
+    hasFiatLeg = computed(() => {
+        return this.fiatCurrencies().some(
+            f => f.id === this.fromAsset()?.id || f.id === this.toAsset()?.id
+        );
+    });
+
+    hasFiatFee = computed(() =>
+        this.fiatCurrencies().some(f => f.id === this.feeAsset()?.id)
+    );
+
+    showFeeFiatValuation = computed(() => !!this.feeAsset() && !this.hasFiatFee());
+
+    isFeeAssetSameAsSpotAsset = computed(() => {
+        const fee = this.feeAsset();
+        if (!fee) return false;
+        const spot = this.fromAsset() ?? this.toAsset();
+        return !!spot && fee.id === spot.id;
+    });
+
+    pricedAssetSymbol = computed(() => {
+        const typeData = this.selectedTypeData();
+        if (!typeData) return 'Coin';
+        return typeData.requiresFromAsset
+            ? (this.fromAsset()?.symbol ?? 'Coin')
+            : (this.toAsset()?.symbol ?? 'Coin');
+    });
+
+    pricedAssetAmount = computed(() => {
+        const typeData = this.selectedTypeData();
+        if (!typeData) return 0;
+        return typeData.requiresFromAsset
+            ? this.model().amountSpent
+            : this.model().amountReceived;
+    });
+
+    feeAssetSymbol = computed(() => this.feeAsset()?.symbol ?? 'Coin');
+
+    // ── Step validity (replaces [stepControl] on MatStepper) ────────────
+    isStep1Valid = computed(() => {
+        const typeData = this.selectedTypeData();
+        if (!typeData || !this.model().date) return false;
+        if (typeData.requiresFromAsset && (!this.fromAsset() || this.model().amountSpent <= 0)) return false;
+        if (typeData.requiresToAsset && (!this.toAsset() || this.model().amountReceived <= 0)) return false;
+        return true;
+    });
+
+    isStep2Valid = computed(() => {
+        const hasFeeAsset = !!this.feeAsset();
+        const feeAmount = this.model().fee;
+        // If one side of fee is filled, both are required
+        if (hasFeeAsset !== (feeAmount > 0)) return false;
+        // spotPrice required unless fiat leg
+        if (!this.hasFiatLeg() && this.model().spotPrice <= 0) return false;
+        // feeSpotPrice required when fee exists and fee asset is not fiat and not same as spot
+        if (this.showFeeFiatValuation() && !this.isFeeAssetSameAsSpotAsset() && this.model().feeSpotPrice <= 0) return false;
+        return true;
+    });
+
+    // ── Effective fee spot price (mirrored from spot when same asset) ────
+    effectiveFeeSpotPrice = computed(() =>
+        this.isFeeAssetSameAsSpotAsset() ? this.model().spotPrice : this.model().feeSpotPrice
+    );
+
+    effectiveFeeSpotPriceCurrency = computed(() =>
+        this.isFeeAssetSameAsSpotAsset() ? this.model().spotPriceCurrency : this.model().feeSpotPriceCurrency
+    );
+
+    // ── Signal Form ──────────────────────────────────────────────────────
+    transactionForm = form(this.model, s => {
+        required(s.type, { message: 'Transaction type is required' });
+        required(s.date, { message: 'Date is required' });
+
+        // Amounts — conditionally required based on type
+        validate(s.amountSpent, ({ value, valueOf }) => {
+            const typeValue = valueOf(s.type);
+            const typeData = this.transactionTypes().find(t => t.value === typeValue);
+            if (!typeData?.requiresFromAsset) return undefined;
+            if (!this.fromAsset()) return { kind: 'required', message: 'From asset is required' };
+            if (!value() || value() <= 0) return { kind: 'minExclusive', message: 'Amount must be greater than 0' };
+            return undefined;
+        });
+
+        validate(s.amountReceived, ({ value, valueOf }) => {
+            const typeValue = valueOf(s.type);
+            const typeData = this.transactionTypes().find(t => t.value === typeValue);
+            if (!typeData?.requiresToAsset) return undefined;
+            if (!this.toAsset()) return { kind: 'required', message: 'To asset is required' };
+            if (!value() || value() <= 0) return { kind: 'minExclusive', message: 'Amount must be greater than 0' };
+            return undefined;
+        });
+
+        validate(s.spotPrice, ({ value }) => {
+            if (this.hasFiatLeg()) return undefined;
+            if (!value() || value() <= 0) return { kind: 'required', message: 'Spot price is required' };
+            return undefined;
+        });
+
+        validate(s.fee, ({ value }) => {
+            if (!!this.feeAsset() && (!value() || value() <= 0))
+                return { kind: 'minExclusive', message: 'Fee amount must be greater than 0' };
+            return undefined;
+        });
+
+        validate(s.feeSpotPrice, ({ value }) => {
+            if (!this.showFeeFiatValuation() || this.isFeeAssetSameAsSpotAsset()) return undefined;
+            if (!value() || value() <= 0) return { kind: 'required', message: 'Fee spot price is required' };
+            return undefined;
+        });
+
+        // Disable spotPrice fields when there is a fiat leg
+        disabled(s.spotPrice, () => this.hasFiatLeg());
+        disabled(s.spotPriceCurrency, () => this.hasFiatLeg());
+
+        // Disable feeSpotPrice fields when not applicable
+        disabled(s.feeSpotPrice, () => !this.showFeeFiatValuation() || this.isFeeAssetSameAsSpotAsset());
+        disabled(s.feeSpotPriceCurrency, () => !this.showFeeFiatValuation() || this.isFeeAssetSameAsSpotAsset());
+    });
 
     constructor() {
-        this.form = new FormGroup<TransactionForm>({
-            step1: new FormGroup<Step1Form>({
-                date: new FormControl<string>(new Date().toISOString().slice(0, 16), { nonNullable: true, validators: Validators.required }),
-                type: new FormControl<string>('', { nonNullable: true, validators: Validators.required }),
-                fromAssetId: new FormControl<AssetDto | null>(null, Validators.required),
-                toAssetId: new FormControl<AssetDto | null>(null, Validators.required),
-                amountSpent: new FormControl<number | null>(null, [Validators.required, this.requireGreaterThanZero]),
-                amountReceived: new FormControl<number | null>(null, [Validators.required, this.requireGreaterThanZero])
-            }),
-            step2: new FormGroup<Step2Form>({
-                spotPrice: new FormControl<number | null>(null, [Validators.required, this.requireGreaterThanZero]),
-                spotPriceCurrency: new FormControl<string>(DEFAULT_FIAT_CURRENCY, { nonNullable: true, validators: Validators.required }),
-                fee: new FormControl<number | null>(0),
-                feeAssetId: new FormControl<AssetDto | null>(null),
-                feeSpotPrice: new FormControl<number | null>(null, Validators.min(0)),
-                feeSpotPriceCurrency: new FormControl<string>(DEFAULT_FIAT_CURRENCY, { nonNullable: true })
-            }),
-            step3: new FormGroup<Step3Form>({
-                notes: new FormControl<string | null>(null)
-            })
-        });
-
-        // ── Signal bridges: form value changes → signals ─────────────────
-        // pipe(map(() => getRawValue())) ensures disabled controls are included
-        this.step1Raw = toSignal(
-            this.form.controls.step1.valueChanges.pipe(map(() => this.form.controls.step1.getRawValue())),
-            { initialValue: this.form.controls.step1.getRawValue() }
-        );
-
-        this.step2Raw = toSignal(
-            this.form.controls.step2.valueChanges.pipe(map(() => this.form.controls.step2.getRawValue())),
-            { initialValue: this.form.controls.step2.getRawValue() }
-        );
-
-        this.typeValueChange = toSignal(
-            this.form.controls.step1.controls.type.valueChanges,
-            { initialValue: '' }
-        );
-
-        // ── Computed signals ─────────────────────────────────────────────
-        this.selectedTypeData = computed(() => {
-            const typeValue = this.typeValueChange();
-            return this.transactionTypes().find(t => t.value === typeValue);
-        });
-
-        this.uiLabels = computed(() => {
-            const typeData = this.selectedTypeData();
-            if (!typeData) {
-                return UI_CONFIG['DEFAULT'];
-            }
-
-            return UI_CONFIG[typeData.value.toUpperCase()] || UI_CONFIG['DEFAULT'];
-        });
-
-        this.hasFiatLeg = computed(() => {
-            const { fromAssetId, toAssetId } = this.step1Raw();
-            return this.fiatCurrencies().some(f => f.id === fromAssetId?.id || f.id === toAssetId?.id);
-        });
-
-        this.hasFiatFee = computed(() => {
-            const { feeAssetId } = this.step2Raw();
-            return this.fiatCurrencies().some(f => f.id === feeAssetId?.id);
-        });
-
-        this.showFeeFiatValuation = computed(() => {
-            const { feeAssetId } = this.step2Raw();
-            return !!feeAssetId && !this.hasFiatFee();
-        });
-
-        this.isFeeAssetSameAsSpotAsset = computed(() => {
-            const { feeAssetId } = this.step2Raw();
-            if (!feeAssetId) return false;
-            const { fromAssetId, toAssetId } = this.step1Raw();
-            const spotAsset = fromAssetId || toAssetId;
-            return !!spotAsset && feeAssetId.id === spotAsset.id;
-        });
-
-        this.pricedAssetSymbol = computed(() => {
-            const typeData = this.selectedTypeData();
-            if (!typeData) return 'Coin';
-            const { fromAssetId, toAssetId } = this.step1Raw();
-            return typeData.requiresFromAsset
-                ? (fromAssetId?.symbol || 'Coin')
-                : (toAssetId?.symbol || 'Coin');
-        });
-
-        this.pricedAssetAmount = computed(() => {
-            const typeData = this.selectedTypeData();
-            if (!typeData) return 0;
-            const { amountSpent, amountReceived } = this.step1Raw();
-            return typeData.requiresFromAsset ? (amountSpent || 0) : (amountReceived || 0);
-        });
-
-        this.feeAssetSymbol = computed(() => {
-            const { feeAssetId } = this.step2Raw();
-            return feeAssetId?.symbol || 'Coin';
-        });
-
-        // ── Effects: replace form.valueChanges subscriptions ────────────
-        // hasFiatLeg depends on step1Raw + fiatCurrencies — effect tracks both
+        // Effect: clear spotPrice when the spot asset changes
         effect(() => {
-            this.hasFiatLeg();
-            untracked(() => this.updateReactiveLocks());
+            this.fromAsset();
+            untracked(() => this.model.update(m => ({ ...m, spotPrice: 0 })));
+        });
+        effect(() => {
+            this.toAsset();
+            untracked(() => this.model.update(m => ({ ...m, spotPrice: 0 })));
+        });
+        // Effect: clear feeSpotPrice when fee asset changes
+        effect(() => {
+            this.feeAsset();
+            untracked(() => this.model.update(m => ({ ...m, feeSpotPrice: 0 })));
         });
 
-        // Fee locks depend on everything that can change fee price state
+        // Effect: carry over asset selection when transaction type changes
         effect(() => {
-            this.showFeeFiatValuation();      // tracks step2Raw + hasFiatFee
-            this.isFeeAssetSameAsSpotAsset(); // tracks step1Raw + step2Raw
-            this.step2Raw();                  // also tracks raw step2 for spotPrice & fee amount
-            untracked(() => this.updateFeeLocks());
+            const typeValue = this.model().type;
+            const typeData = this.transactionTypes().find(t => t.value === typeValue);
+            if (!typeData) return;
+            untracked(() => {
+                if (typeData.requiresFromAsset && !typeData.requiresToAsset && !this.fromAsset() && this.toAsset()) {
+                    this.fromAsset.set(this.toAsset());
+                    this.model.update(m => ({ ...m, amountSpent: m.amountReceived > 0 ? m.amountReceived : m.amountSpent }));
+                } else if (typeData.requiresToAsset && !typeData.requiresFromAsset && !this.toAsset() && this.fromAsset()) {
+                    this.toAsset.set(this.fromAsset());
+                    this.model.update(m => ({ ...m, amountReceived: m.amountSpent > 0 ? m.amountSpent : m.amountReceived }));
+                }
+            });
         });
     }
 
     ngOnInit() {
-        this.portfolioService.getTransactionTypes()
-            .pipe(finalize(() => this.isLoadingTypes.set(false)))
-            .subscribe({
-                next: (types) => {
-                    this.transactionTypes.set(types);
-                    if (types.length > 0) {
-                        this.form.controls.step1.controls.type.setValue(types[0].value);
-                        this.updateValidators(types[0]);
-                    }
-                },
-                error: (err) => console.error('Failed to load transaction types', err)
-            });
-
-        this.portfolioService.getFiatCurrencies().subscribe({
-            next: (fiats) => this.fiatCurrencies.set(fiats),
-            error: (err) => console.error('Failed to load fiat currencies', err)
+        this.portfolioService.getTransactionTypes().subscribe({
+            next: types => {
+                this.transactionTypes.set(types);
+                this.isLoadingTypes.set(false);
+                if (types.length > 0) {
+                    this.model.update(m => ({ ...m, type: types[0].value }));
+                }
+            },
+            error: err => {
+                console.error('Failed to load transaction types', err);
+                this.isLoadingTypes.set(false);
+            }
         });
 
-        // Clear spot price when the spot asset changes
-        this.form.controls.step1.controls.fromAssetId.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => this.form.controls.step2.controls.spotPrice.setValue(null));
-
-        this.form.controls.step1.controls.toAssetId.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => this.form.controls.step2.controls.spotPrice.setValue(null));
-
-        // Clear fee spot price when the fee asset changes
-        this.form.controls.step2.controls.feeAssetId.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => this.form.controls.step2.controls.feeSpotPrice.setValue(null));
-
-        // Type change: migrate carried values + refresh validators
-        this.form.controls.step1.controls.type.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(typeValue => {
-                const typeData = this.transactionTypes().find(t => t.value === typeValue);
-                if (typeData) {
-                    this.migrateValuesOnTypeChange(typeData);
-                    this.updateValidators(typeData);
-                }
-            });
+        this.portfolioService.getFiatCurrencies().subscribe({
+            next: fiats => this.fiatCurrencies.set(fiats),
+            error: err => console.error('Failed to load fiat currencies', err)
+        });
     }
 
-    // ── Private: form control side-effects ──────────────────────────────
+    // ── Model update helpers (used by template event bindings) ──────────
 
-    private updateReactiveLocks() {
-        const spotPriceControl = this.form.controls.step2.controls.spotPrice;
-        const spotPriceCurrencyControl = this.form.controls.step2.controls.spotPriceCurrency;
-
-        if (this.hasFiatLeg()) {
-            spotPriceControl.disable({ emitEvent: false });
-            spotPriceCurrencyControl.disable({ emitEvent: false });
-        } else if (spotPriceControl.disabled) {
-            spotPriceControl.enable({ emitEvent: false });
-            spotPriceCurrencyControl.enable({ emitEvent: false });
-        }
+    onTypeChange(value: string) {
+        this.model.update(m => ({ ...m, type: value }));
     }
 
-    private updateFeeLocks() {
-        const feeAssetControl = this.form.controls.step2.controls.feeAssetId;
-        const feeControl = this.form.controls.step2.controls.fee;
-        const feePriceControl = this.form.controls.step2.controls.feeSpotPrice;
-        const feePriceCurrencyControl = this.form.controls.step2.controls.feeSpotPriceCurrency;
-
-        const hasFeeAsset = !!feeAssetControl.value;
-        const hasFeeAmount = !!feeControl.value && feeControl.value > 0;
-
-        // Ensure strict symmetry: fee amount needs an asset and vice-versa
-        if (hasFeeAsset || hasFeeAmount) {
-            feeControl.setValidators([Validators.required, this.requireGreaterThanZero]);
-            feeAssetControl.setValidators([Validators.required, this.requireAssetObject]);
-        } else {
-            feeControl.clearValidators();
-            feeAssetControl.clearValidators();
-        }
-        feeControl.updateValueAndValidity({ emitEvent: false });
-        feeAssetControl.updateValueAndValidity({ emitEvent: false });
-
-        if (!this.showFeeFiatValuation()) {
-            // No fee, or fee asset is fiat — no crypto price input needed
-            if (this.hasFiatFee() && feeAssetControl.value?.symbol) {
-                feePriceCurrencyControl.setValue(feeAssetControl.value.symbol, { emitEvent: false });
-            }
-            feePriceControl.disable({ emitEvent: false });
-            feePriceCurrencyControl.disable({ emitEvent: false });
-            feePriceControl.clearValidators();
-            feePriceCurrencyControl.clearValidators();
-            feePriceControl.setValue(null, { emitEvent: false });
-        } else if (this.isFeeAssetSameAsSpotAsset()) {
-            // Mirror spot price — same asset, no separate price needed
-            const spotPrice = this.form.controls.step2.controls.spotPrice.value;
-            const spotCurrency = this.form.controls.step2.controls.spotPriceCurrency.value;
-            feePriceControl.setValue(spotPrice, { emitEvent: false });
-            feePriceCurrencyControl.setValue(spotCurrency, { emitEvent: false });
-            feePriceControl.disable({ emitEvent: false });
-            feePriceCurrencyControl.disable({ emitEvent: false });
-            feePriceControl.clearValidators();
-            feePriceCurrencyControl.clearValidators();
-        } else {
-            if (feePriceControl.disabled) {
-                feePriceControl.enable({ emitEvent: false });
-                feePriceCurrencyControl.enable({ emitEvent: false });
-            }
-            feePriceControl.setValidators([Validators.required, this.requireGreaterThanZero]);
-            feePriceCurrencyControl.setValidators([Validators.required]);
-        }
-        feePriceControl.updateValueAndValidity({ emitEvent: false });
-        feePriceCurrencyControl.updateValueAndValidity({ emitEvent: false });
+    onSpotCurrencyChange(value: string) {
+        this.model.update(m => ({ ...m, spotPriceCurrency: value as SupportedFiatCurrency }));
     }
 
-    private migrateValuesOnTypeChange(newType: TransactionType) {
-        const step1 = this.form.controls.step1;
-        const fromAsset = step1.controls.fromAssetId.value;
-        const toAsset = step1.controls.toAssetId.value;
-        const fromAmount = step1.controls.amountSpent.value;
-        const toAmount = step1.controls.amountReceived.value;
-
-        if (newType.requiresFromAsset && !newType.requiresToAsset && !fromAsset && toAsset) {
-            step1.controls.fromAssetId.setValue(toAsset);
-            if (!fromAmount && toAmount && toAmount > 0) {
-                step1.controls.amountSpent.setValue(toAmount);
-            }
-        } else if (newType.requiresToAsset && !newType.requiresFromAsset && !toAsset && fromAsset) {
-            step1.controls.toAssetId.setValue(fromAsset);
-            if (!toAmount && fromAmount && fromAmount > 0) {
-                step1.controls.amountReceived.setValue(fromAmount);
-            }
-        }
+    onSpotPriceChange(value: number | null) {
+        this.model.update(m => ({ ...m, spotPrice: value ?? 0 }));
     }
 
-    private updateValidators(typeData: TransactionType) {
-        const step1 = this.form.controls.step1;
-        const fromControl = step1.controls.fromAssetId;
-        const toControl = step1.controls.toAssetId;
-        const spentControl = step1.controls.amountSpent;
-        const receivedControl = step1.controls.amountReceived;
-
-        fromControl.clearValidators();
-        toControl.clearValidators();
-        spentControl.clearValidators();
-        receivedControl.clearValidators();
-
-        if (typeData.requiresFromAsset) {
-            fromControl.enable();
-            spentControl.enable();
-            fromControl.setValidators([Validators.required, this.requireAssetObject]);
-            spentControl.setValidators([Validators.required, this.requireGreaterThanZero]);
-        } else {
-            spentControl.setValue(0);
-            fromControl.setValue(null);
-            spentControl.disable();
-            fromControl.disable();
-        }
-
-        if (typeData.requiresToAsset) {
-            toControl.enable();
-            receivedControl.enable();
-            toControl.setValidators([Validators.required, this.requireAssetObject]);
-            receivedControl.setValidators([Validators.required, this.requireGreaterThanZero]);
-        } else {
-            receivedControl.setValue(0);
-            toControl.setValue(null);
-            receivedControl.disable();
-            toControl.disable();
-        }
-
-        fromControl.updateValueAndValidity();
-        toControl.updateValueAndValidity();
-        spentControl.updateValueAndValidity();
-        receivedControl.updateValueAndValidity();
+    onFeeChange(value: number) {
+        this.model.update(m => ({ ...m, fee: value }));
     }
 
-    private requireAssetObject(control: AbstractControl): { [key: string]: boolean } | null {
-        if (!control.value) return null;
-        return typeof control.value === 'string' ? { 'requireMatch': true } : null;
+    onFeeCurrencyChange(value: string) {
+        this.model.update(m => ({ ...m, feeSpotPriceCurrency: value as SupportedFiatCurrency }));
     }
 
-    private requireGreaterThanZero(control: AbstractControl): { [key: string]: boolean } | null {
-        if (control.value === null || control.value === undefined || control.value === '') return null;
-        return Number(control.value) > 0 ? null : { 'minExclusive': true };
+    onFeeSpotPriceChange(value: number | null) {
+        this.model.update(m => ({ ...m, feeSpotPrice: value ?? 0 }));
     }
 
     // ── Submit / Cancel ──────────────────────────────────────────────────
 
     onSubmit() {
-        if (this.form.invalid || this.isSubmitting()) return;
+        submit(this.transactionForm, async () => {
+            this.isSubmitting.set(true);
+            this.submitError.set(null);
 
-        this.isSubmitting.set(true);
-        this.submitError.set(null);
-        const step1Value = this.form.controls.step1.getRawValue();
-        const step2Value = this.form.controls.step2.getRawValue();
-        const step3Value = this.form.controls.step3.getRawValue();
+            const m = this.model();
+            const request: NewTransactionRequest = {
+                date: new Date(m.date).toISOString(),
+                transactionTypeCode: m.type,
+                fromAssetId: this.fromAsset()?.id,
+                toAssetId: this.toAsset()?.id,
+                amountSpent: m.amountSpent,
+                amountReceived: m.amountReceived,
+                spotPriceUSD: m.spotPriceCurrency === 'USD' ? m.spotPrice : undefined,
+                spotPriceEUR: m.spotPriceCurrency === 'EUR' ? m.spotPrice : undefined,
+                spotPriceInputCurrency: m.spotPriceCurrency,
+                fee: this.feeAsset()?.id ? m.fee : 0,
+                feeAssetId: this.feeAsset()?.id,
+                feePriceUSD: this.effectiveFeeSpotPriceCurrency() === 'USD' && this.effectiveFeeSpotPrice()
+                    ? this.effectiveFeeSpotPrice() : undefined,
+                feePriceEUR: this.effectiveFeeSpotPriceCurrency() === 'EUR' && this.effectiveFeeSpotPrice()
+                    ? this.effectiveFeeSpotPrice() : undefined,
+                feePriceInputCurrency: this.effectiveFeeSpotPrice() && this.effectiveFeeSpotPriceCurrency()
+                    ? this.effectiveFeeSpotPriceCurrency() : undefined,
+                notes: m.notes || undefined
+            };
 
-        const request: NewTransactionRequest = {
-            date: new Date(step1Value.date).toISOString(),
-            transactionTypeCode: step1Value.type,
-            fromAssetId: typeof step1Value.fromAssetId === 'object' ? step1Value.fromAssetId?.id : undefined,
-            toAssetId: typeof step1Value.toAssetId === 'object' ? step1Value.toAssetId?.id : undefined,
-            amountSpent: Number(step1Value.amountSpent || 0),
-            amountReceived: Number(step1Value.amountReceived || 0),
-            spotPriceUSD: step2Value.spotPriceCurrency === 'USD' ? Number(step2Value.spotPrice) : undefined,
-            spotPriceEUR: step2Value.spotPriceCurrency === 'EUR' ? Number(step2Value.spotPrice) : undefined,
-            spotPriceInputCurrency: step2Value.spotPriceCurrency,
-            fee: (step2Value.feeAssetId && step2Value.feeAssetId.id) ? Number(step2Value.fee || 0) : 0,
-            feeAssetId: typeof step2Value.feeAssetId === 'object' ? step2Value.feeAssetId?.id : undefined,
-            feePriceUSD: step2Value.feeSpotPriceCurrency === 'USD' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
-            feePriceEUR: step2Value.feeSpotPriceCurrency === 'EUR' && step2Value.feeSpotPrice ? Number(step2Value.feeSpotPrice) : undefined,
-            feePriceInputCurrency: step2Value.feeSpotPrice && step2Value.feeSpotPriceCurrency ? step2Value.feeSpotPriceCurrency : undefined,
-            notes: step3Value.notes ?? undefined
-        };
-
-        this.portfolioService.addTransaction(request)
-            .pipe(finalize(() => this.isSubmitting.set(false)))
-            .subscribe({
-                next: () => this.router.navigate(['/']),
-                error: (err) => {
-                    console.error('Failed to save transaction', err);
-                    this.submitError.set('Failed to save transaction. Please check your connection and try again.');
-                }
-            });
+            try {
+                await firstValueFrom(this.portfolioService.addTransaction(request));
+                this.router.navigate(['/']);
+            } catch (err) {
+                console.error('Failed to save transaction', err);
+                this.submitError.set('Failed to save transaction. Please check your connection and try again.');
+            } finally {
+                this.isSubmitting.set(false);
+            }
+        });
     }
 
     onCancel() {
         this.router.navigate(['/']);
     }
-
-    // ── Accessors ────────────────────────────────────────────────────────
-
-    get step1Group() { return this.form.controls.step1; }
-    get step2Group() { return this.form.controls.step2; }
-
-    /** Template reads go through the signal — Angular tracks the dependency correctly. */
-    get step1Value(): any { return this.step1Raw(); }
-    get step2Value(): any { return this.step2Raw(); }
-
-    get isStep1Valid(): boolean { return this.step1Group.valid; }
-    get isStep2Valid(): boolean { return this.step2Group.valid; }
 }

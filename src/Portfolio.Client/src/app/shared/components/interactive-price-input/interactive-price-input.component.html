@@ -7,8 +7,7 @@
     <span matTextPrefix class="mr-1 text-gray-300">{{ currencyPrefix() }}</span>
     }
 
-    <input matInput type="number" class="price-input__number" [formControl]="internalControl" [placeholder]="'0.00'"
-        (blur)="onTouched()">
+    <input matInput type="number" class="price-input__number" [formControl]="internalControl" [placeholder]="'0.00'">
 
     <button matSuffix mat-icon-button (click)="toggleMode()" type="button"
         matTooltip="Toggle between Unit Price and Total Value">

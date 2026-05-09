@@ -1,4 +1,4 @@
-import { AssetDto } from '../services/portfolio.service';
+import { AssetDto } from '../models/asset';
 
 export interface ProcessedTransaction {
     transaction: Transaction;

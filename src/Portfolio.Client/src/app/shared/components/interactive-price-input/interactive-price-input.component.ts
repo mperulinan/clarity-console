@@ -1,9 +1,9 @@
 import {
-    Component, forwardRef, input, signal, computed, effect, untracked,
+    Component, input, output, signal, computed, effect, untracked,
     ViewEncapsulation, ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,29 +32,28 @@ export enum PriceInputMode {
     ],
     templateUrl: './interactive-price-input.component.html',
     styleUrl: './interactive-price-input.component.scss',
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => InteractivePriceInputComponent),
-            multi: true
-        }
-    ],
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class InteractivePriceInputComponent implements ControlValueAccessor {
+export class InteractivePriceInputComponent {
+    // ── Inputs ───────────────────────────────────────────────────────────
     readonly assetSymbol = input<string>('');
     readonly assetAmount = input<number | null>(0);
     readonly fiatCurrency = input<string>(DEFAULT_FIAT_CURRENCY);
+    /** Current unit price driven by the parent. */
+    readonly value = input<number | null>(null);
+    /** Whether the input should be non-interactive. */
+    readonly disabled = input<boolean>(false);
+
+    // ── Outputs ──────────────────────────────────────────────────────────
+    /** Emits the derived unit price whenever it changes. */
+    readonly valueChange = output<number | null>();
 
     readonly PriceInputMode = PriceInputMode;
 
     mode = signal<PriceInputMode>(PriceInputMode.Unit);
     private currentUnitPrice = signal<number | null>(null);
     internalControl = new FormControl<number | null>(null);
-
-    onChange: (v: number | null) => void = () => { };
-    onTouched: () => void = () => { };
 
     currencyPrefix = computed(() =>
         FIAT_CURRENCY_SYMBOLS[this.fiatCurrency() as keyof typeof FIAT_CURRENCY_SYMBOLS] || this.fiatCurrency()
@@ -74,6 +73,31 @@ export class InteractivePriceInputComponent implements ControlValueAccessor {
     calculatedUnit = computed(() => this.currentUnitPrice());
 
     constructor() {
+        // Sync value input → internal control (only when value changes externally)
+        effect(() => {
+            const v = this.value();
+            untracked(() => {
+                this.currentUnitPrice.set(v);
+                if (v !== null) {
+                    const displayValue = this.mode() === PriceInputMode.Unit
+                        ? v
+                        : v * this.safeAmount();
+                    this.internalControl.setValue(displayValue, { emitEvent: false });
+                } else {
+                    this.internalControl.setValue(null, { emitEvent: false });
+                }
+            });
+        });
+
+        // Sync disabled input → internal control enabled state
+        effect(() => {
+            if (this.disabled()) {
+                this.internalControl.disable({ emitEvent: false });
+            } else if (this.internalControl.disabled) {
+                this.internalControl.enable({ emitEvent: false });
+            }
+        });
+
         // Replaces ngOnChanges: react to assetAmount changes while in Total mode
         effect(() => {
             const amount = this.safeAmount();
@@ -81,12 +105,12 @@ export class InteractivePriceInputComponent implements ControlValueAccessor {
                 if (this.mode() === PriceInputMode.Total && this.internalControl.value !== null) {
                     const newUnit = amount > 0 ? this.internalControl.value / amount : null;
                     this.currentUnitPrice.set(newUnit);
-                    this.onChange(newUnit);
+                    this.valueChange.emit(newUnit);
                 }
             });
         });
 
-        // Drive currentUnitPrice and notify CVA from user input
+        // Drive currentUnitPrice and notify parent from user input
         this.internalControl.valueChanges
             .pipe(takeUntilDestroyed())
             .subscribe(val => {
@@ -98,7 +122,7 @@ export class InteractivePriceInputComponent implements ControlValueAccessor {
                     const amt = this.safeAmount();
                     this.currentUnitPrice.set(amt > 0 ? val / amt : null);
                 }
-                this.onChange(this.currentUnitPrice());
+                this.valueChange.emit(this.currentUnitPrice());
             });
     }
 
@@ -114,27 +138,5 @@ export class InteractivePriceInputComponent implements ControlValueAccessor {
         } else {
             this.internalControl.setValue(null, { emitEvent: false });
         }
-    }
-
-    // ── ControlValueAccessor ─────────────────────────────────────────────
-    writeValue(value: number | null): void {
-        this.currentUnitPrice.set(value);
-        if (value !== null) {
-            const displayValue = this.mode() === PriceInputMode.Unit
-                ? value
-                : value * this.safeAmount();
-            this.internalControl.setValue(displayValue, { emitEvent: false });
-        } else {
-            this.internalControl.setValue(null, { emitEvent: false });
-        }
-    }
-
-    registerOnChange(fn: (v: number | null) => void): void { this.onChange = fn; }
-    registerOnTouched(fn: () => void): void { this.onTouched = fn; }
-
-    setDisabledState(isDisabled: boolean): void {
-        isDisabled
-            ? this.internalControl.disable({ emitEvent: false })
-            : this.internalControl.enable({ emitEvent: false });
     }
 }

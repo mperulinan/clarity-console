@@ -1,6 +1,9 @@
-import { Component, input, OnInit, forwardRef, signal, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
+import {
+    Component, input, output, OnInit, signal,
+    ChangeDetectionStrategy, inject, DestroyRef, effect
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,32 +28,49 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     ],
     templateUrl: './asset-selector.component.html',
     styleUrl: './asset-selector.component.scss',
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => AssetSelectorComponent),
-            multi: true
-        }
-    ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
+export class AssetSelectorComponent implements OnInit {
+    // ── Inputs ───────────────────────────────────────────────────────────
     readonly label = input<string>('Asset');
     readonly placeholder = input<string>('e.g. BTC, ETH');
     readonly chipClass = input<string>('asset-chip');
+    /** Currently selected asset — drives internal display state. */
+    readonly value = input<AssetDto | null>(null);
+    /** Whether the selector should be non-interactive. */
+    readonly disabled = input<boolean>(false);
 
+    // ── Outputs ──────────────────────────────────────────────────────────
+    /** Emits when the user selects or clears an asset. */
+    readonly assetChange = output<AssetDto | null>();
+
+    // ── Internal state ───────────────────────────────────────────────────
     searchControl = new FormControl<string | AssetDto | null>('');
     selectedAsset = signal<AssetDto | null>(null);
     filteredAssets = signal<AssetDto[]>([]);
     isSyncingAsset = signal<boolean>(false);
     syncError = signal<string | null>(null);
 
-    onChange: (value: AssetDto | null) => void = () => { };
-    onTouched: () => void = () => { };
-
     private readonly destroyRef = inject(DestroyRef);
-
     private readonly portfolioService = inject(PortfolioService);
+
+    constructor() {
+        // Sync value input → internal display state
+        effect(() => {
+            const v = this.value();
+            this.selectedAsset.set(v);
+            this.searchControl.setValue(v, { emitEvent: false });
+        });
+
+        // Sync disabled input → search control enabled state
+        effect(() => {
+            if (this.disabled()) {
+                this.searchControl.disable({ emitEvent: false });
+            } else if (this.searchControl.disabled && !this.isSyncingAsset()) {
+                this.searchControl.enable({ emitEvent: false });
+            }
+        });
+    }
 
     ngOnInit() {
         this.searchControl.valueChanges.pipe(
@@ -85,7 +105,9 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
             this.portfolioService.syncAsset(asset).pipe(
                 finalize(() => {
                     this.isSyncingAsset.set(false);
-                    this.searchControl.enable({ emitEvent: false });
+                    if (!this.disabled()) {
+                        this.searchControl.enable({ emitEvent: false });
+                    }
                 })
             ).subscribe({
                 next: (syncedAsset: AssetDto) => this.setInternalValue(syncedAsset),
@@ -93,7 +115,7 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
                     this.syncError.set('Could not sync this asset right now. Please try again.');
                     this.selectedAsset.set(null);
                     this.searchControl.setValue(null, { emitEvent: false });
-                    this.onChange(null);
+                    this.assetChange.emit(null);
                 }
             });
         } else {
@@ -102,44 +124,26 @@ export class AssetSelectorComponent implements ControlValueAccessor, OnInit {
     }
 
     onAssetInputBlur() {
-        this.onTouched();
         if (typeof this.searchControl.value === 'string') {
             this.clearSelection();
         }
     }
 
     clearAsset(event?: Event) {
-        if (event) {
-            event.stopPropagation();
-        }
+        if (event) event.stopPropagation();
         this.clearSelection();
     }
 
     private setInternalValue(asset: AssetDto) {
         this.selectedAsset.set(asset);
         this.searchControl.setValue(asset, { emitEvent: false });
-        this.onChange(asset);
+        this.assetChange.emit(asset);
     }
 
     private clearSelection() {
         this.selectedAsset.set(null);
         this.searchControl.setValue(null, { emitEvent: false });
         this.syncError.set(null);
-        this.onChange(null);
-    }
-
-    // ── ControlValueAccessor ─────────────────────────────────────────────
-    writeValue(value: AssetDto | null): void {
-        this.selectedAsset.set(value);
-        this.searchControl.setValue(value, { emitEvent: false });
-    }
-
-    registerOnChange(fn: (value: AssetDto | null) => void): void { this.onChange = fn; }
-    registerOnTouched(fn: () => void): void { this.onTouched = fn; }
-
-    setDisabledState(isDisabled: boolean): void {
-        isDisabled
-            ? this.searchControl.disable({ emitEvent: false })
-            : this.searchControl.enable({ emitEvent: false });
+        this.assetChange.emit(null);
     }
 }
