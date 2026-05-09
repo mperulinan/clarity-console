@@ -20,6 +20,9 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
 import { AssetSelectorComponent } from '../../shared/components/asset-selector/asset-selector.component';
 import { InteractivePriceInputComponent } from '../../shared/components/interactive-price-input/interactive-price-input.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { BadgeComponent } from '../../shared/components/badge/badge.component';
+import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { PortfolioService, AssetDto } from '../../services/portfolio.service';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType } from '../../models/transaction';
@@ -83,7 +86,10 @@ const UI_CONFIG: Record<string, any> = {
         MatButtonToggleModule,
         MatStepperModule,
         AssetSelectorComponent,
-        InteractivePriceInputComponent
+        InteractivePriceInputComponent,
+        ButtonComponent,
+        BadgeComponent,
+        SkeletonComponent
     ],
     templateUrl: './new-transaction.component.html',
     styleUrl: './new-transaction.component.scss',

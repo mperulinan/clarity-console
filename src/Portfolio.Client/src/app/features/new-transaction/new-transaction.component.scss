@@ -111,32 +111,6 @@ $loss: var(--color-loss);
     }
 }
 
-/* ── FEE LINKED BADGE ───────────────────────── */
-.fee-price-linked-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: color-mix(in srgb, $accent, transparent 92%);
-    border: 1px solid color-mix(in srgb, $accent, transparent 70%);
-    border-radius: 8px;
-    font-size: var(--text-xs);
-    color: color-mix(in srgb, $accent, white 10%);
-    font-weight: 500;
-
-    .badge-icon {
-        font-size: var(--text-base);
-        width: 15px;
-        height: 15px;
-        line-height: 15px;
-        color: $accent;
-    }
-
-    strong {
-        color: $text-primary;
-        font-weight: 700;
-    }
-}
 
 /* ── TYPE BUTTONS ───────────────────────────── */
 .type-toggle-grid {
@@ -447,27 +421,6 @@ $loss: var(--color-loss);
     color: $text-primary;
 }
 
-/* ── LINKED BADGE ────────────────────────────── */
-.fee-price-linked-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    background: color-mix(in srgb, $bg-base, transparent 50%);
-    border: 1px dashed color-mix(in srgb, $border, transparent 30%);
-    border-radius: 6px;
-    color: $text-muted;
-    font-size: var(--text-xs);
-    font-weight: 500;
-
-    .badge-icon {
-        font-size: var(--text-base);
-        width: 14px;
-        height: 14px;
-        line-height: 14px;
-        color: color-mix(in srgb, $text-muted, transparent 20%);
-    }
-}
 
 /* ── FINANCIALS TILES ────────────────────────── */
 .summary-financials-tile {
@@ -542,61 +495,8 @@ $loss: var(--color-loss);
         margin-top: 16px;
     }
 
-    // Left-anchors the back button, pushing all other actions to the right
     .back-btn {
         margin-right: auto;
-        color: $text-muted;
-        background: transparent;
-        font-weight: 500;
-        transition: color 0.15s ease;
-
-        &:hover {
-            color: $text-primary;
-        }
-    }
-
-    .cancel-btn {
-        background: transparent;
-        border: 1px solid transparent;
-        color: $text-muted;
-        font-weight: 600;
-        padding: 0 24px;
-        border-radius: 8px;
-        transition:
-            background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-            color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-
-        &:hover {
-            background: color-mix(in srgb, $bg-card, transparent 40%);
-            color: $text-primary;
-        }
-    }
-
-    .submit-btn {
-        background: transparent !important;
-        color: $accent !important;
-        border: 1px solid color-mix(in srgb, $accent, transparent 60%) !important;
-        font-weight: 600;
-        padding: 0 24px;
-        border-radius: 8px;
-        box-shadow: none !important;
-        transition:
-            background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-            border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-
-        &:not(:disabled):hover {
-            background: color-mix(in srgb, $accent, transparent 90%) !important;
-            border-color: $accent !important;
-            box-shadow: none !important;
-        }
-
-        &:disabled {
-            background: transparent !important;
-            border-color: color-mix(in srgb, $border, transparent 30%) !important;
-            color: color-mix(in srgb, $text-muted, transparent 50%) !important;
-            box-shadow: none !important;
-            cursor: not-allowed;
-        }
     }
 }
 
@@ -623,38 +523,4 @@ $loss: var(--color-loss);
     color: var(--color-error);
     font-size: var(--text-base);
     font-weight: 500;
-}
-
-/* ── SKELETON ────────────────────────────────── */
-@keyframes shimmer {
-    0% {
-        background-position: -600px 0;
-    }
-
-    100% {
-        background-position: 600px 0;
-    }
-}
-
-$skel-shine: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 75%
-);
-
-.skel-card {
-    background: $bg-card;
-    border: 1px solid $border;
-    border-radius: 16px;
-    height: 400px;
-}
-
-.skel-line {
-    background: $skel-shine;
-    background-size: 600px 100%;
-    animation: shimmer 1.5s infinite linear;
-    border-radius: 6px;
-    height: 48px;
-    margin-bottom: 16px;
 }

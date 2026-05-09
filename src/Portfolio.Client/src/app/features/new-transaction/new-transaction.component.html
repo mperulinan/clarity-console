@@ -3,13 +3,13 @@
     @if (isLoadingTypes()) {
     <!-- ── SKELETON ───────────────────────────────────────────── -->
     <div class="skel-card glass p-8" aria-busy="true" aria-label="Loading transaction form">
-        <div class="skel-line w-1/3 mb-8"></div>
+        <app-skeleton type="line" width="33%" class="mb-8"></app-skeleton>
         <div class="grid grid-cols-2 gap-4">
-            <div class="skel-line"></div>
-            <div class="skel-line"></div>
+            <app-skeleton type="line" width="100%"></app-skeleton>
+            <app-skeleton type="line" width="100%"></app-skeleton>
         </div>
-        <div class="skel-line mt-4"></div>
-        <div class="skel-line mt-4 h-32"></div>
+        <app-skeleton type="line" width="100%" class="mt-4"></app-skeleton>
+        <app-skeleton type="line" width="100%" height="128px" class="mt-4"></app-skeleton>
     </div>
     }
 
@@ -87,8 +87,7 @@
                     }
 
                     <div class="action-buttons action-buttons--flush">
-                        <button mat-button type="button" matStepperNext class="submit-btn"
-                            [disabled]="!isStep1Valid">Next</button>
+                        <app-button variant="outline" color="primary" (click)="stepper.next()" [disabled]="!isStep1Valid">Next</app-button>
                     </div>
                 </mat-step>
 
@@ -154,10 +153,10 @@
                             </div>
                             @if (showFeeFiatValuation()) {
                             @if (isFeeAssetSameAsSpotAsset()) {
-                            <div class="fee-price-linked-badge mt-2">
+                            <app-badge semantic="linked" class="mt-2 block">
                                 <mat-icon class="badge-icon">link</mat-icon>
                                 <span>Price per {{ feeAssetSymbol() }} linked to Spot Price</span>
-                            </div>
+                            </app-badge>
                             } @else {
                             <div class="flex flex-row gap-4 items-start w-full md:w-2/3 mt-2">
                                 <mat-form-field appearance="fill" class="w-1/3">
@@ -195,9 +194,8 @@
                     </div>
 
                     <div class="action-buttons action-buttons--flush">
-                        <button mat-button type="button" matStepperPrevious class="back-btn">Back</button>
-                        <button mat-button type="button" matStepperNext class="submit-btn"
-                            [disabled]="!isStep2Valid">Next</button>
+                        <app-button variant="ghost" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
+                        <app-button variant="outline" color="primary" (click)="stepper.next()" [disabled]="!isStep2Valid">Next</app-button>
                     </div>
                 </mat-step>
 
@@ -383,16 +381,11 @@
 
                     <!-- ── ACTIONS ────────────────────────────────────────── -->
                     <div class="action-buttons action-buttons--flush">
-                        <button mat-button type="button" matStepperPrevious class="back-btn">Back</button>
-                        <button mat-button type="button" (click)="onCancel()" class="cancel-btn">Cancel</button>
-                        <button mat-raised-button color="primary" type="submit" class="submit-btn"
-                            [disabled]="form.invalid || isSubmitting()">
-                            @if (isSubmitting()) {
-                            Saving...
-                            } @else {
-                            Save Transaction
-                            }
-                        </button>
+                        <app-button variant="ghost" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
+                        <app-button variant="ghost" color="muted" (click)="onCancel()">Cancel</app-button>
+                        <app-button variant="outline" color="primary" type="submit" [disabled]="form.invalid || isSubmitting()">
+                            @if (isSubmitting()) { Saving... } @else { Save Transaction }
+                        </app-button>
                     </div>
                 </mat-step>
 
