@@ -5,6 +5,7 @@
 
 /* ── Angular Material Custom Theme (M3) ──────────────── */
 @use '@angular/material' as mat;
+@use 'm3-theme' as m3;
 
 // Include the core Material styles
 @include mat.core();
@@ -13,7 +14,9 @@
 $portfolio-theme: mat.define-theme((
   color: (
     theme-type: dark,
-    primary: mat.$red-palette,
+    primary: m3.$primary-palette,
+    tertiary: m3.$tertiary-palette,
+    use-system-variables: true,
   ),
   typography: (
     plain-family: "'Manrope', system-ui, sans-serif",
@@ -23,31 +26,6 @@ $portfolio-theme: mat.define-theme((
     scale: 0
   )
 ));
-
-// Apply the theme globally
-html {
-  @include mat.all-component-themes($portfolio-theme);
-
-  // ── M3 System Token Overrides (The Clarity Console) ──
-  // Map our specific hex codes to the Material 3 system variables
-  --mat-sys-primary: #FF0054;
-  --mat-sys-on-primary: #ffffff;
-  
-  --mat-sys-background: #171216;
-  --mat-sys-on-background: #E8ECF4;
-  
-  --mat-sys-surface: #221C20;
-  --mat-sys-surface-container: #221C20;
-  --mat-sys-surface-container-high: #221C20;
-  --mat-sys-surface-container-low: #171216;
-  --mat-sys-on-surface: #E8ECF4;
-  --mat-sys-on-surface-variant: #8B93A8;
-  
-  --mat-sys-outline: rgba(255, 235, 245, 0.05);
-  --mat-sys-outline-variant: rgba(255, 235, 245, 0.05);
-
-  --mat-sys-error: #D62828;
-}
 
 /* ── Design System Tokens (DESIGN.md: "The Clarity Console") ── */
 :root {
@@ -79,6 +57,32 @@ html {
     --radius-md: 8px;
     --radius-lg: 16px;
     --radius-xl: 20px;
+}
+
+// Apply the theme globally
+html {
+  @include mat.all-component-themes($portfolio-theme);
+
+  // ── M3 System Token Overrides (The Clarity Console) ──
+  // Map our specific hex codes to the Material 3 system variables
+  --mat-sys-primary: var(--color-primary);
+  --mat-sys-on-primary: var(--color-text);
+  
+  --mat-sys-background: var(--color-bg-base);
+  --mat-sys-on-background: var(--color-text);
+  
+  --mat-sys-surface: var(--color-bg-surface);
+  --mat-sys-surface-container: var(--color-bg-surface);
+  --mat-sys-surface-container-high: var(--color-bg-surface);
+  --mat-sys-surface-container-highest: var(--color-bg-surface);
+  --mat-sys-surface-container-low: var(--color-bg-base);
+  --mat-sys-on-surface: var(--color-text);
+  --mat-sys-on-surface-variant: var(--color-text-muted);
+  
+  --mat-sys-outline: var(--color-border);
+  --mat-sys-outline-variant: var(--color-border);
+
+  --mat-sys-error: var(--color-error);
 }
 
 html,
