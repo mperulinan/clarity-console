@@ -103,10 +103,10 @@ $loss: var(--color-loss);
         margin-bottom: 16px;
 
         mat-icon {
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
-            line-height: 16px;
+            font-size: var(--text-md);
+            width: var(--text-md);
+            height: var(--text-md);
+            line-height: var(--text-md);
         }
     }
 }
@@ -324,10 +324,10 @@ $loss: var(--color-loss);
     line-height: 1.2;
 
     mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
-        line-height: 14px;
+        font-size: var(--text-base);
+        width: var(--text-base);
+        height: var(--text-base);
+        line-height: var(--text-base);
     }
 }
 

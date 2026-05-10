@@ -13,7 +13,7 @@
     h2 {
         margin: 0;
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.25rem;
+        font-size: var(--text-lg);
         font-weight: 600;
     }
 }
@@ -27,7 +27,7 @@
     margin-bottom: 24px;
     color: #9ca3af;
     line-height: 1.5;
-    font-size: 0.95rem;
+    font-size: var(--text-md);
 }
 
 .comparison-grid {
@@ -74,14 +74,14 @@
 
     h3 {
         margin: 0;
-        font-size: 0.95rem;
+        font-size: var(--text-md);
         font-weight: 500;
     }
 
     .status-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: var(--text-lg);
+        width: var(--text-lg);
+        height: var(--text-lg);
     }
 }
 
@@ -96,7 +96,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.9rem;
+    font-size: var(--text-base);
 
     .label {
         color: #9ca3af;
@@ -121,7 +121,7 @@
     color: #2196f3;
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 0.8rem;
+    font-size: var(--text-sm);
     font-weight: 600;
 }
 
@@ -136,7 +136,7 @@
     border-left: 3px solid #ffab40;
     border-radius: 4px;
     color: #e5e7eb;
-    font-size: 0.9rem;
+    font-size: var(--text-base);
     line-height: 1.5;
 
     strong {

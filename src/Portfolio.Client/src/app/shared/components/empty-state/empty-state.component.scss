@@ -13,22 +13,22 @@
 }
 
 mat-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
+    font-size: var(--text-3xl);
+    width: var(--text-3xl);
+    height: var(--text-3xl);
     margin-bottom: 16px;
     opacity: 0.3;
 }
 
 h3 {
-    font-size: var(--text-md, 15px);
+    font-size: var(--text-md);
     font-weight: 500;
     margin: 0;
     color: var(--mat-sys-on-surface);
 }
 
 p {
-    font-size: var(--text-sm, 13px);
+    font-size: var(--text-sm);
     margin: 8px 0 0;
     opacity: 0.7;
 }

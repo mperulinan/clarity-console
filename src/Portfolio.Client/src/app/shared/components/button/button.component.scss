@@ -6,7 +6,7 @@
     justify-content: center;
     gap: 6px;
     font-family: var(--font-text);
-    font-size: var(--text-base, 14px);
+    font-size: var(--text-base);
     font-weight: 600;
     border-radius: 8px;
     cursor: pointer;
@@ -47,9 +47,9 @@
 
     ::ng-deep .mat-mdc-icon-button .material-icons,
     ::ng-deep mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: var(--text-lg);
+        width: var(--text-lg);
+        height: var(--text-lg);
     }
 }
 

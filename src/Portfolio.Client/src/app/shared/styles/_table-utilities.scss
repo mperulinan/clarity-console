@@ -115,9 +115,9 @@ $error: var(--color-error);
 
 /* ── STATUS ICONS ───────────────────────────── */
 .status-icon {
-    font-size: 22px;
-    width: 24px;
-    height: 24px;
+    font-size: var(--text-xl);
+    width: var(--text-xl);
+    height: var(--text-xl);
     display: inline-flex;
     align-items: center;
     justify-content: center;

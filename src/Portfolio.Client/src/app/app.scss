@@ -65,9 +65,9 @@ $transition-speed: 0.25s;
     }
 
     mat-icon {
-        font-size: 22px;
-        width: 22px;
-        height: 22px;
+        font-size: var(--text-xl);
+        width: var(--text-xl);
+        height: var(--text-xl);
     }
 }
 
@@ -132,9 +132,9 @@ $transition-speed: 0.25s;
 }
 
 .nav-icon {
-    font-size: 22px;
-    width: 22px;
-    height: 22px;
+    font-size: var(--text-xl);
+    width: var(--text-xl);
+    height: var(--text-xl);
     flex-shrink: 0;
     display: flex;
     align-items: center;

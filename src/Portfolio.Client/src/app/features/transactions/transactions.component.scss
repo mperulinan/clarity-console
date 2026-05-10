@@ -161,9 +161,9 @@ $text-muted: var(--color-text-muted);
 }
 
 .sort-icon {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
+    font-size: var(--text-base);
+    width: var(--text-base);
+    height: var(--text-base);
     vertical-align: middle;
     margin-left: 4px;
     opacity: 0.6;

@@ -179,9 +179,9 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
 }
 
 .meta-icon {
-    font-size: 13px;
-    width: 13px;
-    height: 13px;
+    font-size: var(--text-sm);
+    width: var(--text-sm);
+    height: var(--text-sm);
 }
 
 /* Grid-context fix for the shared .empty-cards utility */
@@ -286,9 +286,9 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
                 border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 
     mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
+        font-size: var(--text-base);
+        width: var(--text-base);
+        height: var(--text-base);
     }
 
     &:hover {
@@ -397,17 +397,17 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
 }
 
 .event-type-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    font-size: var(--text-md);
+    width: var(--text-md);
+    height: var(--text-md);
     color: $muted;
     opacity: 0.8;
 }
 
 .event-arrow {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    font-size: var(--text-md);
+    width: var(--text-md);
+    height: var(--text-md);
     color: $muted;
     opacity: 0.5;
     flex-shrink: 0;
