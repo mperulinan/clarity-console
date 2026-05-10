@@ -13,6 +13,11 @@
     max-width: 800px;
     margin: 0 auto;
     font-family: var(--font-text);
+
+    /* ── IMPERIAL EASING CURVES ─────────────────── */
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── TOKENS ─────────────────────────────────── */
@@ -41,12 +46,28 @@ $loss: var(--color-loss);
 }
 
 /* ── ANIMATIONS ─────────────────────────────── */
-@keyframes fadeInUp {
+@keyframes slideFadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(16px);
     }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+}
+
+@keyframes bannerSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
     to {
         opacity: 1;
         transform: translateY(0);
@@ -54,7 +75,7 @@ $loss: var(--color-loss);
 }
 
 .hero-card {
-    animation: fadeInUp 0.5s ease backwards;
+    animation: slideFadeIn 0.6s var(--ease-out-expo) backwards;
     position: relative;
     background: $bg-card;
     border: 1px solid $border;
@@ -90,6 +111,7 @@ $loss: var(--color-loss);
     border-radius: var(--radius-md);
     padding: 20px;
     margin-bottom: 24px;
+    animation: slideFadeIn 0.4s var(--ease-out-quart) backwards;
 
     .section-title {
         display: flex;
@@ -133,6 +155,7 @@ $loss: var(--color-loss);
         flex: 1 1 auto;
         min-width: 100px;
         width: auto;
+        transition: background-color 0.25s var(--ease-out-quart), color 0.25s var(--ease-out-quart);
 
         &.mat-button-toggle-checked {
             background: color-mix(in srgb, $accent, transparent 88%) !important;
@@ -157,10 +180,11 @@ $loss: var(--color-loss);
     display: flex;
     align-items: center;
     padding: 0 16px;
-    transition: border-color 0.2s;
+    transition: border-color 0.3s var(--ease-out-quart), background-color 0.3s var(--ease-out-quart);
 
     &:focus-within {
         border-bottom-color: $accent;
+        background-color: color-mix(in srgb, $bg-base, $bg-card 55%);
     }
 }
 
@@ -304,6 +328,12 @@ $loss: var(--color-loss);
     display: flex;
     flex-direction: column;
     justify-content: center;
+    transition: transform 0.3s var(--ease-out-quart), border-color 0.3s var(--ease-out-quart);
+
+    &:hover {
+        transform: translateY(-2px);
+        border-color: color-mix(in srgb, $border, transparent -10%);
+    }
 }
 
 .summary-cell--padded {
@@ -523,4 +553,5 @@ $loss: var(--color-loss);
     color: var(--color-error);
     font-size: var(--text-base);
     font-weight: 500;
+    animation: bannerSlideDown 0.3s var(--ease-out-quart) backwards, errorShake 0.4s 0.1s var(--ease-out-quint);
 }
