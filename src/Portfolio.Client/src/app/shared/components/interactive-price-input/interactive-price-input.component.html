@@ -1,4 +1,4 @@
-<mat-form-field appearance="fill" class="w-full">
+<mat-form-field appearance="fill" floatLabel="always" class="w-full">
     <mat-label>
         {{ mode() === PriceInputMode.Unit ? 'Price per ' + assetSymbol() : 'Total Value' }}
     </mat-label>
@@ -10,7 +10,8 @@
     <input matInput type="number" class="price-input__number" [formControl]="internalControl" [placeholder]="'0.00'">
 
     <button matSuffix mat-icon-button (click)="toggleMode()" type="button"
-        matTooltip="Toggle between Unit Price and Total Value">
+        [attr.aria-label]="mode() === PriceInputMode.Unit ? 'Switch to Total Value' : 'Switch to Unit Price'"
+        [matTooltip]="mode() === PriceInputMode.Unit ? 'Switch to Total Value' : 'Switch to Unit Price'">
         <mat-icon>swap_horiz</mat-icon>
     </button>
 
@@ -24,7 +25,7 @@
             }}</span> per {{ assetSymbol() }}
         }
         } @else {
-        Enter value
+        Enter {{ mode() === PriceInputMode.Unit ? 'unit price' : 'total value' }}
         }
     </mat-hint>
 </mat-form-field>
