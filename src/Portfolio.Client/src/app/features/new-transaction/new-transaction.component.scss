@@ -508,6 +508,20 @@ $loss: var(--color-loss);
     }
 }
 
+/* ── PRICE INPUT ROW ────────────────────────── */
+/* Stable two-column: fixed currency anchor + auto price input */
+.price-input-row {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: 16px;
+    align-items: start;
+    width: 100%;
+
+    @media (max-width: 599px) {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ── ACTIONS ────────────────────────────────── */
 .action-buttons {
     display: flex;
@@ -522,7 +536,7 @@ $loss: var(--color-loss);
     &--flush {
         padding-top: 0;
         border-top: none;
-        margin-top: 16px;
+        margin-top: 24px;
     }
 
     .back-btn {
