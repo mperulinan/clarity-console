@@ -136,8 +136,8 @@ $loss: var(--color-loss);
 
 /* ── TYPE BUTTONS ───────────────────────────── */
 .type-toggle-grid {
-    background: color-mix(in srgb, $bg-base, $bg-card 40%) !important;
-    border: 1px solid $border !important;
+    background: color-mix(in srgb, $bg-base, $bg-card 40%);
+    border: 1px solid $border;
     border-radius: 8px;
     padding: 4px;
     display: flex;
@@ -147,9 +147,8 @@ $loss: var(--color-loss);
     mat-button-toggle {
         background: transparent;
         color: $text-muted;
-        border: none !important;
-        border-radius: 6px !important;
-        font-family: var(--font-text) !important;
+        border: none;
+        border-radius: 6px;
         font-weight: 600;
         text-align: center;
         flex: 1 1 auto;
@@ -158,16 +157,10 @@ $loss: var(--color-loss);
         transition: background-color 0.25s var(--ease-out-quart), color 0.25s var(--ease-out-quart);
 
         &.mat-button-toggle-checked {
-            background: color-mix(in srgb, $accent, transparent 88%) !important;
-            color: $accent !important;
+            background: color-mix(in srgb, $accent, transparent 88%);
+            color: $accent;
             box-shadow: none;
         }
-    }
-
-    ::ng-deep .mat-button-toggle-label-content,
-    ::ng-deep .mat-button-toggle-button .mat-button-toggle-label-content,
-    ::ng-deep .mdc-button__label {
-        font-family: var(--font-text) !important;
     }
 }
 

@@ -61,11 +61,10 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 mt-6">
                         <div>
-                            <div class="field-group-label">Transaction Type</div>
+                            <div id="type-label" class="field-group-label">Transaction Type</div>
                             <mat-button-toggle-group
-                                [value]="model().type"
-                                (change)="onTypeChange($event.value)"
-                                class="type-toggle-grid w-full">
+                                [value]="model().type" (change)="onTypeChange($event.value)"
+                                class="type-toggle-grid w-full" aria-labelledby="type-label">
                                 @for (type of transactionTypes(); track type.value) {
                                 <mat-button-toggle [value]="type.value">
                                     {{ type.name }}
