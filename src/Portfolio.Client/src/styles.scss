@@ -3,6 +3,7 @@
 
 @use "app/shared/styles/table-utilities";
 @use "app/shared/styles/icon-utilities";
+@use "app/shared/styles/material-overrides";
 
 /* ── Angular Material Custom Theme (M3) ──────────────── */
 @use '@angular/material' as mat;

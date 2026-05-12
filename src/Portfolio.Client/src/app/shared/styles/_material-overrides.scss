@@ -1,0 +1,16 @@
+/* ── MATERIAL TOOLTIP OVERRIDES ─────────────────────────
+   Part of "The Clarity Console" Design System
+   Matches DESIGN.md aesthetics for Midnight Crimson
+   ────────────────────────────────────────────────────── */
+
+.mat-mdc-tooltip .mdc-tooltip__surface {
+    background-color: var(--color-bg-surface);
+    color: var(--color-text);
+    font-family: var(--font-text);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    box-shadow: var(--shadow-lifted);
+}

@@ -132,19 +132,25 @@
         </div>
 
         <!-- ③ Net Deposits -->
-        <div class="bento-cell bento-stat bento-dep">
+        <div class="bento-cell bento-stat bento-dep"
+             matTooltip="Total fiat value of all deposits minus all withdrawals"
+             matTooltipPosition="above">
             <span class="bento-stat-label">Net Deposits</span>
             <span class="bento-stat-value">{{ netDeposits() | currency:baseCurrency:'symbol':'1.2-2' }}</span>
         </div>
 
         <!-- ④ Cost Basis -->
-        <div class="bento-cell bento-stat bento-cost">
+        <div class="bento-cell bento-stat bento-cost"
+             matTooltip="Total amount paid for current holdings, including fees (FIFO)"
+             matTooltipPosition="above">
             <span class="bento-stat-label">Cost Basis</span>
             <span class="bento-stat-value">{{ totalCost() | currency:baseCurrency:'symbol':'1.2-2' }}</span>
         </div>
 
         <!-- ⑤ Unrealized P/L -->
-        <div class="bento-cell bento-stat bento-unr">
+        <div class="bento-cell bento-stat bento-unr"
+             matTooltip="Potential profit or loss if all current holdings were sold at market price"
+             matTooltipPosition="above">
             <span class="bento-stat-label">Unrealized P/L</span>
             <span class="bento-stat-value"
                   [class.positive]="isUnrealizedPositive()"
@@ -154,7 +160,9 @@
         </div>
 
         <!-- ⑥ Realized P/L -->
-        <div class="bento-cell bento-stat bento-real">
+        <div class="bento-cell bento-stat bento-real"
+             matTooltip="Total profit or loss from completed sales, adjusted for wash-sale rules"
+             matTooltipPosition="above">
             <span class="bento-stat-label">Realized P/L</span>
             <span class="bento-stat-value"
                   [class.positive]="isRealizedPositive()"
@@ -184,9 +192,15 @@
                     <th class="col-num">Price</th>
                     <th class="col-num">Holdings</th>
                     <th class="col-num">Avg Cost</th>
-                    <th class="col-num col-openpl">Open P/L</th>
-                    <th class="col-num">Realized P/L</th>
-                    <th class="col-alloc">Allocation</th>
+                    <th class="col-num col-openpl" 
+                        matTooltip="Total unrealized profit or loss for this position (Market Value - Cost Basis)"
+                        matTooltipPosition="above">Open P/L</th>
+                    <th class="col-num"
+                        matTooltip="Total profit or loss realized from sales of this asset, adjusted for wash-sales"
+                        matTooltipPosition="above">Realized P/L</th>
+                    <th class="col-alloc"
+                        matTooltip="The percentage this asset represents of your total portfolio value"
+                        matTooltipPosition="above">Allocation</th>
                 </tr>
             </thead>
             <tbody>
