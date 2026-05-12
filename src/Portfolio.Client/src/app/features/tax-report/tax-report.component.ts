@@ -13,21 +13,13 @@ import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
 import { YearSummary } from '../../models/portfolio-report';
 import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
+import { getTransactionIcons } from '../../shared/constants/transaction-icons.constants';
 import { MatDialog } from '@angular/material/dialog';
 import { WashSaleDetailsDialogComponent } from '../../shared/components/wash-sale-details-dialog/wash-sale-details-dialog';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
-/**
- * Icon mapping per transaction type — consistent with new-transaction's UI_CONFIG.
- */
-const EVENT_ICONS: Record<string, { fromIcon: string; toIcon: string }> = {
-    SWAP: { fromIcon: 'sell', toIcon: 'shopping_cart' },
-    WITHDRAWAL: { fromIcon: 'north_east', toIcon: '' },
-    DEPOSIT: { fromIcon: '', toIcon: 'south_east' },
-    REWARD: { fromIcon: '', toIcon: 'workspace_premium' },
-};
 
 @Component({
     selector: 'app-tax-report',
@@ -119,8 +111,10 @@ export class TaxReportComponent implements OnInit {
         return currency === 'EUR' ? row.transaction.spotPriceEUR : row.transaction.spotPriceUSD;
     }
 
+    getTransactionIcons = getTransactionIcons;
+
     getEventIcons(typeValue: string): { fromIcon: string; toIcon: string } {
-        return EVENT_ICONS[typeValue?.toUpperCase()] || { fromIcon: 'swap_horiz', toIcon: 'swap_horiz' };
+        return getTransactionIcons(typeValue);
     }
 
     viewWashSaleDetails(row: ProcessedTransaction) {

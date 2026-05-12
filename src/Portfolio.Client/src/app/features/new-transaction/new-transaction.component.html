@@ -64,10 +64,14 @@
                             <div id="type-label" class="field-group-label">Transaction Type</div>
                             <mat-button-toggle-group
                                 [value]="model().type" (change)="onTypeChange($event.value)"
-                                class="type-toggle-grid w-full" aria-labelledby="type-label">
+                                class="type-toggle-grid w-full" aria-labelledby="type-label"
+                                hideSingleSelectionIndicator="true">
                                 @for (type of transactionTypes(); track type.value) {
                                 <mat-button-toggle [value]="type.value">
-                                    {{ type.name }}
+                                    <div class="flex items-center">
+                                        <mat-icon class="toggle-icon">{{ getTransactionIcons(type.value).typeIcon }}</mat-icon>
+                                        {{ type.name }}
+                                    </div>
                                 </mat-button-toggle>
                                 }
                             </mat-button-toggle-group>

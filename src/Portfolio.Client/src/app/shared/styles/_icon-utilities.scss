@@ -1,0 +1,10 @@
+mat-icon.icon-base {
+    font-size: var(--text-base);
+    width: var(--text-base);
+    height: var(--text-base);
+}
+
+mat-icon.toggle-icon {
+    @extend .icon-base;
+    margin-right: 6px;
+}

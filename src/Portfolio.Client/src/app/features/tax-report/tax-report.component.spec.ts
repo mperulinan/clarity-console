@@ -127,11 +127,11 @@ describe('TaxReportComponent', () => {
   });
 
   it('getEventIcons() should return correct icons for known types', () => {
-    expect(component.getEventIcons('SWAP')).toEqual({ fromIcon: 'sell', toIcon: 'shopping_cart' });
-    expect(component.getEventIcons('DEPOSIT')).toEqual({ fromIcon: '', toIcon: 'south_east' });
+    expect(component.getEventIcons('SWAP')).toEqual({ typeIcon: 'swap_horiz', fromIcon: 'sell', toIcon: 'shopping_cart' });
+    expect(component.getEventIcons('DEPOSIT')).toEqual({ typeIcon: 'south_east', fromIcon: '', toIcon: 'south_east' });
   });
 
   it('getEventIcons() should return fallback icons for unknown types', () => {
-    expect(component.getEventIcons('UNKNOWN')).toEqual({ fromIcon: 'swap_horiz', toIcon: 'swap_horiz' });
+    expect(component.getEventIcons('UNKNOWN')).toEqual({ typeIcon: 'swap_horiz', fromIcon: 'swap_horiz', toIcon: 'swap_horiz' });
   });
 });

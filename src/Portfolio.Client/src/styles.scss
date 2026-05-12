@@ -2,6 +2,7 @@
 @use "tailwindcss";
 
 @use "app/shared/styles/table-utilities";
+@use "app/shared/styles/icon-utilities";
 
 /* ── Angular Material Custom Theme (M3) ──────────────── */
 @use '@angular/material' as mat;

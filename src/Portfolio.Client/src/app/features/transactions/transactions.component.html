@@ -190,7 +190,10 @@
 
                     <!-- Type -->
                     <td class="col-type">
-                        <app-badge semantic="neutral" size="sm">{{ row.transaction.type.name || '-' }}</app-badge>
+                        <app-badge semantic="neutral" size="sm">
+                            <mat-icon class="icon-base">{{ getTransactionIcons(row.transaction.type.value).typeIcon }}</mat-icon>
+                            {{ row.transaction.type.name || '-' }}
+                        </app-badge>
                     </td>
 
                     <!-- From -->

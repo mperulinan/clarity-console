@@ -21,6 +21,7 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { getTransactionIcons } from '../../shared/constants/transaction-icons.constants';
 
 type SortField = 'date' | 'type' | 'from' | 'to' | 'spotPrice' | 'fee' | 'profitLoss';
 type SortDir = 'asc' | 'desc';
@@ -84,6 +85,9 @@ export class TransactionsComponent implements OnInit {
     });
 
     totalCount = computed(() => this.allTransactions().length);
+
+    // Helper for icons
+    getTransactionIcons = getTransactionIcons;
 
     private readonly destroyRef = inject(DestroyRef);
     private readonly dialog = inject(MatDialog);

@@ -150,16 +150,28 @@ $loss: var(--color-loss);
         border: none;
         border-radius: 6px;
         font-weight: 600;
-        text-align: center;
         flex: 1 1 auto;
         min-width: 100px;
         width: auto;
-        transition: background-color 0.25s var(--ease-out-quart), color 0.25s var(--ease-out-quart);
+        transition: 
+            background-color 0.2s var(--ease-out-quart),
+            color 0.2s var(--ease-out-quart),
+            transform 0.2s var(--ease-out-quart);
+
+        &:hover:not(.mat-button-toggle-checked):not(.mat-button-toggle-disabled) {
+            background: color-mix(in srgb, $bg-card, transparent 90%);
+            color: color-mix(in srgb, var(--color-text), transparent 10%);
+        }
 
         &.mat-button-toggle-checked {
             background: color-mix(in srgb, $accent, transparent 88%);
             color: $accent;
             box-shadow: none;
+        }
+
+        // Active tap state: subtle compression
+        &:active:not(.mat-button-toggle-disabled) {
+            transform: scale(0.97);
         }
     }
 }

@@ -27,6 +27,7 @@ import {
 import { AssetSelectorComponent } from '../../shared/components/asset-selector/asset-selector.component';
 import { InteractivePriceInputComponent } from '../../shared/components/interactive-price-input/interactive-price-input.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { getTransactionIcons } from '../../shared/constants/transaction-icons.constants';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 
@@ -85,6 +86,8 @@ export class NewTransactionComponent implements OnInit {
     isLoadingTypes = signal<boolean>(true);
     transactionTypes = signal<TransactionType[]>([]);
     fiatCurrencies = signal<AssetDto[]>([]);
+    
+    getTransactionIcons = getTransactionIcons;
 
     // ── Form model — flat, no nulls (Signal Forms requirement) ───────────
     model = signal({
