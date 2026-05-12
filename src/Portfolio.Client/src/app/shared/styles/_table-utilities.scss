@@ -33,6 +33,7 @@ $error: var(--color-error);
     display: block;
     font-size: var(--text-sm);
     font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
     font-weight: 500;
 }
 
@@ -48,6 +49,7 @@ $error: var(--color-error);
     align-items: center;
     cursor: default;
     font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
 
     .time-secs {
         max-width: 0;
@@ -91,6 +93,7 @@ $error: var(--color-error);
     padding: 4px 10px;
     border-radius: 6px;
     font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
 
     &.positive .pl-amount {
         color: $gain;
@@ -109,6 +112,7 @@ $error: var(--color-error);
 .pl-amount {
     font-size: var(--text-sm);
     font-family: var(--font-numbers);
+    font-variant-numeric: tabular-nums;
     font-weight: 500;
     white-space: nowrap;
 }
