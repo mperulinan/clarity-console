@@ -148,8 +148,9 @@ $loss: var(--color-loss);
     border: 1px solid $border;
     border-radius: 8px;
     padding: 4px;
-    display: flex;
-    flex-wrap: wrap;
+    /* Equal-width columns: every toggle shares the same track size */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 4px;
 
     mat-button-toggle {
@@ -158,9 +159,10 @@ $loss: var(--color-loss);
         border: none;
         border-radius: 6px;
         font-weight: 600;
-        flex: 1 1 auto;
-        min-width: 100px;
-        width: auto;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
         transition:
             background-color 0.2s var(--ease-out-quart),
             color 0.2s var(--ease-out-quart),
