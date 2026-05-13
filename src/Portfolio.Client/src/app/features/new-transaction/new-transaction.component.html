@@ -77,12 +77,17 @@
                             </mat-button-toggle-group>
                         </div>
 
-                        <div>
+                        <div class="date-time-group">
                             <div class="field-group-label">Date &amp; Time</div>
-                            <div class="native-datetime-wrapper">
-                                <input type="datetime-local" step="1"
-                                    [formField]="transactionForm.date"
-                                    class="native-datetime-input w-full">
+                            <div class="date-time-grid">
+                                <mat-form-field appearance="fill">
+                                    <input matInput [matDatepicker]="picker" [formField]="transactionForm.datePart">
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-datepicker #picker></mat-datepicker>
+                                </mat-form-field>
+                                <mat-form-field appearance="fill">
+                                    <input matInput type="time" step="1" [formField]="transactionForm.timePart">
+                                </mat-form-field>
                             </div>
                         </div>
                     </div>
@@ -277,7 +282,7 @@
                                 </div>
                                 <div class="summary-cell">
                                     <span class="summary-cell__label">Date &amp; Time</span>
-                                    <span class="summary-cell__value">{{ model().date | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                                    <span class="summary-cell__value">{{ combinedDate() | date:'dd/MM/yyyy HH:mm:ss' }}</span>
                                 </div>
 
                                 @if (selectedTypeData()?.requiresFromAsset) {

@@ -91,7 +91,8 @@ export class NewTransactionComponent implements OnInit {
 
     // ── Form model — flat, no nulls (Signal Forms requirement) ───────────
     model = signal({
-        date: new Date().toISOString().slice(0, 16),
+        datePart: new Date() as Date | null,
+        timePart: `${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}:${new Date().getSeconds().toString().padStart(2, '0')}`,
         type: '',
         amountSpent: 0,
         amountReceived: 0,
@@ -157,10 +158,21 @@ export class NewTransactionComponent implements OnInit {
 
     feeAssetSymbol = computed(() => this.feeAsset()?.symbol ?? 'Coin');
 
+    combinedDate = computed(() => {
+        const d = this.model().datePart;
+        const t = this.model().timePart;
+        if (!d || !t) return new Date();
+        const dateObj = new Date(d);
+        
+        const [hours, minutes, seconds] = t.split(':').map(Number);
+        dateObj.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+        return dateObj;
+    });
+
     // ── Step validity (replaces [stepControl] on MatStepper) ────────────
     isStep1Valid = computed(() => {
         const typeData = this.selectedTypeData();
-        if (!typeData || !this.model().date) return false;
+        if (!typeData || !this.model().datePart || !this.model().timePart) return false;
         if (typeData.requiresFromAsset && (!this.fromAsset() || this.model().amountSpent <= 0)) return false;
         if (typeData.requiresToAsset && (!this.toAsset() || this.model().amountReceived <= 0)) return false;
         return true;
@@ -190,7 +202,8 @@ export class NewTransactionComponent implements OnInit {
     // ── Signal Form ──────────────────────────────────────────────────────
     transactionForm = form(this.model, s => {
         required(s.type, { message: 'Transaction type is required' });
-        required(s.date, { message: 'Date is required' });
+        required(s.datePart, { message: 'Date is required' });
+        required(s.timePart, { message: 'Time is required' });
 
         // Amounts — conditionally required based on type
         validate(s.amountSpent, ({ value, valueOf }) => {
@@ -327,7 +340,7 @@ export class NewTransactionComponent implements OnInit {
 
             const m = this.model();
             const request: NewTransactionRequest = {
-                date: new Date(m.date).toISOString(),
+                date: this.combinedDate().toISOString(),
                 transactionTypeCode: m.type,
                 fromAssetId: this.fromAsset()?.id,
                 toAssetId: this.toAsset()?.id,

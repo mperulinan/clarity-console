@@ -58,9 +58,18 @@ $loss: var(--color-loss);
 }
 
 @keyframes errorShake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-4px); }
-    40%, 80% { transform: translateX(4px); }
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    20%,
+    60% {
+        transform: translateX(-4px);
+    }
+    40%,
+    80% {
+        transform: translateX(4px);
+    }
 }
 
 @keyframes bannerSlideDown {
@@ -133,7 +142,6 @@ $loss: var(--color-loss);
     }
 }
 
-
 /* ── TYPE BUTTONS ───────────────────────────── */
 .type-toggle-grid {
     background: color-mix(in srgb, $bg-base, $bg-card 40%);
@@ -153,7 +161,7 @@ $loss: var(--color-loss);
         flex: 1 1 auto;
         min-width: 100px;
         width: auto;
-        transition: 
+        transition:
             background-color 0.2s var(--ease-out-quart),
             color 0.2s var(--ease-out-quart),
             transform 0.2s var(--ease-out-quart);
@@ -176,46 +184,9 @@ $loss: var(--color-loss);
     }
 }
 
-/* ── NATIVE DATETIME ────────────────────────── */
-.native-datetime-wrapper {
-    background: color-mix(in srgb, $bg-base, $bg-card 45%);
-    border-radius: 8px 8px 0 0;
-    border-bottom: 1px solid color-mix(in srgb, $border, transparent 20%);
-    height: 56px;
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    transition: border-color 0.3s var(--ease-out-quart), background-color 0.3s var(--ease-out-quart);
-
-    &:focus-within {
-        border-bottom-color: $accent;
-        background-color: color-mix(in srgb, $bg-base, $bg-card 55%);
-    }
-}
-
-.native-datetime-input {
-    background: transparent;
-    border: none;
-    color: $text-primary;
-    font-family: inherit;
-    font-size: var(--text-md);
-    outline: none;
-    width: 100%;
-
-    &::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        cursor: pointer;
-        opacity: 0.6;
-
-        &:hover {
-            opacity: 1;
-        }
-    }
-}
-
 /* ── MATERIAL OVERRIDES ──────────────────────── */
 ::ng-deep {
-    /* MatStepper Glassmorphism Overrides */
+    /* MatStepper Overrides */
     .mat-stepper-horizontal {
         background: transparent !important;
         font-family: var(--font-text) !important;
@@ -269,11 +240,6 @@ $loss: var(--color-loss);
         font-family: var(--font-text) !important;
     }
 
-    .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input:not([type="number"]) {
-        color: $text-primary !important;
-        font-family: var(--font-text) !important;
-    }
-
     .mat-mdc-select-trigger,
     .mat-mdc-select-value,
     .mat-mdc-option .mdc-list-item__primary-text,
@@ -299,6 +265,25 @@ $loss: var(--color-loss);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     margin-bottom: 8px;
+}
+
+/* Inline-size so date/time can stack when this block is narrow (e.g. half-width md column) */
+.date-time-group {
+    container-type: inline-size;
+    container-name: datetime;
+}
+
+.date-time-grid {
+    display: grid;
+    gap: 12px;
+    align-items: start;
+    /* Default: stack so neither field is squeezed in narrow columns */
+    grid-template-columns: 1fr;
+
+    /* Side-by-side only when the block is wide enough for date + min time width */
+    @container datetime (min-width: 26rem) {
+        grid-template-columns: minmax(0, 1fr) minmax(12rem, auto);
+    }
 }
 
 /* ── REVIEW SUMMARY ──────────────────────────── */
@@ -333,7 +318,9 @@ $loss: var(--color-loss);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition: transform 0.3s var(--ease-out-quart), border-color 0.3s var(--ease-out-quart);
+    transition:
+        transform 0.3s var(--ease-out-quart),
+        border-color 0.3s var(--ease-out-quart);
 
     &:hover {
         transform: translateY(-2px);
@@ -456,7 +443,6 @@ $loss: var(--color-loss);
     color: $text-primary;
 }
 
-
 /* ── FINANCIALS TILES ────────────────────────── */
 .summary-financials-tile {
     /* Avoid nested-card feel inside .section-card */
@@ -572,5 +558,7 @@ $loss: var(--color-loss);
     color: var(--color-error);
     font-size: var(--text-base);
     font-weight: 500;
-    animation: bannerSlideDown 0.3s var(--ease-out-quart) backwards, errorShake 0.4s 0.1s var(--ease-out-quint);
+    animation:
+        bannerSlideDown 0.3s var(--ease-out-quart) backwards,
+        errorShake 0.4s 0.1s var(--ease-out-quint);
 }

@@ -99,17 +99,3 @@ body {
     color: var(--color-text);
     -webkit-font-smoothing: antialiased;
 }
-
-/* Numeric consistency across the app (DESIGN.md: Work Sans + tabular numbers) */
-input[type="number"],
-.mdc-text-field__input[type="number"] {
-    font-family: var(--font-numbers) !important;
-    font-variant-numeric: tabular-nums !important;
-    font-feature-settings: "tnum" !important;
-
-    &::-webkit-outer-spin-button,
-    &::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-}
