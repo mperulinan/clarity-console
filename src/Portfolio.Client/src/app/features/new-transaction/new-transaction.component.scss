@@ -269,23 +269,17 @@ $loss: var(--color-loss);
     margin-bottom: 8px;
 }
 
-/* Inline-size so date/time can stack when this block is narrow (e.g. half-width md column) */
 .date-time-group {
-    container-type: inline-size;
-    container-name: datetime;
+    min-width: 0;
 }
 
+/* Date + time always one row; date column gets a bit more track than time */
 .date-time-grid {
     display: grid;
     gap: 12px;
     align-items: start;
-    /* Default: stack so neither field is squeezed in narrow columns */
-    grid-template-columns: 1fr;
-
-    /* Side-by-side only when the block is wide enough for date + min time width */
-    @container datetime (min-width: 26rem) {
-        grid-template-columns: minmax(0, 1fr) minmax(12rem, auto);
-    }
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    min-width: 0;
 }
 
 /* ── REVIEW SUMMARY ──────────────────────────── */
