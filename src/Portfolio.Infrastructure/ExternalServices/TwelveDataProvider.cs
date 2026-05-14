@@ -77,8 +77,6 @@ public class TwelveDataProvider(
 
     // ── IAssetSearchProvider ─────────────────────────────────────────────
 
-    bool IAssetSearchProvider.Supports(AssetType type) => type == AssetType.Stock || type == AssetType.Index;
-
     public async Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(AssetType type, string query)
     {
         if (string.IsNullOrWhiteSpace(query)) return [];

@@ -70,10 +70,4 @@ public class AssetPriceCacheService(
 
         return result;
     }
-
-    // Explicit interface implementation to satisfy the contract.
-    // The type-aware overload is the real entry point; this overload is not used.
-    Task<Dictionary<string, decimal>> IAssetPriceProvider.GetPricesAsync(
-        IEnumerable<string> externalIds, FiatCurrency currency, AssetType type)
-        => GetPricesAsync(externalIds, currency, type);
 }

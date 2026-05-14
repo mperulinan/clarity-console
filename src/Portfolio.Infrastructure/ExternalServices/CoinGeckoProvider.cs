@@ -122,8 +122,6 @@ public class CoinGeckoProvider(
         [property: JsonPropertyName("coins")] List<CoinGeckoSearchItemDto> Coins
     );
 
-    bool IAssetSearchProvider.Supports(AssetType type) => type == AssetType.Crypto;
-
     public async Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(AssetType type, string query)
     {
         if (type != AssetType.Crypto || string.IsNullOrWhiteSpace(query)) return [];
