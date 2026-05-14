@@ -5,14 +5,22 @@ using Portfolio.Domain.Interfaces;
 
 namespace Portfolio.Infrastructure.ExternalServices;
 
+/// <summary>
+/// Caching decorator that wraps multiple concrete price providers
+/// and routes each request to whichever provider supports the given asset type.
+/// </summary>
 public class AssetPriceCacheService(
-    IAssetPriceProvider innerProvider,
+    IEnumerable<IAssetPriceProvider> innerProviders,
     IMemoryCache memoryCache,
     ILogger<AssetPriceCacheService> logger) : IAssetPriceProvider
 {
     private const string CacheKeyPrefix = "AssetPrice";
 
-    public async Task<Dictionary<string, decimal>> GetPricesAsync(IEnumerable<string> externalIds, FiatCurrency currency)
+    /// <summary>Returns true when at least one inner provider supports the type.</summary>
+    public bool Supports(AssetType type) => innerProviders.Any(p => p.Supports(type));
+
+    public async Task<Dictionary<string, decimal>> GetPricesAsync(
+        IEnumerable<string> externalIds, FiatCurrency currency, AssetType type)
     {
         var idsArray = externalIds.Distinct().ToArray();
         var result = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
@@ -34,10 +42,19 @@ public class AssetPriceCacheService(
 
         if (missingIds.Count > 0)
         {
-            logger.LogInformation("Cache miss for {Count} assets. Fetching fresh prices from {Provider}...", 
-                missingIds.Count, innerProvider.GetType().Name);
-            var freshPrices = await innerProvider.GetPricesAsync(missingIds, currency);
-            
+            var provider = innerProviders.FirstOrDefault(p => p.Supports(type));
+            if (provider == null)
+            {
+                logger.LogWarning("No price provider supports asset type {Type}.", type.Value);
+                return result;
+            }
+
+            logger.LogInformation(
+                "Cache miss for {Count} assets ({Type}). Fetching from {Provider}...",
+                missingIds.Count, type.Value, provider.GetType().Name);
+
+            var freshPrices = await provider.GetPricesAsync(missingIds, currency, type);
+
             var cacheOptions = new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
@@ -53,4 +70,10 @@ public class AssetPriceCacheService(
 
         return result;
     }
+
+    // Explicit interface implementation to satisfy the contract.
+    // The type-aware overload is the real entry point; this overload is not used.
+    Task<Dictionary<string, decimal>> IAssetPriceProvider.GetPricesAsync(
+        IEnumerable<string> externalIds, FiatCurrency currency, AssetType type)
+        => GetPricesAsync(externalIds, currency, type);
 }
