@@ -18,7 +18,9 @@ public class CoinGeckoProvider(
     private readonly string _baseUrl = configuration["CoinGecko:BaseUrl"] ?? "https://api.coingecko.com/api/v3/";
     private readonly string? _apiKey = configuration["CoinGecko:ApiKey"];
 
-    public async Task<Dictionary<string, decimal>> GetPricesAsync(IEnumerable<string> externalIds, FiatCurrency currency)
+    public bool Supports(AssetType type) => type == AssetType.Crypto;
+
+    public async Task<Dictionary<string, decimal>> GetPricesAsync(IEnumerable<string> externalIds, FiatCurrency currency, AssetType type)
     {
         var ids = externalIds.Distinct().ToList();
         if (ids.Count == 0) return [];
@@ -119,6 +121,8 @@ public class CoinGeckoProvider(
     public record CoinGeckoSearchResponseDto(
         [property: JsonPropertyName("coins")] List<CoinGeckoSearchItemDto> Coins
     );
+
+    bool IAssetSearchProvider.Supports(AssetType type) => type == AssetType.Crypto;
 
     public async Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(AssetType type, string query)
     {

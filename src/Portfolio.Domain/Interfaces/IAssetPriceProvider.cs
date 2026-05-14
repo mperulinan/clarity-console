@@ -4,5 +4,6 @@ namespace Portfolio.Domain.Interfaces;
 
 public interface IAssetPriceProvider
 {
-    Task<Dictionary<string, decimal>> GetPricesAsync(IEnumerable<string> externalIds, FiatCurrency currency);
+    bool Supports(AssetType type);
+    Task<Dictionary<string, decimal>> GetPricesAsync(IEnumerable<string> externalIds, FiatCurrency currency, AssetType type);
 }
