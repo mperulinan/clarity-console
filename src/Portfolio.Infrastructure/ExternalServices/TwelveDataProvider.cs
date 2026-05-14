@@ -19,9 +19,7 @@ public class TwelveDataProvider(
 
     // ── IAssetPriceProvider ──────────────────────────────────────────────
 
-    public bool Supports(AssetType type) => type == AssetType.Stock || type == AssetType.Index;
-
-    public async Task<Dictionary<string, decimal>> GetPricesAsync(IEnumerable<string> externalIds, FiatCurrency currency, AssetType type)
+    public async Task<Dictionary<string, decimal>> GetPricesAsync(IEnumerable<string> externalIds, FiatCurrency currency)
     {
         var symbols = externalIds.Distinct().ToList();
         if (symbols.Count == 0) return [];

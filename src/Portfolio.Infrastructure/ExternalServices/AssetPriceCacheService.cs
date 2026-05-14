@@ -6,21 +6,18 @@ using Portfolio.Domain.Interfaces;
 namespace Portfolio.Infrastructure.ExternalServices;
 
 /// <summary>
-/// Caching decorator that wraps multiple concrete price providers
-/// and routes each request to whichever provider supports the given asset type.
+/// Caching decorator that wraps a single concrete <see cref="IAssetPriceProvider"/>.
+/// Provider routing is handled upstream via Keyed DI — this class only caches.
 /// </summary>
 public class AssetPriceCacheService(
-    IEnumerable<IAssetPriceProvider> innerProviders,
+    IAssetPriceProvider innerProvider,
     IMemoryCache memoryCache,
     ILogger<AssetPriceCacheService> logger) : IAssetPriceProvider
 {
     private const string CacheKeyPrefix = "AssetPrice";
 
-    /// <summary>Returns true when at least one inner provider supports the type.</summary>
-    public bool Supports(AssetType type) => innerProviders.Any(p => p.Supports(type));
-
     public async Task<Dictionary<string, decimal>> GetPricesAsync(
-        IEnumerable<string> externalIds, FiatCurrency currency, AssetType type)
+        IEnumerable<string> externalIds, FiatCurrency currency)
     {
         var idsArray = externalIds.Distinct().ToArray();
         var result = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
@@ -42,18 +39,11 @@ public class AssetPriceCacheService(
 
         if (missingIds.Count > 0)
         {
-            var provider = innerProviders.FirstOrDefault(p => p.Supports(type));
-            if (provider == null)
-            {
-                logger.LogWarning("No price provider supports asset type {Type}.", type.Value);
-                return result;
-            }
-
             logger.LogInformation(
-                "Cache miss for {Count} assets ({Type}). Fetching from {Provider}...",
-                missingIds.Count, type.Value, provider.GetType().Name);
+                "Cache miss for {Count} asset(s). Fetching from {Provider}...",
+                missingIds.Count, innerProvider.GetType().Name);
 
-            var freshPrices = await provider.GetPricesAsync(missingIds, currency, type);
+            var freshPrices = await innerProvider.GetPricesAsync(missingIds, currency);
 
             var cacheOptions = new MemoryCacheEntryOptions
             {

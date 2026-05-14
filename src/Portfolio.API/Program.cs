@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Portfolio.API.BackgroundServices;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Services;
+using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 using Portfolio.Domain.Services;
 using Portfolio.Infrastructure.ExternalServices;
@@ -42,17 +43,33 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<CoinGeckoProvider>();
 builder.Services.AddScoped<TwelveDataProvider>();
 
-builder.Services.AddScoped<IAssetPriceProvider, AssetPriceCacheService>(sp =>
+// ── Price Providers (keyed by AssetType.Value, each wrapped with a caching decorator) ──
+builder.Services.AddKeyedScoped<IAssetPriceProvider>(AssetType.Crypto.Value, (sp, _) =>
     new AssetPriceCacheService(
-        [sp.GetRequiredService<CoinGeckoProvider>(), sp.GetRequiredService<TwelveDataProvider>()],
+        sp.GetRequiredService<CoinGeckoProvider>(),
         sp.GetRequiredService<IMemoryCache>(),
-        sp.GetRequiredService<ILogger<AssetPriceCacheService>>()
-    ));
+        sp.GetRequiredService<ILogger<AssetPriceCacheService>>()));
+
+builder.Services.AddKeyedScoped<IAssetPriceProvider>(AssetType.Stock.Value, (sp, _) =>
+    new AssetPriceCacheService(
+        sp.GetRequiredService<TwelveDataProvider>(),
+        sp.GetRequiredService<IMemoryCache>(),
+        sp.GetRequiredService<ILogger<AssetPriceCacheService>>()));
+
+builder.Services.AddKeyedScoped<IAssetPriceProvider>(AssetType.Index.Value, (sp, _) =>
+    new AssetPriceCacheService(
+        sp.GetRequiredService<TwelveDataProvider>(),
+        sp.GetRequiredService<IMemoryCache>(),
+        sp.GetRequiredService<ILogger<AssetPriceCacheService>>()));
+
+builder.Services.AddScoped<IAssetPriceProviderFactory, KeyedAssetPriceProviderFactory>();
+
+// ── Search Providers (keyed by AssetType.Value) ──
+builder.Services.AddKeyedScoped<IAssetSearchProvider>(AssetType.Crypto.Value, (sp, _) => sp.GetRequiredService<CoinGeckoProvider>());
+builder.Services.AddKeyedScoped<IAssetSearchProvider>(AssetType.Stock.Value, (sp, _) => sp.GetRequiredService<TwelveDataProvider>());
+builder.Services.AddKeyedScoped<IAssetSearchProvider>(AssetType.Index.Value, (sp, _) => sp.GetRequiredService<TwelveDataProvider>());
 
 builder.Services.AddScoped<IAssetCatalogProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
-
-builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
-builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<TwelveDataProvider>());
 builder.Services.AddScoped<IAssetSynchronizationService, AssetSynchronizationService>();
 
 builder.Services.AddScoped<IAssetMarketDataService, AssetMarketDataService>();
