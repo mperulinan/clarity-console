@@ -40,14 +40,19 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetPo
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<CoinGeckoProvider>();
+builder.Services.AddScoped<TwelveDataProvider>();
+
 builder.Services.AddScoped<IAssetPriceProvider, AssetPriceCacheService>(sp =>
     new AssetPriceCacheService(
-        sp.GetRequiredService<CoinGeckoProvider>(),
+        [sp.GetRequiredService<CoinGeckoProvider>(), sp.GetRequiredService<TwelveDataProvider>()],
         sp.GetRequiredService<IMemoryCache>(),
         sp.GetRequiredService<ILogger<AssetPriceCacheService>>()
     ));
+
 builder.Services.AddScoped<IAssetCatalogProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
+
 builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
+builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<TwelveDataProvider>());
 builder.Services.AddScoped<IAssetSynchronizationService, AssetSynchronizationService>();
 
 builder.Services.AddScoped<IAssetMarketDataService, AssetMarketDataService>();

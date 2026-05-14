@@ -19,7 +19,6 @@ public class AssetMarketDataService(
         var assetsByType = assets.ToLookup(a => a.Type);
 
         // 2. Resolve "OTHER" Assets (Manual/No Price)
-        // We handle these first because they are "instant" (no async calls needed)
         foreach (var asset in assetsByType[AssetType.Other])
         {
             marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, 0m, asset.ImageUrl);
@@ -32,26 +31,32 @@ public class AssetMarketDataService(
             marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, price, asset.ImageUrl);
         }
 
-        // 4. Resolve Crypto Market Data (Prices via Cache)
-        var cryptoAssets = assetsByType[AssetType.Crypto].ToList();
-        if (cryptoAssets.Count > 0)
+        // 4. Resolve Crypto, Stock and Index prices (each routed to the correct provider via the cache service)
+        var pricedTypes = new[] { AssetType.Crypto, AssetType.Stock, AssetType.Index };
+        foreach (var assetType in pricedTypes)
         {
-            var externalIds = cryptoAssets
+            var typedAssets = assetsByType[assetType].ToList();
+            if (typedAssets.Count == 0) continue;
+
+            if (!assetPriceProvider.Supports(assetType))
+            {
+                foreach (var asset in typedAssets)
+                    marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, 0m, asset.ImageUrl);
+                continue;
+            }
+
+            var externalIds = typedAssets
                 .Where(a => !string.IsNullOrWhiteSpace(a.ExternalId))
                 .Select(a => a.ExternalId!);
 
-            var cryptoPrices = await assetPriceProvider.GetPricesAsync(externalIds, baseCurrency);
+            var prices = await assetPriceProvider.GetPricesAsync(externalIds, baseCurrency, assetType);
 
-            foreach (var asset in cryptoAssets)
+            foreach (var asset in typedAssets)
             {
-                if (asset.ExternalId != null && cryptoPrices.TryGetValue(asset.ExternalId, out var price))
-                {
+                if (asset.ExternalId != null && prices.TryGetValue(asset.ExternalId, out var price))
                     marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, price, asset.ImageUrl);
-                }
                 else
-                {
                     marketData[asset.Id] = new AssetMarketData(asset.Symbol, asset.Name, 0m, asset.ImageUrl);
-                }
             }
         }
 
@@ -60,12 +65,8 @@ public class AssetMarketDataService(
 
     private async Task<decimal> GetFiatPriceAsync(Asset fiatAsset, FiatCurrency baseCurrency)
     {
-        // For Fiat assets, their Symbol corresponds to the FiatCurrency
         FiatCurrency assetCurrency = FiatCurrency.Parse(fiatAsset.Symbol);
-        if (assetCurrency == baseCurrency)
-        {
-            return 1.0m;
-        }
+        if (assetCurrency == baseCurrency) return 1.0m;
         return await exchangeRateProvider.GetExchangeRateAsync(assetCurrency, baseCurrency);
     }
 }
