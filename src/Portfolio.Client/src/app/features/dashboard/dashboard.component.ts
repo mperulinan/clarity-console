@@ -9,6 +9,7 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { AssetAvatarComponent } from '../../shared/components/asset-avatar/asset-avatar.component';
 
 import { PortfolioService } from '../../services/portfolio.service';
 import { PortfolioMetrics } from '../../models/portfolio-metrics';
@@ -20,7 +21,7 @@ import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DecimalPipe, SkeletonComponent, BadgeComponent, ButtonComponent, EmptyStateComponent],
+    imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DecimalPipe, SkeletonComponent, BadgeComponent, ButtonComponent, EmptyStateComponent, AssetAvatarComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

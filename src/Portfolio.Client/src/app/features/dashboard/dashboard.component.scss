@@ -315,35 +315,6 @@ $loss-soft: color-mix(in srgb, var(--color-loss), transparent 90%);
     gap: 12px;
 }
 
-.asset-icon-wrap {
-    flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-}
-
-.asset-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid $border;
-}
-
-.asset-icon-fallback {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--color-bg-surface), white 5%);
-    border: 1px solid $border;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--text-xs);
-    font-weight: 700;
-    color: $muted;
-    letter-spacing: 0.03em;
-}
 
 .asset-info {
     display: flex;

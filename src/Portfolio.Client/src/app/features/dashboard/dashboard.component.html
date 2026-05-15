@@ -210,13 +210,7 @@
                     <!-- Asset -->
                     <td class="col-asset">
                         <div class="asset-cell">
-                            <div class="asset-icon-wrap">
-                                @if (row.image) {
-                                <img class="asset-icon" [src]="row.image" [alt]="row.symbol" />
-                                } @else {
-                                <div class="asset-icon-fallback">{{ getInitials(row.symbol) }}</div>
-                                }
-                            </div>
+                            <app-asset-avatar [imageUrl]="row.image" [symbol]="row.symbol" [size]="36"></app-asset-avatar>
                             <div class="asset-info">
                                 <span class="asset-symbol">{{ row.symbol }}</span>
                                 <span class="asset-name">{{ row.name }}</span>

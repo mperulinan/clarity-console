@@ -1,0 +1,7 @@
+@if (imageUrl()) {
+    <img class="asset-icon" [src]="imageUrl()" [alt]="symbol()" [width]="size()" [height]="size()" loading="lazy" decoding="async" />
+} @else {
+    <div class="asset-icon-fallback">
+        {{ initials }}
+    </div>
+}
