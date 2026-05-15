@@ -1,9 +1,6 @@
-@if (selectedAsset(); as asset) {
+@if (value(); as asset) {
 <div [class]="chipClass()">
-    @if (asset.imageUrl) {
-    <img [src]="asset.imageUrl" [alt]="asset.name + ' logo'" class="asset-chip__img" width="20" height="20"
-        decoding="async">
-    }
+    <app-asset-avatar [imageUrl]="asset.imageUrl" [symbol]="asset.symbol" [size]="20" class="asset-chip__avatar"></app-asset-avatar>
     <span class="asset-chip__name">{{ asset.name }}</span>
     <span class="asset-chip__symbol">{{ asset.symbol }}</span>
     <button type="button" class="asset-chip__clear" (click)="clearAsset($event)" title="Change asset"
@@ -12,30 +9,11 @@
     </button>
 </div>
 } @else {
-<mat-form-field appearance="fill" class="w-full">
-    <mat-label>{{ label() }}</mat-label>
-    <input matInput [formControl]="searchControl" [placeholder]="placeholder()" [matAutocomplete]="auto"
-        (blur)="onAssetInputBlur()">
-    <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayAssetFn"
-        (optionSelected)="onAssetSelected($event)">
-        @for (asset of filteredAssets(); track asset.externalId || asset.id) {
-        <mat-option [value]="asset">
-            <div class="asset-option__row">
-                @if (asset.imageUrl) {
-                <img [src]="asset.imageUrl" alt="" class="asset-option__img" width="20" height="20" loading="lazy"
-                    decoding="async">
-                }
-                <span class="asset-option__name">{{ asset.name }}</span>
-                <span class="asset-option__symbol">{{ asset.symbol }}</span>
-            </div>
-        </mat-option>
-        }
-    </mat-autocomplete>
-    @if (syncError()) {
-    <mat-error aria-live="polite">{{ syncError() }}</mat-error>
-    }
-    @if (isSyncingAsset()) {
-    <mat-icon matSuffix class="animate-spin text-accent">sync</mat-icon>
-    }
-</mat-form-field>
+<div class="selector-trigger" [class.disabled]="disabled()" (click)="openDialog()">
+    <span class="selector-trigger__label">{{ label() }}</span>
+    <div class="selector-trigger__input-like">
+        <span class="selector-trigger__placeholder">{{ placeholder() }}</span>
+        <mat-icon class="selector-trigger__icon">search</mat-icon>
+    </div>
+</div>
 }
