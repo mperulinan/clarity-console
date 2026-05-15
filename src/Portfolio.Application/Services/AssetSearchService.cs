@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Mappers;
+using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 
@@ -13,72 +14,139 @@ public class AssetSearchService(
     IServiceProvider serviceProvider,
     ILogger<AssetSearchService> logger) : IAssetSearchService
 {
+    // Minimum query length required to trigger external provider searches.
+    private const int ExternalSearchMinLength = 2;
+
+    // -------------------------------------------------------------------------
+    // Public contract
+    // -------------------------------------------------------------------------
+
     public async Task<IEnumerable<AssetDto>> SearchAsync(string query, string? type = null)
     {
         logger.LogInformation("Asset search requested: '{Query}' (Filter: {Type})", query ?? "", type ?? "None");
 
-        // 1. Search local DB
-        var allLocalAssets = await unitOfWork.Assets.GetAllAsync();
-        var localAssets = allLocalAssets.Where(a =>
-            (string.IsNullOrEmpty(query) ||
-             a.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-             a.Symbol.Contains(query, StringComparison.OrdinalIgnoreCase)) &&
-            (string.IsNullOrEmpty(type) || a.Type.Value.Equals(type, StringComparison.OrdinalIgnoreCase))
+        var localAssets        = await SearchLocalAssetsAsync(query, type);
+        var externalResults    = await SearchExternalProvidersAsync(query, type);
+        var transactionCounts  = await BuildTransactionCountsAsync();
+
+        var localExternalIds = GetLocalExternalIds(localAssets);
+        var localDtos        = BuildLocalDtos(localAssets, transactionCounts);
+        var externalDtos     = BuildExternalDtos(externalResults, localExternalIds);
+
+        var results = MergeAndSort(localDtos, externalDtos);
+
+        logger.LogInformation("Search complete. Returning {TotalCount} total assets.", results.Count);
+        return results;
+    }
+
+    // -------------------------------------------------------------------------
+    // Step 1 — Local database search
+    // -------------------------------------------------------------------------
+
+    private async Task<List<Asset>> SearchLocalAssetsAsync(string? query, string? type)
+    {
+        var allAssets = await unitOfWork.Assets.GetAllAsync();
+
+        var matches = allAssets.Where(a =>
+            MatchesQuery(a, query) &&
+            MatchesType(a, type)
         ).ToList();
 
-        logger.LogDebug("Found {Count} local matches.", localAssets.Count);
+        logger.LogDebug("Found {Count} local matches.", matches.Count);
+        return matches;
+    }
 
-        // 2. Search external providers, only when query is long enough.
-        //    Target types are either all searchable types (unified search) or the one explicitly requested.
-        var externalResults = new List<SearchAssetResult>();
-        if (!string.IsNullOrWhiteSpace(query) && query.Length >= 2)
-        {
-            var targetTypes = string.IsNullOrEmpty(type)
-                ? AssetType.List.Where(t => t.CanBeSearchedExternally)
-                : new[] { AssetType.FromValue(type) };
+    private static bool MatchesQuery(Asset asset, string? query) =>
+        string.IsNullOrEmpty(query) ||
+        asset.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        asset.Symbol.Contains(query, StringComparison.OrdinalIgnoreCase);
 
-            var searchTasks = targetTypes
-                .Select(assetType => serviceProvider.GetKeyedService<IAssetSearchProvider>(assetType.Value) is { } provider
-                    ? provider.SearchAssetsAsync(assetType, query)
-                    : Task.FromResult(Enumerable.Empty<SearchAssetResult>()))
-                .ToList();
+    private static bool MatchesType(Asset asset, string? type) =>
+        string.IsNullOrEmpty(type) ||
+        asset.Type.Value.Equals(type, StringComparison.OrdinalIgnoreCase);
 
-            logger.LogDebug("Dispatching {Count} external search task(s).", searchTasks.Count);
+    // -------------------------------------------------------------------------
+    // Step 2 — External provider fan-out
+    // -------------------------------------------------------------------------
 
-            var resultsArrays = await Task.WhenAll(searchTasks);
-            foreach (var resultsArray in resultsArrays)
-                externalResults.AddRange(resultsArray);
+    private async Task<List<SearchAssetResult>> SearchExternalProvidersAsync(string? query, string? type)
+    {
+        if (string.IsNullOrWhiteSpace(query) || query.Length < ExternalSearchMinLength)
+            return [];
 
-            logger.LogDebug("Found {Count} external matches.", externalResults.Count);
-        }
+        var targetTypes = ResolveTargetTypes(type);
+        var searchTasks = targetTypes.Select(assetType => SearchProviderAsync(assetType, query)).ToList();
 
-        // 3. Compute per-asset transaction counts
+        logger.LogDebug("Dispatching {Count} external search task(s).", searchTasks.Count);
+
+        var resultArrays = await Task.WhenAll(searchTasks);
+        var externalResults = resultArrays.SelectMany(r => r).ToList();
+
+        logger.LogDebug("Found {Count} external matches.", externalResults.Count);
+        return externalResults;
+    }
+
+    private static IEnumerable<AssetType> ResolveTargetTypes(string? type) =>
+        string.IsNullOrEmpty(type)
+            ? AssetType.List.Where(t => t.CanBeSearchedExternally)
+            : [AssetType.FromValue(type)];
+
+    private Task<IEnumerable<SearchAssetResult>> SearchProviderAsync(AssetType assetType, string query)
+    {
+        var provider = serviceProvider.GetKeyedService<IAssetSearchProvider>(assetType.Value);
+        return provider is not null
+            ? provider.SearchAssetsAsync(assetType, query)
+            : Task.FromResult(Enumerable.Empty<SearchAssetResult>());
+    }
+
+    // -------------------------------------------------------------------------
+    // Step 3 — Transaction count aggregation
+    // -------------------------------------------------------------------------
+
+    private async Task<Dictionary<Guid, int>> BuildTransactionCountsAsync()
+    {
         var allTransactions = await unitOfWork.Transactions.GetAllAsync();
-        Dictionary<Guid, int> transactionCounts = [];
+        var counts = new Dictionary<Guid, int>();
+
         foreach (var tx in allTransactions)
         {
-            if (tx.FromAssetId.HasValue)
-                transactionCounts[tx.FromAssetId.Value] = transactionCounts.GetValueOrDefault(tx.FromAssetId.Value) + 1;
-            if (tx.ToAssetId.HasValue)
-                transactionCounts[tx.ToAssetId.Value] = transactionCounts.GetValueOrDefault(tx.ToAssetId.Value) + 1;
-            if (tx.FeeAssetId.HasValue)
-                transactionCounts[tx.FeeAssetId.Value] = transactionCounts.GetValueOrDefault(tx.FeeAssetId.Value) + 1;
+            IncrementCount(counts, tx.FromAssetId);
+            IncrementCount(counts, tx.ToAssetId);
+            IncrementCount(counts, tx.FeeAssetId);
         }
 
-        // 4. Build local DTOs and deduplicate external results against them
-        var localExternalIds = localAssets
-            .Where(a => !string.IsNullOrEmpty(a.ExternalId))
-            .Select(a => a.ExternalId!)
-            .ToHashSet();
+        return counts;
+    }
 
-        var localDtos = localAssets.Select(a =>
+    private static void IncrementCount(Dictionary<Guid, int> counts, Guid? assetId)
+    {
+        if (assetId.HasValue)
+            counts[assetId.Value] = counts.GetValueOrDefault(assetId.Value) + 1;
+    }
+
+    // -------------------------------------------------------------------------
+    // Step 4 — DTO construction and deduplication
+    // -------------------------------------------------------------------------
+
+    private static HashSet<string> GetLocalExternalIds(IEnumerable<Asset> localAssets) =>
+        [.. localAssets
+            .Where(a => !string.IsNullOrEmpty(a.ExternalId))
+            .Select(a => a.ExternalId!)];
+
+    private static List<AssetDto> BuildLocalDtos(
+        IEnumerable<Asset> localAssets,
+        Dictionary<Guid, int> transactionCounts) =>
+        [.. localAssets.Select(a =>
         {
             var dto = a.ToDto();
             dto.TransactionCount = transactionCounts.GetValueOrDefault(a.Id, 0);
             return dto;
-        }).ToList();
+        })];
 
-        var externalDtos = externalResults
+    private static IEnumerable<AssetDto> BuildExternalDtos(
+        IEnumerable<SearchAssetResult> externalResults,
+        HashSet<string> localExternalIds) =>
+        externalResults
             .Where(r => string.IsNullOrEmpty(r.Asset.ExternalId) || !localExternalIds.Contains(r.Asset.ExternalId))
             .DistinctBy(r => r.Asset.ExternalId)
             .Select(r =>
@@ -88,18 +156,22 @@ public class AssetSearchService(
                 return dto;
             });
 
-        // 5. Three-tier sort:
-        //    Tier 1 — DB assets with transactions, most-used first
-        //    Tier 2 — DB assets with 0 transactions, alphabetical by name
-        //    Tier 3 — External assets, ascending market_cap_rank (nulls last)
-        var results = localDtos
-            .OrderByDescending(a => a.TransactionCount > 0)
-            .ThenByDescending(a => a.TransactionCount)
-            .ThenBy(a => a.Name)
-            .Concat(externalDtos.OrderBy(a => a.MarketCapRank ?? int.MaxValue))
-            .ToList();
+    // -------------------------------------------------------------------------
+    // Step 5 — Three-tier sort and merge
+    //   Tier 1 — DB assets with transactions (most-used first)
+    //   Tier 2 — DB assets with 0 transactions (alphabetical by name)
+    //   Tier 3 — External assets (ascending market-cap rank, nulls last)
+    // -------------------------------------------------------------------------
 
-        logger.LogInformation("Search complete. Returning {TotalCount} total assets.", results.Count);
-        return results;
-    }
+    private static List<AssetDto> MergeAndSort(
+        IEnumerable<AssetDto> localDtos,
+        IEnumerable<AssetDto> externalDtos) =>
+        [
+            .. localDtos
+                .OrderByDescending(a => a.TransactionCount > 0)
+                .ThenByDescending(a => a.TransactionCount)
+                .ThenBy(a => a.Name)
+            ,
+            .. externalDtos.OrderBy(a => a.MarketCapRank ?? int.MaxValue),
+        ];
 }
