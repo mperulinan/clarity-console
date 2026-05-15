@@ -1,0 +1,61 @@
+<div class="search-dialog">
+    <div class="search-dialog__header">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+            type="text" 
+            class="search-input" 
+            [formControl]="searchControl" 
+            placeholder="Search assets e.g. BTC, TSLA" 
+            autoFocus />
+        <button class="close-btn" (click)="close()">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    @if (syncError()) {
+        <div class="search-dialog__error" aria-live="polite">
+            <mat-icon>error_outline</mat-icon>
+            {{ syncError() }}
+        </div>
+    }
+
+    <div class="search-dialog__body">
+        @if (isSyncingAsset()) {
+            <div class="search-dialog__loading">
+                <mat-icon class="animate-spin text-accent">sync</mat-icon>
+                <span>Syncing asset data...</span>
+            </div>
+        } @else {
+            <ul class="asset-list">
+                @for (asset of filteredAssets(); track asset.externalId || asset.id) {
+                    <li class="asset-item" (click)="selectAsset(asset)">
+                        <app-asset-avatar 
+                            class="asset-item__avatar"
+                            [imageUrl]="asset.imageUrl" 
+                            [symbol]="asset.symbol" 
+                            [size]="32">
+                        </app-asset-avatar>
+                        <div class="asset-item__info">
+                            <span class="asset-item__symbol">{{ asset.symbol }}</span>
+                            <span class="asset-item__name">{{ asset.name }}</span>
+                        </div>
+                        <div class="asset-item__meta">
+                            <span class="asset-item__type">{{ asset.type }}</span>
+                        </div>
+                    </li>
+                } @empty {
+                    @if (searchControl.value && searchControl.value.length >= 2) {
+                        <div class="search-dialog__empty">
+                            <mat-icon>search_off</mat-icon>
+                            <span>No assets found for "{{ searchControl.value }}"</span>
+                        </div>
+                    } @else {
+                        <div class="search-dialog__empty">
+                            <span>Type at least 2 characters to search</span>
+                        </div>
+                    }
+                }
+            </ul>
+        }
+    </div>
+</div>
