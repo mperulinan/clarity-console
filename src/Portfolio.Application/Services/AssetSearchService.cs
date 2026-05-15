@@ -33,7 +33,7 @@ public class AssetSearchService(
         var localDtos        = BuildLocalDtos(localAssets, transactionCounts);
         var externalDtos     = BuildExternalDtos(externalResults, localExternalIds);
 
-        var results = MergeAndSort(localDtos, externalDtos);
+        var results = MergeAndSort(localDtos, externalDtos, query);
 
         logger.LogInformation("Search complete. Returning {TotalCount} total assets.", results.Count);
         return results;
@@ -157,21 +157,51 @@ public class AssetSearchService(
             });
 
     // -------------------------------------------------------------------------
-    // Step 5 — Three-tier sort and merge
-    //   Tier 1 — DB assets with transactions (most-used first)
-    //   Tier 2 — DB assets with 0 transactions (alphabetical by name)
-    //   Tier 3 — External assets (ascending market-cap rank, nulls last)
+    // Step 5 — Relevance Sort
     // -------------------------------------------------------------------------
 
     private static List<AssetDto> MergeAndSort(
         IEnumerable<AssetDto> localDtos,
-        IEnumerable<AssetDto> externalDtos) =>
+        IEnumerable<AssetDto> externalDtos,
+        string? query)
+    {
+        var exactMatchQuery = query?.Trim() ?? "";
+        bool IsExactMatch(AssetDto a) => string.Equals(a.Symbol, exactMatchQuery, StringComparison.OrdinalIgnoreCase);
+
+        var localList = localDtos.ToList();
+        var externalList = externalDtos.ToList();
+
+        // Tier 1: Local assets with transactions (Highest priority)
+        var tier1 = localList
+            .Where(a => a.TransactionCount > 0)
+            .OrderByDescending(IsExactMatch)
+            .ThenByDescending(a => a.TransactionCount);
+
+        // Tier 2: Exact symbol matches (from both local without txs and external APIs)
+        var remainingLocal = localList.Where(a => a.TransactionCount == 0).ToList();
+        
+        var exactMatches = remainingLocal.Where(IsExactMatch)
+            .Concat(externalList.Where(IsExactMatch))
+            .OrderBy(a => a.MarketCapRank ?? int.MaxValue);
+
+        // Tier 3: Remaining local assets (alphabetical)
+        var tier3 = remainingLocal
+            .Where(a => !IsExactMatch(a))
+            .OrderBy(a => a.Name);
+
+        // Tier 4: Remaining external assets
+        // Sorts CoinGecko assets by rank, and safely appends TwelveData assets (which have null rank)
+        // at the end in their native API relevance order.
+        var tier4 = externalList
+            .Where(a => !IsExactMatch(a))
+            .OrderBy(a => a.MarketCapRank ?? int.MaxValue);
+
+        return
         [
-            .. localDtos
-                .OrderByDescending(a => a.TransactionCount > 0)
-                .ThenByDescending(a => a.TransactionCount)
-                .ThenBy(a => a.Name)
-            ,
-            .. externalDtos.OrderBy(a => a.MarketCapRank ?? int.MaxValue),
+            .. tier1,
+            .. exactMatches,
+            .. tier3,
+            .. tier4
         ];
+    }
 }
