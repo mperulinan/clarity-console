@@ -148,6 +148,8 @@
         font-size: var(--text-base);
         font-weight: 600;
         letter-spacing: 0.02em;
+        width: 100px;
+        flex-shrink: 0;
     }
 
     &__name {
