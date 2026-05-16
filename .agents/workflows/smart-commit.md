@@ -62,8 +62,8 @@ description: Automatically analyze, group, stage, and commit all Git changes.
      - Write the **subject** (lowercase, imperative).
      - Draft the optional **body**.
 
-3. Execute the commits sequentially. For each logical group, run the `git add` command for the specific files, followed by the `git commit` command. To handle multiline commit messages in PowerShell, use multiple `-m` flags (the first is the subject, the second is the body):
+3. Execute the commits sequentially. For each logical group, run the `git add` command for the specific files, followed by the `git commit` command. To handle multiline commit messages in PowerShell and avoid string parsing errors, you MUST use a separate `-m` flag for the subject and **each individual paragraph or bullet point** in the body. Do not use newline characters (`\n` or literal newlines) inside a single `-m` string.
    ```powershell
    git add <file1> <file2> ...
-   git commit -m "<type>(<scope>): <subject>" -m "<body>"
+   git commit -m "<type>(<scope>): <subject>" -m "- <bullet 1>" -m "- <bullet 2>"
    ```
