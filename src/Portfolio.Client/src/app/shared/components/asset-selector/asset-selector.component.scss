@@ -11,14 +11,25 @@
     gap: 10px;
     min-height: 56px; // matches mat-form-field while allowing text scaling
     padding: 6px 12px 6px 10px;
-    background: color-mix(in srgb, var(--color-bg-surface), transparent 12%);
-    border-radius: 8px 8px 0 0;
-    border-bottom: 2px solid var(--color-primary);
+    background: color-mix(in srgb, var(--color-bg-base), var(--color-bg-surface) 40%);
+    border-radius: 4px 4px 0 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-text), transparent 99%);
     animation: fadeInUp 0.2s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    transition: border-color 0.2s, background 0.2s;
+
+    &:hover {
+        background: color-mix(in srgb, var(--color-text), transparent 92%);
+    }
+
+    &:focus-visible {
+        border-bottom: 2px solid var(--color-primary);
+        outline: none;
+    }
 
     &.disabled {
         opacity: 0.7;
         border-bottom-color: var(--color-border);
+        cursor: not-allowed;
     }
 
     &__avatar {
@@ -53,7 +64,6 @@
         height: 34px;
         border-radius: 50%;
         border: none;
-        background: color-mix(in srgb, var(--color-bg-surface), transparent 14%);
         color: var(--color-text-muted);
         cursor: pointer;
         flex-shrink: 0;
@@ -98,33 +108,22 @@
         opacity: 0.6;
     }
 
-    &__label {
-        font-size: var(--text-xs);
-        color: var(--color-text-muted);
-        margin-bottom: 8px;
-        letter-spacing: 0.03em;
-        font-weight: 500;
-    }
-
     &__input-like {
         display: flex;
         align-items: center;
         justify-content: space-between;
         height: 56px;
         padding: 0 16px;
-        background: color-mix(in srgb, var(--color-text), transparent 96%);
-        border: 1px solid var(--color-border);
-        border-radius: 4px;
-        transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+        background: color-mix(in srgb, var(--color-bg-base), var(--color-bg-surface) 40%);
+        border-radius: 4px 4px 0 0;
+        transition: background 0.2s, border-color 0.2s;
 
         .selector-trigger:not(.disabled):hover & {
             background: color-mix(in srgb, var(--color-text), transparent 92%);
-            border-color: color-mix(in srgb, var(--color-text), transparent 70%);
         }
 
         .selector-trigger:focus-visible & {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 1px var(--color-primary);
+            border-bottom: 2px solid var(--color-primary);
         }
     }
 
