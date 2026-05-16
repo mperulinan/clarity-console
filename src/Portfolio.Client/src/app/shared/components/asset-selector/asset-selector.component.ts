@@ -27,7 +27,6 @@ import { AssetSearchDialogComponent } from '../asset-search-dialog/asset-search-
 })
 export class AssetSelectorComponent {
     // ── Inputs ───────────────────────────────────────────────────────────
-    readonly label = input<string>('Asset');
     readonly placeholder = input<string>('e.g. BTC, ETH');
     readonly chipClass = input<string>('asset-chip');
     /** Currently selected asset — drives internal display state. */

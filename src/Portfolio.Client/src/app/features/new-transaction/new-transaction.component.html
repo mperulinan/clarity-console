@@ -100,7 +100,6 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <app-asset-selector
-                                label="Search Asset"
                                 placeholder="e.g. BTC, ETH"
                                 [value]="fromAsset()"
                                 (assetChange)="fromAsset.set($event)">
@@ -121,7 +120,6 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <app-asset-selector
-                                label="Search Asset"
                                 placeholder="e.g. BTC, ETH"
                                 [value]="toAsset()"
                                 (assetChange)="toAsset.set($event)">
