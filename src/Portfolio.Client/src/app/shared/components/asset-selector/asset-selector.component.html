@@ -1,15 +1,22 @@
 @if (value(); as asset) {
-<div [class]="chipClass()">
+<div [class]="chipClass()" [class.disabled]="disabled()">
     <app-asset-avatar [imageUrl]="asset.imageUrl" [symbol]="asset.symbol" [size]="20" class="asset-chip__avatar"></app-asset-avatar>
     <span class="asset-chip__name">{{ asset.name }}</span>
     <span class="asset-chip__symbol">{{ asset.symbol }}</span>
+    @if (!disabled()) {
     <button type="button" class="asset-chip__clear" (click)="clearAsset($event)" title="Change asset"
         aria-label="Change selected asset">
         <mat-icon>close</mat-icon>
     </button>
+    }
 </div>
 } @else {
-<div class="selector-trigger" [class.disabled]="disabled()" (click)="openDialog()">
+<div class="selector-trigger" 
+     [class.disabled]="disabled()" 
+     (click)="openDialog()"
+     [tabindex]="disabled() ? -1 : 0"
+     role="button"
+     (keydown.enter)="openDialog()">
     <div class="selector-trigger__input-like">
         <span class="selector-trigger__placeholder">{{ placeholder() }}</span>
         <mat-icon class="selector-trigger__icon">search</mat-icon>

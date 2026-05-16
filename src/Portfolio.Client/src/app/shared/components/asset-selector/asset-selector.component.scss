@@ -1,13 +1,7 @@
 /* ── ANIMATIONS ─────────────────────────────── */
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── ASSET CHIP ───────────────────────────────── */
@@ -21,6 +15,11 @@
     border-radius: 8px 8px 0 0;
     border-bottom: 2px solid var(--color-primary);
     animation: fadeInUp 0.2s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+
+    &.disabled {
+        opacity: 0.7;
+        border-bottom-color: var(--color-border);
+    }
 
     &__avatar {
         flex-shrink: 0;
@@ -116,11 +115,16 @@
         background: color-mix(in srgb, var(--color-text), transparent 96%);
         border: 1px solid var(--color-border);
         border-radius: 4px;
-        transition: background 0.2s, border-color 0.2s;
+        transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 
-        &:hover {
+        .selector-trigger:not(.disabled):hover & {
             background: color-mix(in srgb, var(--color-text), transparent 92%);
             border-color: color-mix(in srgb, var(--color-text), transparent 70%);
+        }
+
+        .selector-trigger:focus-visible & {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 1px var(--color-primary);
         }
     }
 
