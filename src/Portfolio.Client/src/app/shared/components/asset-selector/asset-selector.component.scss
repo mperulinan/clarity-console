@@ -34,32 +34,36 @@
 
     &__avatar {
         flex-shrink: 0;
+        align-self: center;
     }
 
     &__symbol {
         font-size: var(--text-base);
-        font-weight: 400;
-        color: var(--color-text-muted); // demoted for hierarchy: symbol is secondary to name
-        letter-spacing: 0.01em;
+        font-weight: 600;
+        color: var(--color-text);
+        letter-spacing: 0.02em;
         white-space: nowrap;
         flex-shrink: 0;
+        line-height: 1;
     }
 
     &__name {
-        font-size: var(--text-base);
-        font-weight: 600;
-        color: var(--color-text);
+        font-size: var(--text-sm);
+        font-weight: 400;
+        color: var(--color-text-muted);
         white-space: nowrap;
         flex-shrink: 1;
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1;
     }
 
     &__clear {
         display: flex;
         align-items: center;
         justify-content: center;
+        align-self: center;
         width: 34px;
         height: 34px;
         border-radius: 50%;

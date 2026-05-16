@@ -1,8 +1,8 @@
 @if (value(); as asset) {
 <div [class]="chipClass()" [class.disabled]="disabled()">
     <app-asset-avatar [imageUrl]="asset.imageUrl" [symbol]="asset.symbol" [size]="20" class="asset-chip__avatar"></app-asset-avatar>
-    <span class="asset-chip__name">{{ asset.name }}</span>
     <span class="asset-chip__symbol">{{ asset.symbol }}</span>
+    <span class="asset-chip__name">{{ asset.name }}</span>
     @if (!disabled()) {
     <button type="button" class="asset-chip__clear" (click)="clearAsset($event)" title="Change asset"
         aria-label="Change selected asset">
