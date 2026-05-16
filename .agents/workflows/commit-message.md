@@ -50,9 +50,9 @@ description: Generate a professional commit message from staged git changes
 ## Steps
 
 // turbo-all
-1. Retrieve the project's historical commit style by analyzing the last 10 commits:
+1. Retrieve the project's historical commit style by analyzing the last 20 commits:
    ```powershell
-   git log -n 10 --oneline
+   git log -n 20 --oneline
    ```
 
 2. Retrieve the staged diff:
