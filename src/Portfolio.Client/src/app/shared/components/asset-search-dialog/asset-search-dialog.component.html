@@ -7,7 +7,7 @@
             [formControl]="searchControl" 
             placeholder="Search assets e.g. BTC, TSLA" 
             autoFocus />
-        <button class="close-btn" (click)="close()">
+        <button class="close-btn" (click)="close()" aria-label="Close search" title="Close">
             <mat-icon>close</mat-icon>
         </button>
     </div>
@@ -28,7 +28,12 @@
         } @else {
             <ul class="asset-list">
                 @for (asset of filteredAssets(); track asset.externalId || asset.id) {
-                    <li class="asset-item" (click)="selectAsset(asset)">
+                    <li class="asset-item" 
+                        role="button" 
+                        tabindex="0" 
+                        (click)="selectAsset(asset)" 
+                        (keydown.enter)="selectAsset(asset)" 
+                        [attr.aria-label]="'Select ' + asset.name">
                         <app-asset-avatar 
                             class="asset-item__avatar"
                             [imageUrl]="asset.imageUrl" 
