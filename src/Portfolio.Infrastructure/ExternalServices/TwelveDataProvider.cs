@@ -17,6 +17,14 @@ public class TwelveDataProvider(
     private readonly string _baseUrl = configuration["TwelveData:BaseUrl"] ?? "https://api.twelvedata.com/";
     private readonly string? _apiKey = configuration["TwelveData:ApiKey"];
 
+    // Maps Twelve Data's instrument_type string → our AssetType
+    private static readonly Dictionary<string, AssetType> InstrumentTypeMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Common Stock"]     = AssetType.Stock,
+        ["ETF"]              = AssetType.Index,
+        ["Digital Currency"] = AssetType.Crypto,
+    };
+
     // ── IAssetPriceProvider ──────────────────────────────────────────────
 
     public async Task<Dictionary<string, decimal>> GetPricesAsync(IEnumerable<string> externalIds, FiatCurrency currency)
@@ -75,18 +83,15 @@ public class TwelveDataProvider(
 
     // ── IAssetSearchProvider ─────────────────────────────────────────────
 
-    public async Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(AssetType type, string query)
+    public async Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(string query)
     {
         if (string.IsNullOrWhiteSpace(query)) return [];
-        if (type != AssetType.Stock && type != AssetType.Index) return [];
 
-        // Map our domain type to Twelve Data's instrument type
-        string instrumentType = type == AssetType.Index ? "ETF" : "Common Stock";
-        string url = $"{_baseUrl}symbol_search?symbol={Uri.EscapeDataString(query)}&instrument_type={Uri.EscapeDataString(instrumentType)}&apikey={_apiKey}";
+        var url = $"{_baseUrl}symbol_search?symbol={Uri.EscapeDataString(query)}&apikey={_apiKey}";
 
         try
         {
-            logger.LogInformation("Searching for '{Query}' ({Type}) on Twelve Data...", query, type.Value);
+            logger.LogInformation("Searching Twelve Data for '{Query}'...", query);
             var response = await httpClient.GetFromJsonAsync<TwelveDataSearchResponseDto>(url);
 
             if (response?.Data == null)
@@ -96,15 +101,16 @@ public class TwelveDataProvider(
             }
 
             return response.Data
-                .Where(d => !string.IsNullOrEmpty(d.Symbol) && !string.IsNullOrEmpty(d.InstrumentName))
+                .Where(d => !string.IsNullOrEmpty(d.Symbol)
+                         && !string.IsNullOrEmpty(d.InstrumentName)
+                         && InstrumentTypeMap.TryGetValue(d.InstrumentType ?? "", out _))
                 .Select(d => new SearchAssetResult(
                     new Asset(
                         d.Symbol.ToUpper(),
                         d.InstrumentName,
-                        // ExternalId = the ticker symbol (e.g. "AAPL"), used later for price lookup
-                        d.Symbol.ToUpper(),
+                        externalId: d.Symbol.ToUpper(),
                         imageUrl: null,
-                        type
+                        InstrumentTypeMap[d.InstrumentType!]
                     ),
                     MarketCapRank: null
                 ));

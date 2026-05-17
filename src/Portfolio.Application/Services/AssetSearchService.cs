@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
@@ -11,7 +10,7 @@ namespace Portfolio.Application.Services;
 
 public class AssetSearchService(
     IUnitOfWork unitOfWork,
-    IServiceProvider serviceProvider,
+    IEnumerable<IAssetSearchProvider> searchProviders,
     ILogger<AssetSearchService> logger) : IAssetSearchService
 {
     // Minimum query length required to trigger external provider searches.
@@ -66,7 +65,7 @@ public class AssetSearchService(
         asset.Type.Value.Equals(type, StringComparison.OrdinalIgnoreCase);
 
     // -------------------------------------------------------------------------
-    // Step 2 — External provider fan-out
+    // Step 2 — External provider fan-out (one call per provider, in parallel)
     // -------------------------------------------------------------------------
 
     private async Task<List<SearchAssetResult>> SearchExternalProvidersAsync(string? query, string? type)
@@ -74,29 +73,24 @@ public class AssetSearchService(
         if (string.IsNullOrWhiteSpace(query) || query.Length < ExternalSearchMinLength)
             return [];
 
-        var targetTypes = ResolveTargetTypes(type);
-        var searchTasks = targetTypes.Select(assetType => SearchProviderAsync(assetType, query)).ToList();
+        // Fan out to every registered provider concurrently
+        var searchTasks = searchProviders
+            .Select(provider => provider.SearchAssetsAsync(query))
+            .ToList();
 
         logger.LogDebug("Dispatching {Count} external search task(s).", searchTasks.Count);
 
         var resultArrays = await Task.WhenAll(searchTasks);
         var externalResults = resultArrays.SelectMany(r => r).ToList();
 
+        // If the caller specified a type filter, apply it after merging
+        if (!string.IsNullOrEmpty(type))
+            externalResults = externalResults
+                .Where(r => r.Asset.Type.Value.Equals(type, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
         logger.LogDebug("Found {Count} external matches.", externalResults.Count);
         return externalResults;
-    }
-
-    private static IEnumerable<AssetType> ResolveTargetTypes(string? type) =>
-        string.IsNullOrEmpty(type)
-            ? AssetType.List.Where(t => t.CanBeSearchedExternally)
-            : [AssetType.FromValue(type)];
-
-    private Task<IEnumerable<SearchAssetResult>> SearchProviderAsync(AssetType assetType, string query)
-    {
-        var provider = serviceProvider.GetKeyedService<IAssetSearchProvider>(assetType.Value);
-        return provider is not null
-            ? provider.SearchAssetsAsync(assetType, query)
-            : Task.FromResult(Enumerable.Empty<SearchAssetResult>());
     }
 
     // -------------------------------------------------------------------------

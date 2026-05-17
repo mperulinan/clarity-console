@@ -120,9 +120,9 @@ public class CoinGeckoProvider(
         [property: JsonPropertyName("coins")] List<CoinGeckoSearchItemDto> Coins
     );
 
-    public async Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(AssetType type, string query)
+    public async Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(string query)
     {
-        if (type != AssetType.Crypto || string.IsNullOrWhiteSpace(query)) return [];
+        if (string.IsNullOrWhiteSpace(query)) return [];
 
         string url = $"{_baseUrl}search?query={Uri.EscapeDataString(query)}&x_cg_demo_api_key={_apiKey}";
 

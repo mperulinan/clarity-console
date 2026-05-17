@@ -64,10 +64,9 @@ builder.Services.AddKeyedScoped<IAssetPriceProvider>(AssetType.Index.Value, (sp,
 
 builder.Services.AddScoped<IAssetPriceProviderFactory, KeyedAssetPriceProviderFactory>();
 
-// ── Search Providers (keyed by AssetType.Value) ──
-builder.Services.AddKeyedScoped<IAssetSearchProvider>(AssetType.Crypto.Value, (sp, _) => sp.GetRequiredService<CoinGeckoProvider>());
-builder.Services.AddKeyedScoped<IAssetSearchProvider>(AssetType.Stock.Value, (sp, _) => sp.GetRequiredService<TwelveDataProvider>());
-builder.Services.AddKeyedScoped<IAssetSearchProvider>(AssetType.Index.Value, (sp, _) => sp.GetRequiredService<TwelveDataProvider>());
+// ── Search Providers (each called once per search, type mapping is internal) ──
+builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
+builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<TwelveDataProvider>());
 
 builder.Services.AddScoped<IAssetCatalogProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
 builder.Services.AddScoped<IAssetSynchronizationService, AssetSynchronizationService>();
