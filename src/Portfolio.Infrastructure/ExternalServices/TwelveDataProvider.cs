@@ -12,7 +12,7 @@ public class TwelveDataProvider(
     HttpClient httpClient,
     IConfiguration configuration,
     ILogger<TwelveDataProvider> logger)
-    : IAssetPriceProvider, IAssetSearchProvider
+    : IAssetPriceProvider, IAssetSearchProvider, IAssetCatalogProvider
 {
     private readonly string _baseUrl = configuration["TwelveData:BaseUrl"] ?? "https://api.twelvedata.com/";
     private readonly string? _apiKey = configuration["TwelveData:ApiKey"];
@@ -21,9 +21,15 @@ public class TwelveDataProvider(
     private static readonly Dictionary<string, AssetType> InstrumentTypeMap = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Common Stock"]     = AssetType.Stock,
-        ["ETF"]              = AssetType.Index,
+        ["ETF"]              = AssetType.Etf,
         ["Digital Currency"] = AssetType.Crypto,
     };
+
+    private string GetApiUrl(string endpoint)
+    {
+        string separator = endpoint.Contains('?') ? "&" : "?";
+        return $"{_baseUrl}{endpoint}{separator}apikey={_apiKey}";
+    }
 
     // ── IAssetPriceProvider ──────────────────────────────────────────────
 
@@ -34,7 +40,7 @@ public class TwelveDataProvider(
 
         // Twelve Data supports a comma-separated list of symbols in one call
         string symbolsParam = string.Join(",", symbols);
-        string url = $"{_baseUrl}price?symbol={Uri.EscapeDataString(symbolsParam)}&apikey={_apiKey}";
+        string url = GetApiUrl($"price?symbol={Uri.EscapeDataString(symbolsParam)}");
 
         try
         {
@@ -87,7 +93,7 @@ public class TwelveDataProvider(
     {
         if (string.IsNullOrWhiteSpace(query)) return [];
 
-        var url = $"{_baseUrl}symbol_search?symbol={Uri.EscapeDataString(query)}&apikey={_apiKey}";
+        var url = GetApiUrl($"symbol_search?symbol={Uri.EscapeDataString(query)}");
 
         try
         {
@@ -107,7 +113,7 @@ public class TwelveDataProvider(
                 .Select(d => new SearchAssetResult(
                     new Asset(
                         d.Symbol.ToUpper(),
-                        d.InstrumentName,
+                        d.Name ?? d.InstrumentName ?? d.Symbol,
                         externalId: d.Symbol.ToUpper(),
                         imageUrl: null,
                         InstrumentTypeMap[d.InstrumentType!]
@@ -122,6 +128,52 @@ public class TwelveDataProvider(
         }
     }
 
+    // ── IAssetCatalogProvider ────────────────────────────────────────────
+
+    public async Task<IEnumerable<Asset>> GetTopAssetsAsync(AssetType type, int count = 250)
+    {
+        if (type.IsCrypto() || (type != AssetType.Stock && type != AssetType.Etf))
+            return [];
+
+        var candidates = await FetchCandidatesAsync(type);
+
+        return candidates
+            .Where(c => !string.IsNullOrWhiteSpace(c.Symbol))
+            .OrderBy(_ => Random.Shared.Next())
+            .Take(count)
+            .Select(c => new Asset(
+                c.Symbol.ToUpper(),
+                c.Name ?? c.InstrumentName ?? c.Symbol,
+                externalId: c.Symbol.ToUpper(),
+                imageUrl: null,
+                type));
+    }
+
+    public Task<IEnumerable<Asset>> GetAssetsByExternalIdsAsync(AssetType type, IEnumerable<string> externalIds)
+        => Task.FromResult<IEnumerable<Asset>>([]);
+
+    /// <summary>
+    /// Fetches the raw list of symbol candidates for the given asset type from the
+    /// appropriate metadata endpoint (no quote credits consumed).
+    /// </summary>
+    private async Task<List<TwelveDataSearchItemDto>> FetchCandidatesAsync(AssetType type)
+    {
+        try
+        {
+            string url = type == AssetType.Stock
+                ? GetApiUrl("stocks?exchange=NASDAQ&country=US&type=Common%20Stock")
+                : GetApiUrl("etf?exchange=NYSE");
+
+            var response = await httpClient.GetFromJsonAsync<TwelveDataSearchResponseDto>(url);
+            return response?.Data ?? [];
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to fetch symbol candidates from TwelveData for {Type}.", type.Name);
+            return [];
+        }
+    }
+
     // ── DTOs ─────────────────────────────────────────────────────────────
 
     private record TwelveDataPriceDto(
@@ -130,8 +182,10 @@ public class TwelveDataProvider(
 
     private record TwelveDataSearchItemDto(
         [property: JsonPropertyName("symbol")] string Symbol,
-        [property: JsonPropertyName("instrument_name")] string InstrumentName,
+        [property: JsonPropertyName("instrument_name")] string? InstrumentName,
+        [property: JsonPropertyName("name")] string? Name,
         [property: JsonPropertyName("exchange")] string? Exchange,
+        [property: JsonPropertyName("type")] string? Type,
         [property: JsonPropertyName("instrument_type")] string? InstrumentType,
         [property: JsonPropertyName("country")] string? Country
     );

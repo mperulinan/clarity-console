@@ -56,7 +56,7 @@ builder.Services.AddKeyedScoped<IAssetPriceProvider>(AssetType.Stock.Value, (sp,
         sp.GetRequiredService<IMemoryCache>(),
         sp.GetRequiredService<ILogger<AssetPriceCacheService>>()));
 
-builder.Services.AddKeyedScoped<IAssetPriceProvider>(AssetType.Index.Value, (sp, _) =>
+builder.Services.AddKeyedScoped<IAssetPriceProvider>(AssetType.Etf.Value, (sp, _) =>
     new AssetPriceCacheService(
         sp.GetRequiredService<TwelveDataProvider>(),
         sp.GetRequiredService<IMemoryCache>(),
@@ -69,6 +69,7 @@ builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<Coi
 builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<TwelveDataProvider>());
 
 builder.Services.AddScoped<IAssetCatalogProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
+builder.Services.AddScoped<IAssetCatalogProvider>(sp => sp.GetRequiredService<TwelveDataProvider>());
 builder.Services.AddScoped<IAssetSynchronizationService, AssetSynchronizationService>();
 
 builder.Services.AddScoped<IAssetMarketDataService, AssetMarketDataService>();
