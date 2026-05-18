@@ -12,7 +12,7 @@ public class TwelveDataProvider(
     HttpClient httpClient,
     IConfiguration configuration,
     ILogger<TwelveDataProvider> logger)
-    : IAssetPriceProvider, IAssetSearchProvider, IAssetCatalogProvider
+    : IAssetPriceProvider, IAssetSearchProvider, IAssetCatalogProvider, IAssetLogoProvider
 {
     private readonly string _baseUrl = configuration["TwelveData:BaseUrl"] ?? "https://api.twelvedata.com/";
     private readonly string? _apiKey = configuration["TwelveData:ApiKey"];
@@ -128,6 +128,25 @@ public class TwelveDataProvider(
         }
     }
 
+    // ── IAssetLogoProvider ──────────────────────────────────────────────
+
+    public async Task<string?> GetLogoUrlAsync(string symbol)
+    {
+        if (string.IsNullOrWhiteSpace(symbol)) return null;
+
+        string url = GetApiUrl($"logo?symbol={Uri.EscapeDataString(symbol)}");
+        try
+        {
+            var response = await httpClient.GetFromJsonAsync<TwelveDataLogoDto>(url);
+            return response?.Url;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to fetch logo for {Symbol} from TwelveData.", symbol);
+            return null;
+        }
+    }
+
     // ── IAssetCatalogProvider ────────────────────────────────────────────
 
     public async Task<IEnumerable<Asset>> GetTopAssetsAsync(AssetType type, int count = 250)
@@ -175,6 +194,10 @@ public class TwelveDataProvider(
     }
 
     // ── DTOs ─────────────────────────────────────────────────────────────
+
+    private record TwelveDataLogoDto(
+        [property: JsonPropertyName("url")] string? Url
+    );
 
     private record TwelveDataPriceDto(
         [property: JsonPropertyName("price")] string? Price

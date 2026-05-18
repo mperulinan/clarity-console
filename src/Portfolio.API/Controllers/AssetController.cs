@@ -13,7 +13,9 @@ namespace Portfolio.API.Controllers;
 public class AssetController(
     IAssetSearchService assetSearchService,
     IUnitOfWork unitOfWork,
-    IAssetSynchronizationService syncService) : ControllerBase
+    IAssetSynchronizationService syncService,
+    [FromKeyedServices("STOCK")] IAssetLogoProvider stockLogoProvider,
+    [FromKeyedServices("ETF")] IAssetLogoProvider etfLogoProvider) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AssetDto>>> GetAssets()
@@ -38,20 +40,41 @@ public class AssetController(
         if (string.IsNullOrWhiteSpace(request?.ExternalId))
             return BadRequest("ExternalId is required for synchronization.");
 
-        var existingAssets = await unitOfWork.Assets.GetByExternalIdsAsync(new[] { request.ExternalId });
+        var existingAssets = await unitOfWork.Assets.GetByExternalIdsAsync([request.ExternalId]);
         var existingAsset = existingAssets.FirstOrDefault();
 
         if (existingAsset != null)
         {
-            return Ok(existingAsset.ToDto());
+            // If the existing record already has a logo, return it immediately.
+            if (!string.IsNullOrEmpty(existingAsset.ImageUrl))
+                return Ok(existingAsset.ToDto());
+
+            // Otherwise fall through to the lazy logo-fetch below and update the record.
         }
 
         var assetType = string.IsNullOrEmpty(request.Type) ? AssetType.Crypto : AssetType.FromValue(request.Type);
-        var newAsset = new Asset(request.Symbol, request.Name, request.ExternalId, request.ImageUrl, assetType);
 
-        await syncService.SynchronizeCatalogAsync(new[] { newAsset });
+        // Lazy logo fetch: if the user selected a Stock or ETF with no image, fetch it now.
+        string? imageUrl = request.ImageUrl ?? existingAsset?.ImageUrl;
+        if (imageUrl == null && assetType is { } t && (t == AssetType.Stock || t == AssetType.Etf))
+        {
+            var logoProvider = t == AssetType.Stock ? stockLogoProvider : etfLogoProvider;
+            imageUrl = await logoProvider.GetLogoUrlAsync(request.Symbol);
+        }
 
-        var syncedAssets = await unitOfWork.Assets.GetByExternalIdsAsync(new[] { request.ExternalId });
+        if (existingAsset != null)
+        {
+            // Asset exists but had no logo — patch it and return.
+            existingAsset.UpdateMetadata(existingAsset.Symbol, existingAsset.Name, imageUrl);
+            await unitOfWork.SaveChangesAsync();
+            return Ok(existingAsset.ToDto());
+        }
+
+        var newAsset = new Asset(request.Symbol, request.Name, request.ExternalId, imageUrl, assetType);
+
+        await syncService.SynchronizeCatalogAsync([newAsset]);
+
+        var syncedAssets = await unitOfWork.Assets.GetByExternalIdsAsync([request.ExternalId]);
         var syncedAsset = syncedAssets.FirstOrDefault();
 
         if (syncedAsset == null)

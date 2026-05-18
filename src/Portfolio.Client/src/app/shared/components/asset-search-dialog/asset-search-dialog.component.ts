@@ -61,7 +61,12 @@ export class AssetSearchDialogComponent implements OnInit {
     if (!asset) return;
     this.syncError.set(null);
 
-    if (!asset.id || asset.id === '00000000-0000-0000-0000-000000000000') {
+    const needsSync =
+      !asset.id ||
+      asset.id === '00000000-0000-0000-0000-000000000000' ||
+      !asset.imageUrl;
+
+    if (needsSync) {
       this.isSyncingAsset.set(true);
       this.searchControl.disable({ emitEvent: false });
 

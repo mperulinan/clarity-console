@@ -62,6 +62,10 @@ builder.Services.AddKeyedScoped<IAssetPriceProvider>(AssetType.Etf.Value, (sp, _
         sp.GetRequiredService<IMemoryCache>(),
         sp.GetRequiredService<ILogger<AssetPriceCacheService>>()));
 
+// ── Logo Providers (keyed by AssetType.Value) ──
+builder.Services.AddKeyedScoped<IAssetLogoProvider>(AssetType.Stock.Value, (sp, _) => sp.GetRequiredService<TwelveDataProvider>());
+builder.Services.AddKeyedScoped<IAssetLogoProvider>(AssetType.Etf.Value, (sp, _) => sp.GetRequiredService<TwelveDataProvider>());
+
 builder.Services.AddScoped<IAssetPriceProviderFactory, KeyedAssetPriceProviderFactory>();
 
 // ── Search Providers (each call wrapped in a caching decorator) ──
