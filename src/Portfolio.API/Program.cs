@@ -64,9 +64,16 @@ builder.Services.AddKeyedScoped<IAssetPriceProvider>(AssetType.Etf.Value, (sp, _
 
 builder.Services.AddScoped<IAssetPriceProviderFactory, KeyedAssetPriceProviderFactory>();
 
-// ── Search Providers (each called once per search, type mapping is internal) ──
-builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
-builder.Services.AddScoped<IAssetSearchProvider>(sp => sp.GetRequiredService<TwelveDataProvider>());
+// ── Search Providers (each call wrapped in a caching decorator) ──
+builder.Services.AddScoped<IAssetSearchProvider>(sp => new AssetSearchCacheService(
+    sp.GetRequiredService<CoinGeckoProvider>(),
+    sp.GetRequiredService<IMemoryCache>(),
+    sp.GetRequiredService<ILogger<AssetSearchCacheService>>()));
+
+builder.Services.AddScoped<IAssetSearchProvider>(sp => new AssetSearchCacheService(
+    sp.GetRequiredService<TwelveDataProvider>(),
+    sp.GetRequiredService<IMemoryCache>(),
+    sp.GetRequiredService<ILogger<AssetSearchCacheService>>()));
 
 builder.Services.AddScoped<IAssetCatalogProvider>(sp => sp.GetRequiredService<CoinGeckoProvider>());
 builder.Services.AddScoped<IAssetCatalogProvider>(sp => sp.GetRequiredService<TwelveDataProvider>());
