@@ -1,6 +1,6 @@
 ---
 name: dotnet-developer
-description: Strict guidelines for .NET 10: SOLID, TDD, Clean Architecture, and DDD.
+description: "Strict guidelines for .NET 10: SOLID, TDD, Clean Architecture, and DDD."
 triggers: [backend, csharp, dotnet, repository, service, controller, test, xunit, refactor, aggregate, domain]
 ---
 
