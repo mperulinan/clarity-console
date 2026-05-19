@@ -13,7 +13,7 @@ namespace Portfolio.Application.CQRS.Commands;
 public class SyncAssetCommandHandler(
     IUnitOfWork unitOfWork,
     IAssetSynchronizationService syncService,
-    IServiceProvider serviceProvider,
+    IEnumerable<IAssetLogoProvider> logoProviders,
     ILogger<SyncAssetCommandHandler> logger)
     : IRequestHandler<SyncAssetCommand, AssetDto>
 {
@@ -24,32 +24,21 @@ public class SyncAssetCommandHandler(
         if (string.IsNullOrWhiteSpace(request?.ExternalId))
             throw new ArgumentException("ExternalId is required for synchronization.", nameof(command));
 
-        var existingAssets = await unitOfWork.Assets.GetByExternalIdsAsync([request.ExternalId]);
-        var existingAsset = existingAssets.FirstOrDefault();
+        var existingAsset = (await unitOfWork.Assets.GetByExternalIdsAsync([request.ExternalId])).FirstOrDefault();
 
-        if (existingAsset != null)
+        // If asset already exists and has a logo, we're done.
+        if (existingAsset != null && !string.IsNullOrEmpty(existingAsset.ImageUrl))
         {
-            // If the existing record already has a logo, return it immediately.
-            if (!string.IsNullOrEmpty(existingAsset.ImageUrl))
-                return existingAsset.ToDto();
+            return existingAsset.ToDto();
         }
 
         var assetType = string.IsNullOrEmpty(request.Type) ? AssetType.Crypto : AssetType.FromValue(request.Type);
-
-        // Lazy logo fetch: if the user selected a Stock or ETF with no image, fetch it now.
-        string? imageUrl = request.ImageUrl ?? existingAsset?.ImageUrl;
-        if (imageUrl == null && assetType is { } t && (t == AssetType.Stock || t == AssetType.Etf))
-        {
-            var logoProvider = serviceProvider.GetKeyedService<IAssetLogoProvider>(t.Value);
-            if (logoProvider != null)
-            {
-                imageUrl = await logoProvider.GetLogoUrlAsync(request.Symbol);
-            }
-        }
+        
+        // Attempt lazy logo fetch if missing
+        string? imageUrl = await ResolveLogoUrlAsync(request.Symbol, request.ImageUrl ?? existingAsset?.ImageUrl, assetType);
 
         if (existingAsset != null)
         {
-            // Asset exists but had no logo — patch it and return.
             existingAsset.UpdateMetadata(existingAsset.Symbol, existingAsset.Name, imageUrl);
             await unitOfWork.SaveChangesAsync();
             logger.LogInformation("Updated metadata for existing asset {Symbol} ({Id}).", existingAsset.Symbol, existingAsset.Id);
@@ -57,16 +46,26 @@ public class SyncAssetCommandHandler(
         }
 
         var newAsset = new Asset(request.Symbol, request.Name, request.ExternalId, imageUrl, assetType);
-
         await syncService.SynchronizeCatalogAsync([newAsset]);
 
-        var syncedAssets = await unitOfWork.Assets.GetByExternalIdsAsync([request.ExternalId]);
-        var syncedAsset = syncedAssets.FirstOrDefault();
-
+        var syncedAsset = (await unitOfWork.Assets.GetByExternalIdsAsync([request.ExternalId])).FirstOrDefault();
         if (syncedAsset == null)
             throw new InvalidOperationException($"Failed to synchronize asset {request.Symbol}.");
 
         logger.LogInformation("Synchronized new asset {Symbol} ({Id}).", syncedAsset.Symbol, syncedAsset.Id);
         return syncedAsset.ToDto();
+    }
+
+    private async Task<string?> ResolveLogoUrlAsync(string symbol, string? currentImageUrl, AssetType type)
+    {
+        if (currentImageUrl != null) return currentImageUrl;
+
+        var provider = logoProviders.FirstOrDefault(p => p.Supports(type));
+        if (provider != null)
+        {
+            return await provider.GetLogoUrlAsync(symbol);
+        }
+
+        return null;
     }
 }

@@ -130,6 +130,8 @@ public class TwelveDataProvider(
 
     // ── IAssetLogoProvider ──────────────────────────────────────────────
 
+    public bool Supports(AssetType type) => type == AssetType.Stock || type == AssetType.Etf;
+
     public async Task<string?> GetLogoUrlAsync(string symbol)
     {
         if (string.IsNullOrWhiteSpace(symbol)) return null;
