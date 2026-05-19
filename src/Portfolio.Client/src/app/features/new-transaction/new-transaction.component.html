@@ -393,7 +393,7 @@
                                         <div class="flex items-center lg:justify-end gap-2">
                                             <span class="fee-tile-total">
                                                 @if (hasFiatFee()) {
-                                                {{ model().fee | currency:effectiveFeeSpotPriceCurrency():'symbol' }}
+                                                {{ model().fee | currency:feeAssetSymbol():'symbol' }}
                                                 } @else {
                                                 {{ (model().fee * (effectiveFeeSpotPrice() || 0)) | currency:effectiveFeeSpotPriceCurrency():'symbol' }}
                                                 }
