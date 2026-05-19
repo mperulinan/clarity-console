@@ -6,6 +6,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of, throwError, firstValueFrom } from 'rxjs';
 import { TransactionType } from '../../models/transaction';
 import { AssetDto } from '../../models/asset';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 describe('NewTransactionComponent', () => {
   let component: NewTransactionComponent;
@@ -39,7 +40,8 @@ describe('NewTransactionComponent', () => {
       imports: [NewTransactionComponent, NoopAnimationsModule],
       providers: [
         { provide: PortfolioService, useValue: portfolioServiceSpy },
-        { provide: Router, useValue: routerSpy }
+        { provide: Router, useValue: routerSpy },
+        provideNativeDateAdapter()
       ]
     })
     .compileComponents();

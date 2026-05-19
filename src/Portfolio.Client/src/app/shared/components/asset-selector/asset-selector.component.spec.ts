@@ -1,19 +1,15 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AssetSelectorComponent } from './asset-selector.component';
-import { PortfolioService } from '../../../services/portfolio.service';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { AssetDto } from '../../../models/asset';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { By } from '@angular/platform-browser';
 
 describe('AssetSelectorComponent', () => {
   let component: AssetSelectorComponent;
   let fixture: ComponentFixture<AssetSelectorComponent>;
-  let portfolioServiceSpy: any;
-  let loader: HarnessLoader;
+  let dialogSpy: any;
 
   const mockAsset: AssetDto = {
     id: '1',
@@ -24,72 +20,126 @@ describe('AssetSelectorComponent', () => {
   };
 
   beforeEach(async () => {
-    // Basic mock using Vitest vi.fn() or simple jasmine-like object
-    portfolioServiceSpy = {
-      searchAssets: (query: string) => of([mockAsset]),
-      syncAsset: (asset: AssetDto) => of(asset)
+    dialogSpy = {
+      open: vi.fn().mockReturnValue({
+        afterClosed: () => of(undefined)
+      })
     };
 
     await TestBed.configureTestingModule({
-      imports: [AssetSelectorComponent, NoopAnimationsModule],
-      providers: [
-        { provide: PortfolioService, useValue: portfolioServiceSpy }
-      ]
+      imports: [AssetSelectorComponent, NoopAnimationsModule]
+    })
+    .overrideComponent(AssetSelectorComponent, {
+      set: {
+        providers: [
+          { provide: MatDialog, useValue: dialogSpy }
+        ]
+      }
     })
     .compileComponents();
     
     fixture = TestBed.createComponent(AssetSelectorComponent);
     component = fixture.componentInstance;
-    loader = TestbedHarnessEnvironment.loader(fixture);
   });
 
   it('should create', () => {
+    fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
-  it('should display the initial value if provided', async () => {
+  it('should display placeholder when no value is selected', () => {
+    fixture.componentRef.setInput('placeholder', 'Select Asset');
+    fixture.componentRef.setInput('value', null);
+    fixture.detectChanges();
+
+    const placeholderEl = fixture.debugElement.query(By.css('.selector-trigger__placeholder'));
+    expect(placeholderEl).toBeTruthy();
+    expect(placeholderEl.nativeElement.textContent.trim()).toBe('Select Asset');
+
+    const chipEl = fixture.debugElement.query(By.css('.asset-chip'));
+    expect(chipEl).toBeFalsy();
+  });
+
+  it('should display the asset chip when value is provided', () => {
+    fixture.componentRef.setInput('value', mockAsset);
+    fixture.componentRef.setInput('chipClass', 'custom-chip');
+    fixture.detectChanges();
+
+    const chipEl = fixture.debugElement.query(By.css('.custom-chip'));
+    expect(chipEl).toBeTruthy();
+
+    const symbolEl = fixture.debugElement.query(By.css('.asset-chip__symbol'));
+    expect(symbolEl.nativeElement.textContent.trim()).toBe('BTC');
+
+    const nameEl = fixture.debugElement.query(By.css('.asset-chip__name'));
+    expect(nameEl.nativeElement.textContent.trim()).toBe('Bitcoin');
+
+    const placeholderEl = fixture.debugElement.query(By.css('.selector-trigger__placeholder'));
+    expect(placeholderEl).toBeFalsy();
+  });
+
+  it('should emit assetChange with null when clearAsset is clicked', () => {
     fixture.componentRef.setInput('value', mockAsset);
     fixture.detectChanges();
-    await new Promise(r => setTimeout(r, 350));
-    expect(component.searchControl.value).toEqual(mockAsset);
+
+    let emittedValue: AssetDto | null | undefined = undefined;
+    component.assetChange.subscribe(val => emittedValue = val);
+
+    const clearButton = fixture.debugElement.query(By.css('.asset-chip__clear'));
+    expect(clearButton).toBeTruthy();
+    
+    clearButton.nativeElement.click();
+    expect(emittedValue).toBeNull();
   });
 
-  it('should clear selection when input is blurred and is a string', async () => {
-    fixture.componentRef.setInput('value', mockAsset);
+  it('should open dialog when trigger is clicked and not disabled', () => {
+    fixture.componentRef.setInput('value', null);
+    fixture.componentRef.setInput('disabled', false);
     fixture.detectChanges();
-    await new Promise(r => setTimeout(r, 50));
-    
-    component.searchControl.setValue('invalid text');
-    component.onAssetInputBlur();
-    
-    expect(component.selectedAsset()).toBeNull();
-    expect(component.searchControl.value).toBeNull();
+
+    const trigger = fixture.debugElement.query(By.css('.selector-trigger'));
+    expect(trigger).toBeTruthy();
+
+    trigger.nativeElement.click();
+
+    expect(dialogSpy.open).toHaveBeenCalled();
   });
 
-  it('should emit assetChange when an asset is selected via autocomplete', async () => {
-    let emittedAsset: AssetDto | null = null;
-    component.assetChange.subscribe(val => emittedAsset = val);
-    
+  it('should emit assetChange when dialog returns a value', () => {
+    const selectedAsset: AssetDto = {
+      id: '2',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      type: 'Crypto',
+      transactionCount: 0
+    };
+
+    dialogSpy.open.mockReturnValue({
+      afterClosed: () => of(selectedAsset)
+    });
+
+    fixture.componentRef.setInput('value', null);
     fixture.detectChanges();
-    
-    // Simulate user typing
-    component.searchControl.setValue('Bit');
-    await new Promise(r => setTimeout(r, 350)); // Wait for debounceTime
-    fixture.detectChanges();
-    
-    // Simulate option selected
-    component.onAssetSelected({ option: { value: mockAsset } } as any);
-    await new Promise(r => setTimeout(r, 50));
-    
-    expect(emittedAsset).toEqual(mockAsset);
-    expect(component.selectedAsset()).toEqual(mockAsset);
+
+    let emittedValue: AssetDto | null | undefined = undefined;
+    component.assetChange.subscribe(val => emittedValue = val);
+
+    const trigger = fixture.debugElement.query(By.css('.selector-trigger'));
+    trigger.nativeElement.click();
+
+    expect(emittedValue).toEqual(selectedAsset);
   });
 
-  it('should disable input when disabled input is true', async () => {
+  it('should not open dialog when trigger is clicked and disabled is true', () => {
+    fixture.componentRef.setInput('value', null);
     fixture.componentRef.setInput('disabled', true);
     fixture.detectChanges();
-    await new Promise(r => setTimeout(r, 50));
-    
-    expect(component.searchControl.disabled).toBe(true);
+
+    const trigger = fixture.debugElement.query(By.css('.selector-trigger'));
+    expect(trigger).toBeTruthy();
+
+    trigger.nativeElement.click();
+
+    expect(dialogSpy.open).not.toHaveBeenCalled();
   });
 });
