@@ -15,19 +15,24 @@ describe('ButtonComponent', () => {
     component = fixture.componentInstance;
   });
 
+  function nativeButton(): HTMLButtonElement {
+    return fixture.nativeElement.querySelector('button')!;
+  }
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should set default host classes', async () => {
+  it('should set default classes on the native button', async () => {
     await fixture.whenStable();
-    expect(fixture.nativeElement.className).toContain('btn-text');
-    expect(fixture.nativeElement.className).toContain('color-primary');
-    expect(fixture.nativeElement.className).toContain('size-md');
-    expect(fixture.nativeElement.className).toContain('justify-center');
+    const btn = nativeButton();
+    expect(btn.className).toContain('btn-text');
+    expect(btn.className).toContain('color-primary');
+    expect(btn.className).toContain('size-md');
+    expect(btn.className).toContain('justify-center');
   });
 
-  it('should update host classes when inputs change', async () => {
+  it('should update button classes when inputs change', async () => {
     fixture.componentRef.setInput('variant', 'filled');
     fixture.componentRef.setInput('color', 'error');
     fixture.componentRef.setInput('size', 'lg');
@@ -35,21 +40,22 @@ describe('ButtonComponent', () => {
     
     await fixture.whenStable();
     
-    expect(fixture.nativeElement.className).toContain('btn-filled');
-    expect(fixture.nativeElement.className).toContain('color-error');
-    expect(fixture.nativeElement.className).toContain('size-lg');
-    expect(fixture.nativeElement.className).toContain('justify-start');
+    const btn = nativeButton();
+    expect(btn.className).toContain('btn-filled');
+    expect(btn.className).toContain('color-error');
+    expect(btn.className).toContain('size-lg');
+    expect(btn.className).toContain('justify-start');
   });
 
-  it('should set disabled attribute', async () => {
+  it('should disable the native button', async () => {
     fixture.componentRef.setInput('disabled', true);
     await fixture.whenStable();
-    expect(fixture.nativeElement.getAttribute('disabled')).toBeTruthy();
+    expect(nativeButton().disabled).toBe(true);
   });
 
-  it('should not set disabled attribute when false', async () => {
-    fixture.componentRef.setInput('disabled', false);
+  it('should forward type to the native button', async () => {
+    fixture.componentRef.setInput('type', 'submit');
     await fixture.whenStable();
-    expect(fixture.nativeElement.getAttribute('disabled')).toBeFalsy();
+    expect(nativeButton().type).toBe('submit');
   });
 });

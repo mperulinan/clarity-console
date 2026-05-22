@@ -52,7 +52,7 @@
             New Transaction
         </h2>
 
-        <form (ngSubmit)="onSubmit(); $event.preventDefault()" class="flex flex-col">
+        <form [formRoot]="transactionForm" class="flex flex-col">
             <mat-stepper [linear]="true" #stepper class="bg-transparent">
 
                 <!-- ── STEP 1: CORE DETAILS ───────────────────────────── -->
@@ -133,7 +133,7 @@
                     }
 
                     <div class="action-buttons action-buttons--flush">
-                        <app-button variant="tonal" color="primary" (click)="stepper.next()" [disabled]="!isStep1Valid()">Next</app-button>
+                        <app-button type="button" variant="tonal" color="primary" (click)="stepper.next()" [disabled]="!isStep1Valid()">Next</app-button>
                     </div>
                 </mat-step>
 
@@ -256,13 +256,13 @@
                     </div>
 
                     <div class="action-buttons action-buttons--flush">
-                        <app-button variant="text" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
-                        <app-button variant="tonal" color="primary" (click)="stepper.next()" [disabled]="!isStep2Valid()">Next</app-button>
+                        <app-button type="button" variant="text" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
+                        <app-button type="button" variant="tonal" color="primary" (click)="stepper.next()" [disabled]="!isStep2Valid()">Next</app-button>
                     </div>
                 </mat-step>
 
                 <!-- ── STEP 3: REVIEW ─────────────────────────────────── -->
-                <mat-step>
+                <mat-step [completed]="transactionForm().valid()">
                     <ng-template matStepLabel>Review</ng-template>
 
                     <div class="mt-4">
@@ -424,8 +424,8 @@
 
                     <!-- ── ACTIONS ────────────────────────────────────────── -->
                     <div class="action-buttons action-buttons--flush">
-                        <app-button variant="text" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
-                        <app-button variant="text" color="muted" (click)="onCancel()">Cancel</app-button>
+                        <app-button type="button" variant="text" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
+                        <app-button type="button" variant="text" color="muted" (click)="onCancel()">Cancel</app-button>
                         <app-button variant="outlined" color="primary" type="submit"
                             [disabled]="transactionForm().invalid() || isSubmitting()">
                             @if (isSubmitting()) { Saving... } @else { Save Transaction }

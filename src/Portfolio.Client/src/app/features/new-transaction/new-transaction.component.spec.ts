@@ -98,14 +98,23 @@ describe('NewTransactionComponent', () => {
   // ── Step 2 validity tests ─────────────────────────────────────────────
 
   it('isStep2Valid should be false when spotPrice is 0 and no fiat leg', async () => {
-    component.model.update(m => ({ ...m, spotPrice: 0 }));
+    component.toAsset.set(mockAsset);
+    component.model.update(m => ({ ...m, type: 'BUY', amountReceived: 1, spotPrice: 0 }));
+    fixture.detectChanges();
     await fixture.whenStable();
+    expect(component.isStep1Valid()).toBe(true);
     expect(component.isStep2Valid()).toBe(false);
   });
 
-  it('isStep2Valid should be true when spotPrice is set', async () => {
-    component.model.update(m => ({ ...m, spotPrice: 100 }));
+  it('isStep2Valid should be true when step 1 is valid and spotPrice is set', async () => {
+    component.toAsset.set(mockAsset);
+    component.model.update(m => ({ ...m, type: 'BUY', amountReceived: 1 }));
+    fixture.detectChanges();
     await fixture.whenStable();
+    component.model.update(m => ({ ...m, spotPrice: 100 }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.isStep1Valid()).toBe(true);
     expect(component.isStep2Valid()).toBe(true);
   });
 

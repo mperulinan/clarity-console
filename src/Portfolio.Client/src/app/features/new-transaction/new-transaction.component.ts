@@ -19,7 +19,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 
 // Signal Forms
 import {
-    FormField, form, submit,
+    FormField, FormRoot, form,
     required, validate, disabled
 } from '@angular/forms/signals';
 
@@ -58,6 +58,7 @@ const UI_CONFIG: Record<string, any> = {
     imports: [
         CommonModule,
         FormField,
+        FormRoot,
         MatCardModule,
         MatFormFieldModule,
         MatInputModule,
@@ -169,27 +170,6 @@ export class NewTransactionComponent implements OnInit {
         return dateObj;
     });
 
-    // ── Step validity (replaces [stepControl] on MatStepper) ────────────
-    isStep1Valid = computed(() => {
-        const typeData = this.selectedTypeData();
-        if (!typeData || !this.model().datePart || !this.model().timePart) return false;
-        if (typeData.requiresFromAsset && (!this.fromAsset() || this.model().amountSpent <= 0)) return false;
-        if (typeData.requiresToAsset && (!this.toAsset() || this.model().amountReceived <= 0)) return false;
-        return true;
-    });
-
-    isStep2Valid = computed(() => {
-        const hasFeeAsset = !!this.feeAsset();
-        const feeAmount = this.model().fee;
-        // If one side of fee is filled, both are required
-        if (hasFeeAsset !== (feeAmount > 0)) return false;
-        // spotPrice required unless fiat leg
-        if (!this.hasFiatLeg() && this.model().spotPrice <= 0) return false;
-        // feeSpotPrice required when fee exists and fee asset is not fiat and not same as spot
-        if (this.showFeeFiatValuation() && !this.isFeeAssetSameAsSpotAsset() && this.model().feeSpotPrice <= 0) return false;
-        return true;
-    });
-
     // ── Effective fee spot price (mirrored from spot when same asset) ────
     effectiveFeeSpotPrice = computed(() =>
         this.isFeeAssetSameAsSpotAsset() ? this.model().spotPrice : this.model().feeSpotPrice
@@ -231,8 +211,11 @@ export class NewTransactionComponent implements OnInit {
         });
 
         validate(s.fee, ({ value }) => {
-            if (!!this.feeAsset() && (!value() || value() <= 0))
-                return { kind: 'minExclusive', message: 'Fee amount must be greater than 0' };
+            const hasFeeAsset = !!this.feeAsset();
+            const feeAmount = value() ?? 0;
+            if (hasFeeAsset !== (feeAmount > 0)) {
+                return { kind: 'required', message: 'Fee asset and amount must both be provided' };
+            }
             return undefined;
         });
 
@@ -249,6 +232,31 @@ export class NewTransactionComponent implements OnInit {
         // Disable feeSpotPrice fields when not applicable
         disabled(s.feeSpotPrice, () => !this.showFeeFiatValuation() || this.isFeeAssetSameAsSpotAsset());
         disabled(s.feeSpotPriceCurrency, () => !this.showFeeFiatValuation() || this.isFeeAssetSameAsSpotAsset());
+    }, {
+        submission: {
+            action: async () => this.saveTransaction(),
+            onInvalid: () => this.onSubmitInvalid(),
+        },
+    });
+
+    // ── Step validity (field-level signal form state for this step) ─────
+    isStep1Valid = computed(() => {
+        const f = this.transactionForm;
+        return !(
+            f.type().invalid() ||
+            f.datePart().invalid() ||
+            f.timePart().invalid() ||
+            f.amountSpent().invalid() ||
+            f.amountReceived().invalid()
+        );
+    });
+
+    isStep2Valid = computed(() => {
+        if (!this.isStep1Valid()) return false;
+        const f = this.transactionForm;
+        if (f.spotPrice().invalid() || f.fee().invalid()) return false;
+        if (!f.feeSpotPrice().disabled() && f.feeSpotPrice().invalid()) return false;
+        return true;
     });
 
     constructor() {
@@ -333,43 +341,49 @@ export class NewTransactionComponent implements OnInit {
 
     // ── Submit / Cancel ──────────────────────────────────────────────────
 
-    onSubmit() {
-        submit(this.transactionForm, async () => {
-            this.isSubmitting.set(true);
-            this.submitError.set(null);
+    private async saveTransaction(): Promise<void> {
+        this.isSubmitting.set(true);
+        this.submitError.set(null);
 
-            const m = this.model();
-            const request: NewTransactionRequest = {
-                date: this.combinedDate().toISOString(),
-                transactionTypeCode: m.type,
-                fromAssetId: this.fromAsset()?.id,
-                toAssetId: this.toAsset()?.id,
-                amountSpent: m.amountSpent,
-                amountReceived: m.amountReceived,
-                spotPriceUSD: m.spotPriceCurrency === 'USD' ? m.spotPrice : undefined,
-                spotPriceEUR: m.spotPriceCurrency === 'EUR' ? m.spotPrice : undefined,
-                spotPriceInputCurrency: m.spotPriceCurrency,
-                fee: this.feeAsset()?.id ? m.fee : 0,
-                feeAssetId: this.feeAsset()?.id,
-                feePriceUSD: this.effectiveFeeSpotPriceCurrency() === 'USD' && this.effectiveFeeSpotPrice()
-                    ? this.effectiveFeeSpotPrice() : undefined,
-                feePriceEUR: this.effectiveFeeSpotPriceCurrency() === 'EUR' && this.effectiveFeeSpotPrice()
-                    ? this.effectiveFeeSpotPrice() : undefined,
-                feePriceInputCurrency: this.effectiveFeeSpotPrice() && this.effectiveFeeSpotPriceCurrency()
-                    ? this.effectiveFeeSpotPriceCurrency() : undefined,
-                notes: m.notes || undefined
-            };
+        const m = this.model();
+        const request: NewTransactionRequest = {
+            date: this.combinedDate().toISOString(),
+            transactionTypeCode: m.type,
+            fromAssetId: this.fromAsset()?.id,
+            toAssetId: this.toAsset()?.id,
+            amountSpent: m.amountSpent,
+            amountReceived: m.amountReceived,
+            spotPriceUSD: m.spotPriceCurrency === 'USD' ? m.spotPrice : undefined,
+            spotPriceEUR: m.spotPriceCurrency === 'EUR' ? m.spotPrice : undefined,
+            spotPriceInputCurrency: m.spotPriceCurrency,
+            fee: this.feeAsset()?.id ? m.fee : 0,
+            feeAssetId: this.feeAsset()?.id,
+            feePriceUSD: this.effectiveFeeSpotPriceCurrency() === 'USD' && this.effectiveFeeSpotPrice()
+                ? this.effectiveFeeSpotPrice() : undefined,
+            feePriceEUR: this.effectiveFeeSpotPriceCurrency() === 'EUR' && this.effectiveFeeSpotPrice()
+                ? this.effectiveFeeSpotPrice() : undefined,
+            feePriceInputCurrency: this.effectiveFeeSpotPrice() && this.effectiveFeeSpotPriceCurrency()
+                ? this.effectiveFeeSpotPriceCurrency() : undefined,
+            notes: m.notes || undefined
+        };
 
-            try {
-                await firstValueFrom(this.portfolioService.addTransaction(request));
-                this.router.navigate(['/']);
-            } catch (err) {
-                console.error('Failed to save transaction', err);
-                this.submitError.set('Failed to save transaction. Please check your connection and try again.');
-            } finally {
-                this.isSubmitting.set(false);
-            }
-        });
+        try {
+            await firstValueFrom(this.portfolioService.addTransaction(request));
+            this.router.navigate(['/']);
+        } catch (err) {
+            console.error('Failed to save transaction', err);
+            this.submitError.set('Failed to save transaction. Please check your connection and try again.');
+        } finally {
+            this.isSubmitting.set(false);
+        }
+    }
+
+    private onSubmitInvalid(): void {
+        const errors = this.transactionForm().errors();
+        const firstMessage = errors.find(e => e.message)?.message;
+        this.submitError.set(
+            firstMessage ?? 'Please complete all required fields before saving.'
+        );
     }
 
     onCancel() {

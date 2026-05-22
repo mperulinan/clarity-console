@@ -1,4 +1,4 @@
-import { Component, input, HostBinding, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, computed, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-button',
@@ -13,14 +13,10 @@ export class ButtonComponent {
   readonly size = input<'sm' | 'md' | 'lg'>('md');
   readonly justify = input<'start' | 'center' | 'end'>('center');
   readonly disabled = input<boolean>(false);
+  readonly type = input<'button' | 'submit' | 'reset'>('button');
 
-  @HostBinding('class')
-  get hostClass() {
-    return `btn-${this.variant()} color-${this.color()} size-${this.size()} justify-${this.justify()}`;
-  }
-
-  @HostBinding('attr.disabled')
-  get hostDisabled() {
-    return this.disabled() ? true : null;
-  }
+  readonly hostClass = computed(
+    () =>
+      `btn-${this.variant()} color-${this.color()} size-${this.size()} justify-${this.justify()}`
+  );
 }

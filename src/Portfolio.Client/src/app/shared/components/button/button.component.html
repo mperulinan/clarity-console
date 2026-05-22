@@ -1,1 +1,6 @@
-<ng-content></ng-content>
+<button
+  [type]="type()"
+  [disabled]="disabled()"
+  [class]="hostClass()">
+  <ng-content></ng-content>
+</button>

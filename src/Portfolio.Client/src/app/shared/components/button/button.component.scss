@@ -2,6 +2,10 @@
 
 :host {
     display: inline-flex;
+}
+
+button {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
@@ -14,7 +18,7 @@
         background-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
         border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
         color 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-    
+
     padding: 0 16px;
     height: 38px;
     min-width: 40px;
@@ -55,8 +59,7 @@
 
 /* ── VARIANTS & COLORS ──────────────────────── */
 
-/* TEXT — lowest emphasis. No border. Pure text action (Back, Cancel). */
-:host(.btn-text) {
+button.btn-text {
     background: transparent;
     border-color: transparent;
 
@@ -86,8 +89,7 @@
     }
 }
 
-/* TONAL — medium-low emphasis. Tinted border at rest, slight tinted bg on hover (Next in steps). */
-:host(.btn-tonal) {
+button.btn-tonal {
     background: transparent;
 
     &.color-primary {
@@ -121,8 +123,7 @@
     }
 }
 
-/* OUTLINED — medium-high emphasis. Solid full-weight border. Primary CTAs (New Transaction, Save). */
-:host(.btn-outlined) {
+button.btn-outlined {
     background: transparent;
 
     &.color-primary {
@@ -144,8 +145,7 @@
     }
 }
 
-/* FILLED — highest emphasis. Solid color fill with on-color text. Use sparingly. */
-:host(.btn-filled) {
+button.btn-filled {
     &.color-primary {
         background: var(--mat-sys-primary);
         color: var(--mat-sys-on-primary);
