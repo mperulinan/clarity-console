@@ -3,6 +3,7 @@ import { NewTransactionComponent } from './new-transaction.component';
 import { PortfolioService } from '../../services/portfolio.service';
 import { Router } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError, firstValueFrom } from 'rxjs';
 import { TransactionType } from '../../models/transaction';
 import { AssetDto } from '../../models/asset';
@@ -141,24 +142,37 @@ describe('NewTransactionComponent', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
   });
 
-  it('should handle service error on submit gracefully', async () => {
-    portfolioServiceSpy.addTransaction = () => throwError(() => new Error('Network error'));
-    
-    // Manually trigger the error state to verify UI handles it
-    // since signal form submit logic requires full valid state which is brittle in tests
-    component.isSubmitting.set(true);
-    component.submitError.set(null);
-    
-    try {
-      await firstValueFrom(portfolioServiceSpy.addTransaction({}));
-    } catch (err) {
-      component.submitError.set('Failed to save transaction. Please check your connection and try again.');
-      component.isSubmitting.set(false);
-    }
+  it('should show server validation message on 400 from addTransaction', async () => {
+    portfolioServiceSpy.addTransaction = () =>
+      throwError(() =>
+        new HttpErrorResponse({
+          status: 400,
+          error: { message: 'FromAssetId is required for Swap' },
+        })
+      );
 
+    component.toAsset.set(mockAsset);
+    component.model.update(m => ({ ...m, type: 'SWAP', amountSpent: 1, amountReceived: 1, spotPrice: 10 }));
+    component.fromAsset.set(mockAsset);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    component.model.update(m => ({ ...m, spotPrice: 10 }));
+
+    await component['saveTransaction']();
     await fixture.whenStable();
 
-    expect(component.submitError()).toContain('Failed to save');
+    expect(component.submitError()).toBe('FromAssetId is required for Swap');
+    expect(component.isSubmitting()).toBe(false);
+  });
+
+  it('should show network message when addTransaction cannot reach the server', async () => {
+    portfolioServiceSpy.addTransaction = () =>
+      throwError(() => new HttpErrorResponse({ status: 0 }));
+
+    await component['saveTransaction']();
+    await fixture.whenStable();
+
+    expect(component.submitError()).toContain('Could not reach the server');
     expect(component.isSubmitting()).toBe(false);
   });
 });

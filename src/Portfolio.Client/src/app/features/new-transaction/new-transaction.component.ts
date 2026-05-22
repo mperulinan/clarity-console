@@ -37,6 +37,7 @@ import { AssetDto } from '../../models/asset';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType } from '../../models/transaction';
 import { DEFAULT_FIAT_CURRENCY, SupportedFiatCurrency } from '../../shared/constants/currency.constants';
+import { parseHttpError } from '../../shared/utils/http-error-message';
 
 const UI_CONFIG: Record<string, any> = {
     DEPOSIT: { toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited' },
@@ -372,7 +373,8 @@ export class NewTransactionComponent implements OnInit {
             this.router.navigate(['/']);
         } catch (err) {
             console.error('Failed to save transaction', err);
-            this.submitError.set('Failed to save transaction. Please check your connection and try again.');
+            const { message } = parseHttpError(err, { action: 'save the transaction' });
+            this.submitError.set(message);
         } finally {
             this.isSubmitting.set(false);
         }

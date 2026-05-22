@@ -1,7 +1,9 @@
 using System.Text.Json.Serialization;
+using Ardalis.SmartEnum.SystemTextJson;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Portfolio.API.BackgroundServices;
+using Portfolio.API.Infrastructure;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Services;
 using Portfolio.Domain.Enums;
@@ -87,11 +89,15 @@ builder.Services.AddScoped<IPortfolioMetricsCalculator, PortfolioMetricsCalculat
 builder.Services.AddHostedService<AssetCatalogSyncBackgroundService>();
 builder.Services.AddHttpClient();
 
+builder.Services.AddExceptionHandler<ArgumentExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString;
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.Converters.Add(new SmartEnumValueConverter<TransactionType, string>());
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -116,6 +122,8 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseCors(MyAllowSpecificOrigins);
+
+app.UseExceptionHandler();
 
 app.UseAuthorization();
 app.MapControllers();
