@@ -12,8 +12,8 @@ using Portfolio.Infrastructure.Persistence;
 namespace Portfolio.Infrastructure.Migrations
 {
     [DbContext(typeof(PortfolioContext))]
-    [Migration("20260523090507_StandardizeTransactionPrimaryKey")]
-    partial class StandardizeTransactionPrimaryKey
+    [Migration("20260523092218_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
