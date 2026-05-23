@@ -35,8 +35,8 @@ export class PortfolioService {
         );
     }
 
-    getPortfolioDashboard(): Observable<PortfolioMetrics> {
-        return this.http.get<PortfolioMetrics>(`${this.apiUrl}/Portfolio/dashboard`);
+    getPortfolioMetrics(): Observable<PortfolioMetrics> {
+        return this.http.get<PortfolioMetrics>(`${this.apiUrl}/Portfolio/metrics`);
     }
 
     addTransaction(request: NewTransactionRequest): Observable<void> {

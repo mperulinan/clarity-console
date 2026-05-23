@@ -1,9 +1,9 @@
-using System.Text.Json.Serialization;
 using Ardalis.SmartEnum.SystemTextJson;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Portfolio.API.BackgroundServices;
 using Portfolio.API.Infrastructure;
+using Portfolio.Application.CQRS.Queries;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Services;
 using Portfolio.Domain.Enums;
@@ -12,7 +12,8 @@ using Portfolio.Domain.Services;
 using Portfolio.Infrastructure.ExternalServices;
 using Portfolio.Infrastructure.Persistence;
 using Portfolio.Infrastructure.Persistence.Repositories;
-using Portfolio.Application.CQRS.Queries;
+using System.Text.Json.Serialization;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
@@ -29,7 +30,9 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddDbContext<PortfolioContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Portfolio"));
+    var connection = builder.Configuration.GetConnectionString("Portfolio");
+    options.UseSqlServer(connection);
+    options.UseSqlServer(connection, b => b.MigrationsAssembly("Portfolio.Infrastructure"));
 });
 
 // Dependency Injection

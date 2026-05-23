@@ -1,6 +1,6 @@
 using MediatR;
-using Portfolio.Domain.ValueObjects;
+using Portfolio.Application.DTOs;
 
 namespace Portfolio.Application.CQRS.Queries;
 
-public record GetPortfolioMetricsQuery() : IRequest<PortfolioMetrics>;
+public record GetPortfolioMetricsQuery() : IRequest<PortfolioMetricsDto>;

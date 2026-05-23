@@ -7,16 +7,28 @@ using Xunit;
 
 namespace Portfolio.Infrastructure.Tests;
 
-public class TransactionRepositoryTests
+[Collection("Database collection")]
+public class TransactionRepositoryTests : IAsyncLifetime
 {
+    private readonly DatabaseFixture _fixture;
     private readonly DbContextOptions<PortfolioContext> _options;
 
-    public TransactionRepositoryTests()
+    public TransactionRepositoryTests(DatabaseFixture fixture)
     {
+        _fixture = fixture;
         _options = new DbContextOptionsBuilder<PortfolioContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseSqlServer(_fixture.ConnectionString)
             .Options;
     }
+
+    public async Task InitializeAsync()
+    {
+        // Clean up data before each test
+        using var context = new PortfolioContext(_options);
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM [Transaction]; DELETE FROM Asset;");
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     private static Transaction CreateTx(
         DateTime? date = null,

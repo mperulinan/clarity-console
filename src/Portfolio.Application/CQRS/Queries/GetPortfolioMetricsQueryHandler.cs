@@ -1,9 +1,10 @@
 using System.Diagnostics;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Portfolio.Application.DTOs;
+using Portfolio.Application.Mappers;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
-using Portfolio.Domain.Services;
 using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Application.CQRS.Queries;
@@ -14,11 +15,11 @@ public class GetPortfolioMetricsQueryHandler(
     IAssetMarketDataService assetMarketDataService,
     IPortfolioMetricsCalculator portfolioMetricsCalculator,
     ILogger<GetPortfolioMetricsQueryHandler> logger) 
-    : IRequestHandler<GetPortfolioMetricsQuery, PortfolioMetrics>
+    : IRequestHandler<GetPortfolioMetricsQuery, PortfolioMetricsDto>
 {
     private static readonly FiatCurrency DefaultDisplayCurrency = FiatCurrency.USD;
 
-    public async Task<PortfolioMetrics> Handle(GetPortfolioMetricsQuery query, CancellationToken cancellationToken)
+    public async Task<PortfolioMetricsDto> Handle(GetPortfolioMetricsQuery query, CancellationToken cancellationToken)
     {
         var sw = Stopwatch.StartNew();
         logger.LogInformation("Calculating portfolio metrics...");
@@ -42,7 +43,7 @@ public class GetPortfolioMetricsQueryHandler(
         logger.LogInformation("Portfolio metrics calculated in {ElapsedMs}ms for {HoldingsCount} holdings.",
             sw.ElapsedMilliseconds, metrics.Holdings.Count());
 
-        return metrics;
+        return metrics.ToDto();
     }
 
     private static void EnrichHoldingsMetadata(IEnumerable<EnrichedAssetHolding> holdings, Dictionary<Guid, AssetMarketData> marketData)

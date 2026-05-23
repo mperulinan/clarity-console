@@ -72,7 +72,7 @@ export class DashboardComponent implements OnInit {
 
     loadData() {
         this.isLoading.set(true);
-        this.portfolioService.getPortfolioDashboard()
+        this.portfolioService.getPortfolioMetrics()
             .pipe(
                 finalize(() => this.isLoading.set(false)),
                 takeUntilDestroyed(this.destroyRef)
