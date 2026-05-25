@@ -35,18 +35,18 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
 import { PortfolioService } from '../../services/portfolio.service';
 import { AssetDto } from '../../models/asset';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
-import { TransactionType } from '../../models/transaction';
+import { TransactionType, TransactionTypeCode } from '../../models/transaction';
 import { DEFAULT_FIAT_CURRENCY, SupportedFiatCurrency } from '../../shared/constants/currency.constants';
 import { parseHttpError } from '../../shared/utils/http-error-message';
 
 const UI_CONFIG: Record<string, any> = {
-    DEPOSIT: { toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited' },
-    WITHDRAWAL: { fromTitle: 'Asset Withdrawn', fromIcon: 'north_east', fromAmount: 'Amount Withdrawn' },
-    SWAP: {
+    [TransactionTypeCode.Deposit]: { toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited' },
+    [TransactionTypeCode.Withdrawal]: { fromTitle: 'Asset Withdrawn', fromIcon: 'north_east', fromAmount: 'Amount Withdrawn' },
+    [TransactionTypeCode.Swap]: {
         fromTitle: 'Asset Sold', fromIcon: 'sell', fromAmount: 'Amount Sold',
         toTitle: 'Asset Bought', toIcon: 'shopping_cart', toAmount: 'Amount Bought'
     },
-    REWARD: { toTitle: 'Asset Rewarded', toIcon: 'workspace_premium', toAmount: 'Amount Rewarded' },
+    [TransactionTypeCode.Reward]: { toTitle: 'Asset Rewarded', toIcon: 'workspace_premium', toAmount: 'Amount Rewarded' },
     DEFAULT: {
         fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent',
         toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received'
@@ -90,6 +90,7 @@ export class NewTransactionComponent implements OnInit {
     fiatCurrencies = signal<AssetDto[]>([]);
     
     getTransactionIcons = getTransactionIcons;
+    readonly TransactionTypeCode = TransactionTypeCode;
 
     // ── Form model — flat, no nulls (Signal Forms requirement) ───────────
     model = signal({
@@ -284,11 +285,11 @@ export class NewTransactionComponent implements OnInit {
             if (!typeData) return;
             
             untracked(() => {
-                if (typeValue === 'DEPOSIT') {
-                    const taxFiat = fiats.find(f => f.symbol === 'EUR');
+                if (typeValue === TransactionTypeCode.Deposit) {
+                    const taxFiat = fiats.find(f => f.symbol === DEFAULT_FIAT_CURRENCY);
                     if (taxFiat) this.toAsset.set(taxFiat);
-                } else if (typeValue === 'WITHDRAWAL') {
-                    const taxFiat = fiats.find(f => f.symbol === 'EUR');
+                } else if (typeValue === TransactionTypeCode.Withdrawal) {
+                    const taxFiat = fiats.find(f => f.symbol === DEFAULT_FIAT_CURRENCY);
                     if (taxFiat) this.fromAsset.set(taxFiat);
                 } else {
                     if (typeData.requiresFromAsset && !typeData.requiresToAsset && !this.fromAsset() && this.toAsset()) {

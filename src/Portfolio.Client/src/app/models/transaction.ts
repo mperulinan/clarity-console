@@ -34,3 +34,10 @@ export interface TransactionType {
     requiresFromAsset: boolean;
     requiresToAsset: boolean;
 }
+
+export enum TransactionTypeCode {
+    Deposit = 'DEPOSIT',
+    Withdrawal = 'WITHDRAWAL',
+    Swap = 'SWAP',
+    Reward = 'REWARD'
+}
