@@ -14,7 +14,7 @@ public class GetPortfolioReportQueryHandler(
     ILogger<GetPortfolioReportQueryHandler> logger) 
     : IRequestHandler<GetPortfolioReportQuery, PortfolioReportDto>
 {
-    private static readonly FiatCurrency FinancialReportingCurrency = FiatCurrency.EUR;
+    private static readonly FiatCurrency FinancialReportingCurrency = FiatCurrency.TaxCurrency;
 
     public async Task<PortfolioReportDto> Handle(GetPortfolioReportQuery query, CancellationToken cancellationToken)
     {

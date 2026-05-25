@@ -31,7 +31,7 @@ public class TransactionValidationTests
     public void Constructor_Withdrawal_ShouldSucceed_WithFromAssetOnly()
     {
         // Arrange & Act
-        var fiatId = FiatCurrency.EUR.Id;
+        var fiatId = FiatCurrency.TaxCurrency.Id;
         var tx = new Transaction(
             DateTime.UtcNow,
             TransactionType.Withdrawal,
@@ -50,7 +50,7 @@ public class TransactionValidationTests
     public void Constructor_Deposit_ShouldSucceed_WithToAssetOnly()
     {
         // Arrange & Act
-        var fiatId = FiatCurrency.EUR.Id;
+        var fiatId = FiatCurrency.TaxCurrency.Id;
         var tx = new Transaction(
             DateTime.UtcNow,
             TransactionType.Deposit,
