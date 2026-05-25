@@ -102,6 +102,7 @@
                             <app-asset-selector
                                 placeholder="e.g. BTC, ETH"
                                 [value]="fromAsset()"
+                                [disabled]="model().type === 'WITHDRAWAL'"
                                 (assetChange)="fromAsset.set($event)">
                             </app-asset-selector>
                             <mat-form-field appearance="fill">
@@ -122,6 +123,7 @@
                             <app-asset-selector
                                 placeholder="e.g. BTC, ETH"
                                 [value]="toAsset()"
+                                [disabled]="model().type === 'DEPOSIT'"
                                 (assetChange)="toAsset.set($event)">
                             </app-asset-selector>
                             <mat-form-field appearance="fill">

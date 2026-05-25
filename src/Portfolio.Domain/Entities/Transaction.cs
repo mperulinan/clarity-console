@@ -64,6 +64,12 @@ public class Transaction
         if (!Type.RequiresToAsset && toAssetId.HasValue)
             throw new ArgumentException($"ToAssetId must be null for {Type.Name}");
 
+        if (Type == TransactionType.Deposit && FiatCurrency.FromIdOrDefault(toAssetId) != FiatCurrency.EUR)
+            throw new ArgumentException("Deposit must be in the tax currency (EUR).");
+            
+        if (Type == TransactionType.Withdrawal && FiatCurrency.FromIdOrDefault(fromAssetId) != FiatCurrency.EUR)
+            throw new ArgumentException("Withdrawal must be in the tax currency (EUR).");
+
         FromAssetId = fromAssetId;
         ToAssetId = toAssetId;
         AmountSpent = amountSpent;

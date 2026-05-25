@@ -1,6 +1,6 @@
+using System;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
-using System;
 using Xunit;
 
 namespace Portfolio.Domain.Tests;
@@ -31,17 +31,18 @@ public class TransactionValidationTests
     public void Constructor_Withdrawal_ShouldSucceed_WithFromAssetOnly()
     {
         // Arrange & Act
+        var fiatId = FiatCurrency.EUR.Id;
         var tx = new Transaction(
             DateTime.UtcNow,
             TransactionType.Withdrawal,
-            _assetId, // FromAssetId
-            null, // ToAssetId
+            fromAssetId: fiatId,
+            toAssetId: null,
             1, 0, 50000, null, 0, null, null, null, null, FiatCurrency.USD, null, null
         );
 
         // Assert
         Assert.Equal(TransactionType.Withdrawal, tx.Type);
-        Assert.Equal(_assetId, tx.FromAssetId);
+        Assert.Equal(fiatId, tx.FromAssetId);
         Assert.Null(tx.ToAssetId);
     }
 
@@ -49,18 +50,19 @@ public class TransactionValidationTests
     public void Constructor_Deposit_ShouldSucceed_WithToAssetOnly()
     {
         // Arrange & Act
+        var fiatId = FiatCurrency.EUR.Id;
         var tx = new Transaction(
             DateTime.UtcNow,
             TransactionType.Deposit,
-            null, // FromAssetId
-            _assetId, // ToAssetId
+            fromAssetId: null,
+            toAssetId: fiatId,
             0, 100, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
         );
 
         // Assert
         Assert.Equal(TransactionType.Deposit, tx.Type);
         Assert.Null(tx.FromAssetId);
-        Assert.Equal(_assetId, tx.ToAssetId);
+        Assert.Equal(fiatId, tx.ToAssetId);
     }
 
     [Fact]
@@ -131,7 +133,7 @@ public class TransactionValidationTests
             TransactionType.Swap,
             _assetId,
             Guid.NewGuid(),
-            100, 1, 
+            100, 1,
             null, null, // Both Prices Null
             0, null, null, null, null, FiatCurrency.USD, null, null
         ));

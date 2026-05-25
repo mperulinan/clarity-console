@@ -280,14 +280,24 @@ export class NewTransactionComponent implements OnInit {
         effect(() => {
             const typeValue = this.model().type;
             const typeData = this.transactionTypes().find(t => t.value === typeValue);
+            const fiats = this.fiatCurrencies();
             if (!typeData) return;
+            
             untracked(() => {
-                if (typeData.requiresFromAsset && !typeData.requiresToAsset && !this.fromAsset() && this.toAsset()) {
-                    this.fromAsset.set(this.toAsset());
-                    this.model.update(m => ({ ...m, amountSpent: m.amountReceived > 0 ? m.amountReceived : m.amountSpent }));
-                } else if (typeData.requiresToAsset && !typeData.requiresFromAsset && !this.toAsset() && this.fromAsset()) {
-                    this.toAsset.set(this.fromAsset());
-                    this.model.update(m => ({ ...m, amountReceived: m.amountSpent > 0 ? m.amountSpent : m.amountReceived }));
+                if (typeValue === 'DEPOSIT') {
+                    const taxFiat = fiats.find(f => f.symbol === 'EUR');
+                    if (taxFiat) this.toAsset.set(taxFiat);
+                } else if (typeValue === 'WITHDRAWAL') {
+                    const taxFiat = fiats.find(f => f.symbol === 'EUR');
+                    if (taxFiat) this.fromAsset.set(taxFiat);
+                } else {
+                    if (typeData.requiresFromAsset && !typeData.requiresToAsset && !this.fromAsset() && this.toAsset()) {
+                        this.fromAsset.set(this.toAsset());
+                        this.model.update(m => ({ ...m, amountSpent: m.amountReceived > 0 ? m.amountReceived : m.amountSpent }));
+                    } else if (typeData.requiresToAsset && !typeData.requiresFromAsset && !this.toAsset() && this.fromAsset()) {
+                        this.toAsset.set(this.fromAsset());
+                        this.model.update(m => ({ ...m, amountReceived: m.amountSpent > 0 ? m.amountSpent : m.amountReceived }));
+                    }
                 }
             });
         });
