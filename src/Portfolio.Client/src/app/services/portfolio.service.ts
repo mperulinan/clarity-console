@@ -63,6 +63,10 @@ export class PortfolioService {
         return this.http.get<AssetDto[]>(`${this.apiUrl}/Asset/fiat-currencies`);
     }
 
+    getTaxCurrency(): Observable<AssetDto> {
+        return this.http.get<AssetDto>(`${this.apiUrl}/Asset/tax-currency`);
+    }
+
     /**
      * Coerces decimal-string fields from the backend into actual JS numbers.
      * The .NET backend serializes `decimal` as JSON strings for precision,

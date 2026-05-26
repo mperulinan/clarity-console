@@ -88,6 +88,7 @@ export class NewTransactionComponent implements OnInit {
     isLoadingTypes = signal<boolean>(true);
     transactionTypes = signal<TransactionType[]>([]);
     fiatCurrencies = signal<AssetDto[]>([]);
+    taxCurrency = signal<AssetDto | null>(null);
     
     getTransactionIcons = getTransactionIcons;
     readonly TransactionTypeCode = TransactionTypeCode;
@@ -281,15 +282,13 @@ export class NewTransactionComponent implements OnInit {
         effect(() => {
             const typeValue = this.model().type;
             const typeData = this.transactionTypes().find(t => t.value === typeValue);
-            const fiats = this.fiatCurrencies();
+            const taxFiat = this.taxCurrency();
             if (!typeData) return;
             
             untracked(() => {
                 if (typeValue === TransactionTypeCode.Deposit) {
-                    const taxFiat = fiats.find(f => f.symbol === DEFAULT_FIAT_CURRENCY);
                     if (taxFiat) this.toAsset.set(taxFiat);
                 } else if (typeValue === TransactionTypeCode.Withdrawal) {
-                    const taxFiat = fiats.find(f => f.symbol === DEFAULT_FIAT_CURRENCY);
                     if (taxFiat) this.fromAsset.set(taxFiat);
                 } else {
                     if (typeData.requiresFromAsset && !typeData.requiresToAsset && !this.fromAsset() && this.toAsset()) {
@@ -322,6 +321,15 @@ export class NewTransactionComponent implements OnInit {
         this.portfolioService.getFiatCurrencies().subscribe({
             next: fiats => this.fiatCurrencies.set(fiats),
             error: err => console.error('Failed to load fiat currencies', err)
+        });
+
+        this.portfolioService.getTaxCurrency().subscribe({
+            next: taxFiat => {
+                this.taxCurrency.set(taxFiat);
+                // Also initialize spot prices to tax currency
+                this.model.update(m => ({ ...m, spotPriceCurrency: taxFiat.symbol as SupportedFiatCurrency, feeSpotPriceCurrency: taxFiat.symbol as SupportedFiatCurrency }));
+            },
+            error: err => console.error('Failed to load tax currency', err)
         });
     }
 

@@ -27,6 +27,10 @@ public class AssetController(
     public ActionResult<IEnumerable<AssetDto>> GetFiatCurrencies()
         => Ok(FiatCurrency.List.Select(AssetMapper.ToDto));
 
+    [HttpGet("tax-currency")]
+    public ActionResult<AssetDto> GetTaxCurrency()
+        => Ok(AssetMapper.ToDto(FiatCurrency.TaxCurrency));
+
     [HttpGet("search")]
     public async Task<ActionResult<IEnumerable<AssetDto>>> SearchAssets([FromQuery] string query, [FromQuery] string? type = null)
         => Ok(await assetSearchService.SearchAsync(query, type));
