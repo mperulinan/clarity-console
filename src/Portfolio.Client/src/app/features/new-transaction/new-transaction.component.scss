@@ -314,13 +314,10 @@ $loss: var(--color-loss);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition:
-        transform 0.3s var(--ease-out-quart),
-        border-color 0.3s var(--ease-out-quart);
+    transition: background 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 
     &:hover {
-        transform: translateY(-2px);
-        border-color: color-mix(in srgb, $border, transparent -10%);
+        background: color-mix(in srgb, $text-primary, transparent 96%);
     }
 }
 
