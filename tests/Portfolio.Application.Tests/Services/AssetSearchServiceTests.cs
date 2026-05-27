@@ -54,7 +54,7 @@ public class AssetSearchServiceTests
     {
         // Arrange
         string query = "B"; // Length < 2 (ExternalSearchMinLength)
-        Asset localAsset = new Asset("BTC", "Bitcoin", null, null, AssetType.Crypto);
+        Asset localAsset = new Asset("BTC", "Bitcoin", externalId: null, imageUrl: null, AssetType.Crypto);
         _assetRepository.GetAllAsync().Returns([localAsset]);
         _transactionRepository.GetAllAsync().Returns([]);
 
@@ -73,7 +73,7 @@ public class AssetSearchServiceTests
         string query = "ADA";
 
         // Local assets
-        Asset localExactWithTx = new("ADA", "Cardano Local", null, "ext-ada-1", AssetType.Crypto); // Tier 1 (exact, tx>0)
+        Asset localExactWithTx = new("ADA", "Cardano Local", "ext-ada-1", null, AssetType.Crypto); // Tier 1 (exact, tx>0)
         Asset localNonExactWithTx = new("ADAX", "Adax Local", null, null, AssetType.Crypto); // Tier 1 (non-exact, tx>0)
         Asset localExactNoTx = new("ADA", "Cardano NoTx", null, null, AssetType.Crypto); // Tier 2 (exact, tx=0)
         Asset localNonExactNoTx = new("ADAB", "AdaB Local", null, null, AssetType.Crypto); // Tier 3 (non-exact, tx=0)
@@ -87,17 +87,17 @@ public class AssetSearchServiceTests
             10, 100, 1m, null, 1, null, null, null, null, FiatCurrency.USD, null, null);
 
         Transaction tx2 = new(
-            DateTime.UtcNow, TransactionType.Deposit, null, localExactWithTx.Id,
+            DateTime.UtcNow, TransactionType.Reward, null, localExactWithTx.Id,
             0, 5, 50m, null, 0, null, null, null, null, FiatCurrency.USD, null, null);
         _transactionRepository.GetAllAsync().Returns([tx1, tx2]);
 
         // External assets
-        Asset externalExact = new("ADA", "Cardano External", null, "ext-ada-2", AssetType.Crypto); // Tier 2
-        Asset externalNonExactRank1 = new("ADAC", "AdaC External", null, "ext-adac", AssetType.Crypto); // Tier 4 (rank 1)
-        Asset externalNonExactRank10 = new("ADAD", "AdaD External", null, "ext-adad", AssetType.Crypto); // Tier 4 (rank 10)
+        Asset externalExact = new("ADA", "Cardano External", "ext-ada-2", null, AssetType.Crypto); // Tier 2
+        Asset externalNonExactRank1 = new("ADAC", "AdaC External", "ext-adac", null, AssetType.Crypto); // Tier 4 (rank 1)
+        Asset externalNonExactRank10 = new("ADAD", "AdaD External", "ext-adad", null, AssetType.Crypto); // Tier 4 (rank 10)
 
         // This one should be ignored because its external ID matches a local asset's external ID
-        Asset externalDuplicate = new("ADA", "Cardano Duplicate", null, "ext-ada-1", AssetType.Crypto);
+        Asset externalDuplicate = new("ADA", "Cardano Duplicate", "ext-ada-1", null, AssetType.Crypto);
 
         List<SearchAssetResult> externalResults =
         [

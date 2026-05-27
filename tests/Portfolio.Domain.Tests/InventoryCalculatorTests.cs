@@ -17,6 +17,11 @@ public class InventoryCalculatorTests
     private static readonly Dictionary<string, Guid> _symbolToId = [];
     private static Guid GetId(string symbol)
     {
+        // Use the canonical FiatCurrency Guids so Transaction constructor
+        // Deposit/Withdrawal validation can recognise them via FiatCurrency.FromIdOrDefault.
+        if (symbol == "EUR") return FiatCurrency.EUR.Id;
+        if (symbol == "USD") return FiatCurrency.USD.Id;
+
         if (!_symbolToId.TryGetValue(symbol, out var id))
         {
             id = Guid.NewGuid();
@@ -88,24 +93,24 @@ public class InventoryCalculatorTests
     {
         // Arrange
         string btc = "BTC";
-        string usd = "USD";
+        string eur = "EUR";
         var transactions = new List<Transaction>
         {
-            // Transfer in 30k USD (Simulating Deposit)
-            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: usd, received: 30000m, spotPriceUSD: 1, spotPriceEUR: 0.9m),
-            // Swap $10k to 1 BTC (Simulating Buy)
-            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Swap, fromAsset: usd, toAsset: btc, spent: 10000m, received: 1, spotPriceUSD: 1),
-            // Swap $20k to 1 BTC (Simulating Buy)
-            CreateTx(date: new DateTime(2023, 2, 2), type: TransactionType.Swap, fromAsset: usd, toAsset: btc, spent: 20000m, received: 1, spotPriceUSD: 1),
-            // Swap 1.5 BTC to USD at $30k (Simulating Sell)
-            CreateTx(date: new DateTime(2023, 3, 3), type: TransactionType.Swap, fromAsset: btc, toAsset: usd, spent: 1.5m, received: 45000m, spotPriceUSD: 30000m)
+            // Transfer in 30k EUR (Simulating Deposit)
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 30000m, spotPriceEUR: 1),
+            // Swap 10k EUR to 1 BTC (Simulating Buy)
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Swap, fromAsset: eur, toAsset: btc, spent: 10000m, received: 1, spotPriceEUR: 1),
+            // Swap 20k EUR to 1 BTC (Simulating Buy)
+            CreateTx(date: new DateTime(2023, 2, 2), type: TransactionType.Swap, fromAsset: eur, toAsset: btc, spent: 20000m, received: 1, spotPriceEUR: 1),
+            // Swap 1.5 BTC to EUR at 30k (Simulating Sell)
+            CreateTx(date: new DateTime(2023, 3, 3), type: TransactionType.Swap, fromAsset: btc, toAsset: eur, spent: 1.5m, received: 45000m, spotPriceEUR: 30000m)
         };
 
         // Act
-        var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
 
         var btcId = transactions.First(t => t.ToAsset?.Symbol == btc).ToAssetId!.Value;
-        var usdId = transactions.First(t => t.FromAsset?.Symbol == usd).FromAssetId!.Value;
+        var eurId = transactions.First(t => t.FromAsset?.Symbol == eur).FromAssetId!.Value;
 
         // Assert
         // First 1 BTC cost $10k. Next 0.5 BTC cost $10k (half of $20k). Total Cost = $20k.
@@ -121,8 +126,8 @@ public class InventoryCalculatorTests
         Assert.Equal(20000m, holdingBtc.AvgCost);
 
         // Remaining cash inventory: 30,000 - 10,000 - 20,000 + 45,000 = 45,000.
-        AssetHolding holdingUsd = report.Holdings.Single(h => h.Id == usdId);
-        Assert.Equal(45000m, holdingUsd.Quantity);
+        AssetHolding holdingEur = report.Holdings.Single(h => h.Id == eurId);
+        Assert.Equal(45000m, holdingEur.Quantity);
     }
 
     [Fact]
@@ -265,29 +270,29 @@ public class InventoryCalculatorTests
     [Fact]
     public void CalculateInventory_ShouldFlagError_WhenSellingMoreThanOwned()
     {
-        // Scenario: Seed USD. Buy 1 BTC. Sell 2 BTC.        
+        // Scenario: Seed EUR. Buy 1 BTC. Sell 2 BTC.        
         var btc = "BTC";
-        var usd = "USD";
+        var eur = "EUR";
         var transactions = new List<Transaction>
         {
-            // 1. Seed 10k USD (Deposit)
-            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: usd, received: 10000m, spotPriceUSD: 1m),
+            // 1. Seed 10k EUR (Deposit)
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 10000m, spotPriceEUR: 1m),
 
-            // 2. Buy 1 BTC @ $10,000. Consumes all 10k USD.
-            CreateTx(date: new DateTime(2023, 1, 2), fromAsset: usd, toAsset: btc, spent: 10000m, received: 1m, spotPriceUSD: 1m),
+            // 2. Buy 1 BTC @ 10,000 EUR. Consumes all 10k EUR.
+            CreateTx(date: new DateTime(2023, 1, 2), fromAsset: eur, toAsset: btc, spent: 10000m, received: 1m, spotPriceEUR: 1m),
             
-            // 3. Sell 2 BTC @ $20,000 each.
-            CreateTx(date: new DateTime(2023, 1, 3), fromAsset: btc, toAsset: usd, spent: 2m, received: 40000m, spotPriceUSD: 20000m)
+            // 3. Sell 2 BTC @ 20,000 EUR each.
+            CreateTx(date: new DateTime(2023, 1, 3), fromAsset: btc, toAsset: eur, spent: 2m, received: 40000m, spotPriceEUR: 20000m)
         };
 
-        var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
         var sellTx = report.Transactions.Last();
 
         // Expect Error to be set on the SELL transaction
         Assert.NotNull(sellTx.Error);
         Assert.Contains("Insufficient inventory for BTC", sellTx.Error);
 
-        // Ensure the BUY transaction did NOT have an error for USD
+        // Ensure the BUY transaction did NOT have an error for EUR
         Assert.Null(report.Transactions.ElementAt(1).Error);
     }
 
@@ -359,31 +364,28 @@ public class InventoryCalculatorTests
     }
 
     [Fact]
-    public void CalculateInventory_Withdrawal_ShouldReduceInventory_AndRealizePL()
+    public void CalculateInventory_Withdrawal_ShouldReduceInventory()
     {
-        // Scenario: Buy 1 BTC @ 10k. Withdraw 0.5 BTC @ 15k market price.
-        var btc = "BTC";
-        var usd = "USD";
+        // Scenario: Deposit 10k EUR. Withdraw 5k EUR.
+        var eur = "EUR";
         var transactions = new List<Transaction>
         {
-            // 1. Buy 1 BTC @ 10k
-            CreateTx(date: new DateTime(2023, 1, 1), fromAsset: usd, toAsset: btc, spent: 10000m, received: 1m, spotPriceUSD: 1m),
+            // 1. Deposit 10k EUR
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 10000m, spotPriceEUR: 1m),
             
-            // 2. Withdraw 0.5 BTC. Market price is $15k.
-            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Withdrawal, fromAsset: btc, spent: 0.5m, spotPriceUSD: 15000m)
+            // 2. Withdraw 5k EUR.
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Withdrawal, fromAsset: eur, spent: 5000m, spotPriceEUR: 1m)
         };
         
-        var btcId = transactions.First(t => t.ToAsset?.Symbol == btc).ToAssetId!.Value;
-        var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
-        var holding = report.Holdings.Single(h => h.Id == btcId);
+        var eurId = transactions.First(t => t.ToAsset?.Symbol == eur).ToAssetId!.Value;
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
+        var holding = report.Holdings.Single(h => h.Id == eurId);
         
-        // 1 BTC @ 10k cost basis. 
-        // 0.5 BTC withdrawn. Cost basis of withdrawal = 5k.
-        // Market proceeds = 0.5 * 15k = 7.5k.
-        // P/L = 7.5k - 5k = 2.5k.
+        // 10k EUR deposited. 
+        // 5k EUR withdrawn.
         
-        Assert.Equal(0.5m, holding.Quantity);
-        Assert.Equal(2500m, holding.RealizedPL);
+        Assert.Equal(5000m, holding.Quantity);
+        Assert.Equal(0m, holding.RealizedPL);
         Assert.Equal(5000m, holding.CostBasisOfSold);
     }
 }
