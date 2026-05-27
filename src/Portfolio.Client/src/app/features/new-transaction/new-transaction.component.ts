@@ -280,22 +280,31 @@ export class NewTransactionComponent implements OnInit {
 
         // Effect: carry over asset selection when transaction type changes
         effect(() => {
-            const typeValue = this.model().type;
-            const typeData = this.transactionTypes().find(t => t.value === typeValue);
+            const typeData = this.selectedTypeData();
             const taxFiat = this.taxCurrency();
             if (!typeData) return;
             
+            const typeValue = typeData.value;
+            
             untracked(() => {
                 if (typeValue === TransactionTypeCode.Deposit) {
-                    if (taxFiat) this.toAsset.set(taxFiat);
+                    if (taxFiat) {
+                        this.toAsset.set(taxFiat);
+                        this.fromAsset.set(null);
+                    }
                 } else if (typeValue === TransactionTypeCode.Withdrawal) {
-                    if (taxFiat) this.fromAsset.set(taxFiat);
+                    if (taxFiat) {
+                        this.fromAsset.set(taxFiat);
+                        this.toAsset.set(null);
+                    }
                 } else {
                     if (typeData.requiresFromAsset && !typeData.requiresToAsset && !this.fromAsset() && this.toAsset()) {
                         this.fromAsset.set(this.toAsset());
+                        this.toAsset.set(null);
                         this.model.update(m => ({ ...m, amountSpent: m.amountReceived > 0 ? m.amountReceived : m.amountSpent }));
                     } else if (typeData.requiresToAsset && !typeData.requiresFromAsset && !this.toAsset() && this.fromAsset()) {
                         this.toAsset.set(this.fromAsset());
+                        this.fromAsset.set(null);
                         this.model.update(m => ({ ...m, amountReceived: m.amountSpent > 0 ? m.amountSpent : m.amountReceived }));
                     }
                 }
