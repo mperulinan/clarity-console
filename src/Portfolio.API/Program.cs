@@ -132,4 +132,24 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PortfolioContext>();
+    var fiatAssets = db.Assets.Where(a => a.Type == AssetType.Fiat).ToList();
+    bool changed = false;
+    foreach (var fiat in fiatAssets)
+    {
+        var fiatEnum = FiatCurrency.List.FirstOrDefault(f => string.Equals(f.Value, fiat.ExternalId, StringComparison.OrdinalIgnoreCase));
+        if (fiatEnum != null)
+        {
+            if (fiat.Name != fiatEnum.Name || fiat.Symbol != fiatEnum.Symbol || fiat.ImageUrl != fiatEnum.ImageUrl)
+            {
+                fiat.UpdateMetadata(fiatEnum.Symbol, fiatEnum.Name, fiatEnum.ImageUrl);
+                changed = true;
+            }
+        }
+    }
+    if (changed) db.SaveChanges();
+}
+
 app.Run();

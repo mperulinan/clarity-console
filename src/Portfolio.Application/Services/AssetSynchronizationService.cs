@@ -23,13 +23,15 @@ public class AssetSynchronizationService(
         var externalIds = externalList.Select(a => a.ExternalId!).ToList();
         
         var existingAssets = await unitOfWork.Assets.GetByExternalIdsAsync(externalIds);
-        var existingDict = existingAssets.ToDictionary(a => a.ExternalId!, StringComparer.OrdinalIgnoreCase);
+        var existingLookup = existingAssets.ToLookup(a => a.ExternalId!, StringComparer.OrdinalIgnoreCase);
 
         int updatedOrInserted = 0;
 
         foreach (var incoming in externalList)
         {
-            if (existingDict.TryGetValue(incoming.ExternalId!, out var existing))
+            var existing = existingLookup[incoming.ExternalId!].FirstOrDefault(a => a.Type == incoming.Type);
+
+            if (existing != null)
             {
                 if (existing.Symbol != incoming.Symbol || existing.Name != incoming.Name || existing.ImageUrl != incoming.ImageUrl)
                 {

@@ -24,7 +24,10 @@ public class SyncAssetCommandHandler(
         if (string.IsNullOrWhiteSpace(request?.ExternalId))
             throw new ArgumentException("ExternalId is required for synchronization.", nameof(command));
 
-        var existingAsset = (await unitOfWork.Assets.GetByExternalIdsAsync([request.ExternalId])).FirstOrDefault();
+        var assetType = string.IsNullOrEmpty(request.Type) ? AssetType.Crypto : AssetType.FromValue(request.Type);
+
+        var existingAssets = await unitOfWork.Assets.GetByExternalIdsAsync([request.ExternalId]);
+        var existingAsset = existingAssets.FirstOrDefault(a => a.Type == assetType);
 
         // If asset already exists and has a logo, we're done.
         if (existingAsset != null && !string.IsNullOrEmpty(existingAsset.ImageUrl))
@@ -32,8 +35,6 @@ public class SyncAssetCommandHandler(
             return existingAsset.ToDto();
         }
 
-        var assetType = string.IsNullOrEmpty(request.Type) ? AssetType.Crypto : AssetType.FromValue(request.Type);
-        
         // Attempt lazy logo fetch if missing
         string? imageUrl = await ResolveLogoUrlAsync(request.Symbol, request.ImageUrl ?? existingAsset?.ImageUrl, assetType);
 
