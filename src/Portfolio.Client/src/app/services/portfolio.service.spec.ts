@@ -48,10 +48,10 @@ describe('PortfolioService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('getPortfolioDashboard() should call the correct endpoint', () => {
-    service.getPortfolioDashboard().subscribe();
+  it('getPortfolioMetrics() should call the correct endpoint', () => {
+    service.getPortfolioMetrics().subscribe();
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/Portfolio/dashboard`);
+    const req = httpMock.expectOne(`${environment.apiUrl}/Portfolio/metrics`);
     expect(req.request.method).toBe('GET');
     req.flush({});
   });

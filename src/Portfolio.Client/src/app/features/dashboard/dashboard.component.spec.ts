@@ -22,11 +22,11 @@ function makeMetrics(overrides: Partial<PortfolioMetrics> = {}): PortfolioMetric
 }
 
 const mockService = {
-    getPortfolioDashboard: vi.fn()
+    getPortfolioMetrics: vi.fn()
 };
 
 async function setup() {
-    mockService.getPortfolioDashboard.mockReturnValue(of(makeMetrics()));
+    mockService.getPortfolioMetrics.mockReturnValue(of(makeMetrics()));
     await TestBed.configureTestingModule({
         imports: [DashboardComponent],
         providers: [
@@ -47,10 +47,10 @@ describe('DashboardComponent', () => {
         expect(fixture.componentInstance).toBeTruthy();
     });
 
-    it('should call getPortfolioDashboard on init', () => {
+    it('should call getPortfolioMetrics on init', () => {
         const fixture = TestBed.createComponent(DashboardComponent);
         fixture.detectChanges();
-        expect(mockService.getPortfolioDashboard).toHaveBeenCalledTimes(1);
+        expect(mockService.getPortfolioMetrics).toHaveBeenCalledTimes(1);
     });
 
     it('should set isLoading to false after data loads', () => {
@@ -60,7 +60,7 @@ describe('DashboardComponent', () => {
     });
 
     it('should expose totalValue from loaded metrics', () => {
-        mockService.getPortfolioDashboard.mockReturnValue(
+        mockService.getPortfolioMetrics.mockReturnValue(
             of(makeMetrics({ totalPortfolioValueUsd: 42000 }))
         );
         const fixture = TestBed.createComponent(DashboardComponent);
@@ -69,7 +69,7 @@ describe('DashboardComponent', () => {
     });
 
     it('should show + sign when profit is positive', () => {
-        mockService.getPortfolioDashboard.mockReturnValue(
+        mockService.getPortfolioMetrics.mockReturnValue(
             of(makeMetrics({ totalProfitLossUsd: 500 }))
         );
         const fixture = TestBed.createComponent(DashboardComponent);
@@ -79,7 +79,7 @@ describe('DashboardComponent', () => {
     });
 
     it('should show empty sign when profit is negative', () => {
-        mockService.getPortfolioDashboard.mockReturnValue(
+        mockService.getPortfolioMetrics.mockReturnValue(
             of(makeMetrics({ totalProfitLossUsd: -200 }))
         );
         const fixture = TestBed.createComponent(DashboardComponent);
@@ -89,7 +89,7 @@ describe('DashboardComponent', () => {
     });
 
     it('should set isLoading=false even on service error', () => {
-        mockService.getPortfolioDashboard.mockReturnValue(
+        mockService.getPortfolioMetrics.mockReturnValue(
             throwError(() => new Error('network error'))
         );
         const fixture = TestBed.createComponent(DashboardComponent);

@@ -33,7 +33,8 @@ describe('NewTransactionComponent', () => {
     portfolioServiceSpy = {
       getTransactionTypes: () => of(mockTypes),
       getFiatCurrencies: () => of(mockFiats),
-      addTransaction: () => of(void 0)
+      addTransaction: () => of(void 0),
+      getTaxCurrency: () => of(mockFiats[0])
     };
     routerSpy = { navigate: vi.fn() };
 
