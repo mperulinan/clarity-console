@@ -63,6 +63,13 @@ export class PortfolioService {
         return this.http.get<AssetDto[]>(`${this.apiUrl}/Asset/fiat-currencies`);
     }
 
+    getSpotPrice(externalId: string, fiatCurrency: string): Observable<number> {
+        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${externalId}&vs_currencies=${fiatCurrency.toLowerCase()}`;
+        return this.http.get<any>(url).pipe(
+            map(response => response[externalId]?.[fiatCurrency.toLowerCase()] || 0)
+        );
+    }
+
     getTaxCurrency(): Observable<AssetDto> {
         return this.http.get<AssetDto>(`${this.apiUrl}/Asset/tax-currency`);
     }

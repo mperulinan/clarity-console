@@ -15,6 +15,10 @@
         <mat-icon>swap_horiz</mat-icon>
     </button>
 
+    @if (showWarning()) {
+    <mat-icon matSuffix class="text-amber-500 mr-2" [matTooltip]="warningMessage()">warning</mat-icon>
+    }
+
     <mat-hint class="text-xs">
         @if (internalControl.value !== null && internalControl.value > 0) {
         @if (mode() === PriceInputMode.Unit) {

@@ -183,9 +183,34 @@
                                     [fiatCurrency]="model().spotPriceCurrency"
                                     [value]="model().spotPrice || null"
                                     [disabled]="hasFiatLeg()"
+                                    [showWarning]="requiresSpotPriceConfirmation()"
+                                    [warningMessage]="'Deviation from market spot price: ' + (spotPriceDeviation() * 100 | number:'1.0-2') + '%'"
                                     (valueChange)="onSpotPriceChange($event)">
                                 </app-interactive-price-input>
                             </div>
+                            
+                            @if (isFetchingPrice()) {
+                                <div class="mt-2 text-xs text-gray-400">Fetching market spot price...</div>
+                            } @else if (fetchedSpotPrice() && !hasFiatLeg() && model().spotPrice !== fetchedSpotPrice()) {
+                                <div class="mt-2 text-sm flex items-center">
+                                    <span class="text-gray-400 mr-2">Market Spot Price:</span>
+                                    <button type="button" class="text-primary hover:underline font-medium" (click)="useSuggestedPrice()">
+                                        Use {{ fetchedSpotPrice() | currency:model().spotPriceCurrency:'symbol-narrow' }}
+                                    </button>
+                                </div>
+                            }
+
+                            @if (requiresSpotPriceConfirmation()) {
+                                <div class="mt-3 p-3 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm transform transition-all duration-300 origin-top">
+                                    <label class="flex items-start gap-2 cursor-pointer">
+                                        <input type="checkbox"
+                                               class="mt-1 accent-amber-500"
+                                               [checked]="model().spotPriceDeviationConfirmed"
+                                               (change)="onConfirmDeviation($any($event.target).checked)">
+                                        <span>I acknowledge this valuation differs from the market spot price.</span>
+                                    </label>
+                                </div>
+                            }
                         </div>
                         }
 

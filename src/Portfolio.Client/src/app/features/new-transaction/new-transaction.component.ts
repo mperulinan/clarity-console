@@ -106,6 +106,7 @@ export class NewTransactionComponent implements OnInit {
         feeSpotPrice: 0,
         feeSpotPriceCurrency: DEFAULT_FIAT_CURRENCY as SupportedFiatCurrency,
         notes: '',
+        spotPriceDeviationConfirmed: false,
     });
 
     // ── Asset objects managed alongside the form (objects cannot be in the signal form model) ──
@@ -142,6 +143,12 @@ export class NewTransactionComponent implements OnInit {
         if (!fee) return false;
         const spot = this.fromAsset() ?? this.toAsset();
         return !!spot && fee.id === spot.id;
+    });
+
+    pricedAsset = computed(() => {
+        const typeData = this.selectedTypeData();
+        if (!typeData) return null;
+        return typeData.requiresFromAsset ? this.fromAsset() : this.toAsset();
     });
 
     pricedAssetSymbol = computed(() => {
@@ -181,6 +188,21 @@ export class NewTransactionComponent implements OnInit {
     effectiveFeeSpotPriceCurrency = computed(() =>
         this.isFeeAssetSameAsSpotAsset() ? this.model().spotPriceCurrency : this.model().feeSpotPriceCurrency
     );
+
+    // ── Spot Price Deviation ─────────────────────────────────────────────
+    fetchedSpotPrice = signal<number | null>(null);
+    isFetchingPrice = signal<boolean>(false);
+
+    spotPriceDeviation = computed(() => {
+        const current = this.model().spotPrice;
+        const fetched = this.fetchedSpotPrice();
+        if (!current || !fetched) return 0;
+        return Math.abs((current - fetched) / fetched);
+    });
+
+    requiresSpotPriceConfirmation = computed(() => {
+        return !this.hasFiatLeg() && this.spotPriceDeviation() > 0.01;
+    });
 
     // ── Signal Form ──────────────────────────────────────────────────────
     transactionForm = form(this.model, s => {
@@ -259,6 +281,10 @@ export class NewTransactionComponent implements OnInit {
         const f = this.transactionForm;
         if (f.spotPrice().invalid() || f.fee().invalid()) return false;
         if (!f.feeSpotPrice().disabled() && f.feeSpotPrice().invalid()) return false;
+        
+        if (this.requiresSpotPriceConfirmation() && !this.model().spotPriceDeviationConfirmed) {
+            return false;
+        }
         return true;
     });
 
@@ -276,6 +302,30 @@ export class NewTransactionComponent implements OnInit {
         effect(() => {
             this.feeAsset();
             untracked(() => this.model.update(m => ({ ...m, feeSpotPrice: 0 })));
+        });
+
+        // Effect: fetch spot price from CoinGecko
+        effect(() => {
+            const asset = this.pricedAsset();
+            const currency = this.model().spotPriceCurrency;
+            
+            untracked(async () => {
+                if (!asset?.externalId || !currency) {
+                    this.fetchedSpotPrice.set(null);
+                    return;
+                }
+                
+                this.isFetchingPrice.set(true);
+                try {
+                    const price = await firstValueFrom(this.portfolioService.getSpotPrice(asset.externalId, currency));
+                    this.fetchedSpotPrice.set(price > 0 ? price : null);
+                } catch (err) {
+                    console.error('Failed to fetch spot price', err);
+                    this.fetchedSpotPrice.set(null);
+                } finally {
+                    this.isFetchingPrice.set(false);
+                }
+            });
         });
 
         // Effect: carry over asset selection when transaction type changes
@@ -349,11 +399,18 @@ export class NewTransactionComponent implements OnInit {
     }
 
     onSpotCurrencyChange(value: string) {
-        this.model.update(m => ({ ...m, spotPriceCurrency: value as SupportedFiatCurrency }));
+        this.model.update(m => ({ ...m, spotPriceCurrency: value as SupportedFiatCurrency, spotPriceDeviationConfirmed: false }));
     }
 
     onSpotPriceChange(value: number | null) {
-        this.model.update(m => ({ ...m, spotPrice: value ?? 0 }));
+        this.model.update(m => ({ ...m, spotPrice: value ?? 0, spotPriceDeviationConfirmed: false }));
+    }
+
+    useSuggestedPrice() {
+        const price = this.fetchedSpotPrice();
+        if (price) {
+            this.model.update(m => ({ ...m, spotPrice: price, spotPriceDeviationConfirmed: false }));
+        }
     }
 
     onFeeChange(value: number) {
@@ -366,6 +423,10 @@ export class NewTransactionComponent implements OnInit {
 
     onFeeSpotPriceChange(value: number | null) {
         this.model.update(m => ({ ...m, feeSpotPrice: value ?? 0 }));
+    }
+
+    onConfirmDeviation(checked: boolean) {
+        this.model.update(m => ({ ...m, spotPriceDeviationConfirmed: checked }));
     }
 
     // ── Submit / Cancel ──────────────────────────────────────────────────
