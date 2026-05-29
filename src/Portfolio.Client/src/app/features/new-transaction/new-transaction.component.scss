@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════
-   New Transaction — Dark Theme (Glassmorphism)
+   New Transaction — The Clarity Console
+   Flat-By-Default · Midnight Crimson dark ground
    ═══════════════════════════════════════════════ */
 
 :host {
@@ -12,35 +13,38 @@
     padding: 28px 32px;
     max-width: 800px;
     margin: 0 auto;
-    font-family: var(--font-text);
 
-    /* ── IMPERIAL EASING CURVES ─────────────────── */
+    /* ── EASING CURVES ──────────────────────────── */
     --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
     --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── TOKENS ─────────────────────────────────── */
-$bg-card: var(--color-bg-surface);
-$bg-base: var(--color-bg-base);
-$border: var(--color-border);
+$bg-card:      var(--color-bg-surface);
+$bg-base:      var(--color-bg-base);
+$border:       var(--color-border);
 $text-primary: var(--color-text);
-$text-muted: var(--color-text-muted);
-$accent: var(--color-primary);
-$gain: var(--color-gain);
-$loss: var(--color-loss);
+$text-muted:   var(--color-text-muted);
+$accent:       var(--color-primary);
+$gain:         var(--color-gain);
+$loss:         var(--color-loss);
+
+/* Amber warning — not a semantic gain/loss; kept separate from design-system palette */
+$warning:      #f59e0b;
+$warning-text: #fde68a;
 
 /* ── SEMANTIC ICON COLORS ────────────────────── */
-.icon-loss {
-    color: $loss;
-}
-.icon-gain {
-    color: $gain;
-}
+.icon-loss { color: $loss; }
+.icon-gain { color: $gain; }
 
-/* ── GLASSMORPHISM ───────────────────────────── */
+/* ── SURFACE ALIAS ───────────────────────────── */
+/*
+ * The .glass class name is preserved for HTML compatibility.
+ * No blur or transparency — this is a flat surface card per
+ * the Flat-By-Default rule in DESIGN.md.
+ */
 .glass {
-    /* Keep the class name, but align to "Flat-By-Default" tokens */
     background: $bg-card !important;
     border: 1px solid $border !important;
 }
@@ -58,18 +62,9 @@ $loss: var(--color-loss);
 }
 
 @keyframes errorShake {
-    0%,
-    100% {
-        transform: translateX(0);
-    }
-    20%,
-    60% {
-        transform: translateX(-4px);
-    }
-    40%,
-    80% {
-        transform: translateX(4px);
-    }
+    0%,   100% { transform: translateX(0);  }
+    20%,   60% { transform: translateX(-4px); }
+    40%,   80% { transform: translateX(4px);  }
 }
 
 @keyframes bannerSlideDown {
@@ -83,6 +78,29 @@ $loss: var(--color-loss);
     }
 }
 
+/* ── REDUCED MOTION ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .hero-card,
+    .section-card {
+        animation: none !important;
+    }
+
+    .hint-fetching,
+    .hint-suggestion,
+    .warning-box {
+        transition: none !important;
+    }
+
+    .submit-error-banner {
+        animation: none !important;
+    }
+
+    .type-toggle-grid mat-button-toggle {
+        transition: none !important;
+    }
+}
+
+/* ── HERO CARD ──────────────────────────────── */
 .hero-card {
     animation: slideFadeIn 0.6s var(--ease-out-expo) backwards;
     position: relative;
@@ -115,7 +133,7 @@ $loss: var(--color-loss);
 
 /* ── FORM SECTIONS ──────────────────────────── */
 .section-card {
-    background: color-mix(in srgb, $bg-base, $bg-card 70%);
+    background: color-mix(in srgb, $bg-card, $bg-base 30%);
     border: 1px solid color-mix(in srgb, $border, transparent 10%);
     border-radius: var(--radius-md);
     padding: 20px;
@@ -148,7 +166,6 @@ $loss: var(--color-loss);
     border: 1px solid $border;
     border-radius: 8px;
     padding: 4px;
-    /* Equal-width columns: every toggle shares the same track size */
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 4px;
@@ -165,8 +182,8 @@ $loss: var(--color-loss);
         box-sizing: border-box;
         transition:
             background-color 0.2s var(--ease-out-quart),
-            color 0.2s var(--ease-out-quart),
-            transform 0.2s var(--ease-out-quart);
+            color            0.2s var(--ease-out-quart),
+            transform        0.2s var(--ease-out-quart);
 
         &:hover:not(.mat-button-toggle-checked):not(.mat-button-toggle-disabled) {
             background: color-mix(in srgb, $bg-card, transparent 90%);
@@ -179,16 +196,21 @@ $loss: var(--color-loss);
             box-shadow: none;
         }
 
-        // Active tap state: subtle compression
         &:active:not(.mat-button-toggle-disabled) {
             transform: scale(0.97);
+        }
+
+        /* Keyboard focus — meets WCAG AA, consistent with design system */
+        &:focus-visible {
+            outline: 2px solid $accent;
+            outline-offset: -2px;
         }
     }
 }
 
 /* ── MATERIAL OVERRIDES ──────────────────────── */
 ::ng-deep {
-    /* MatStepper Overrides */
+    /* MatStepper */
     .mat-stepper-horizontal {
         background: transparent !important;
         font-family: var(--font-text) !important;
@@ -273,7 +295,7 @@ $loss: var(--color-loss);
     min-width: 0;
 }
 
-/* Date + time always one row; date column gets a bit more track than time */
+/* Date + time always one row; date column gets more track than time */
 .date-time-grid {
     display: grid;
     gap: 12px;
@@ -304,6 +326,19 @@ $loss: var(--color-loss);
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 16px;
+
+    /* Icons inside summary labels are structural, not semantic state signals */
+    .summary-cell__label mat-icon {
+        color: $text-muted;
+        opacity: 0.9;
+    }
+
+    /* Direction hint icons (icon-gain / icon-loss) are neutral in Review context */
+    .summary-cell__label .icon-gain,
+    .summary-cell__label .icon-loss {
+        color: $text-muted;
+        opacity: 0.9;
+    }
 }
 
 .summary-cell {
@@ -314,7 +349,7 @@ $loss: var(--color-loss);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition: background 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: background 0.15s var(--ease-out-quart);
 
     &:hover {
         background: color-mix(in srgb, $text-primary, transparent 96%);
@@ -350,21 +385,6 @@ $loss: var(--color-loss);
     height: 1px;
     background: $border;
     margin: 18px 0;
-}
-
-.summary-grid {
-    /* In Review, icons are supportive, not semantic states */
-    .summary-cell__label mat-icon {
-        color: $text-muted;
-        opacity: 0.9;
-    }
-
-    /* Override gain/loss classes when used as From/To direction hints */
-    .summary-cell__label .icon-gain,
-    .summary-cell__label .icon-loss {
-        color: $text-muted;
-        opacity: 0.9;
-    }
 }
 
 .summary-cell__value {
@@ -417,7 +437,7 @@ $loss: var(--color-loss);
 }
 
 /* ── FINANCIALS TILE LABELS ───────────────────── */
-/* Prose-style label: no uppercase, no tracking override needed */
+/* Prose-style label: sentence case, no tracking override */
 .summary-tile-label {
     display: block;
     font-family: var(--font-text);
@@ -437,8 +457,8 @@ $loss: var(--color-loss);
 }
 
 /* ── FINANCIALS TILES ────────────────────────── */
+/* Avoids nested-card feel inside .section-card */
 .summary-financials-tile {
-    /* Avoid nested-card feel inside .section-card */
     background: transparent;
     border: none;
     border-radius: 0;
@@ -447,13 +467,14 @@ $loss: var(--color-loss);
 }
 
 .summary-fee-tile {
-    /* Secondary block, separated by space not another card */
+    /* Secondary block separated by space, not another card.
+     * Solid hairline — dashed borders are outside this system's vocabulary. */
     background: transparent;
     border: none;
     border-radius: 0;
     padding: 14px 0 0;
     margin-top: 14px;
-    border-top: 1px dashed color-mix(in srgb, $border, transparent 0%);
+    border-top: 1px solid $border;
 
     .fee-tile-label {
         display: block;
@@ -516,7 +537,7 @@ $loss: var(--color-loss);
     padding-top: 24px;
     border-top: 1px solid $border;
 
-    // Flush variant: sits directly below step content, no divider
+    /* Flush: sits directly below step content, no divider */
     &--flush {
         padding-top: 0;
         border-top: none;
@@ -529,7 +550,7 @@ $loss: var(--color-loss);
 }
 
 /* ── SUMMARY TOTAL VALUE ─────────────────────── */
-// Large bold numeral for the computed total fiat amount
+/* Large quiet numeral for the computed total fiat amount */
 .summary-total-value {
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
@@ -553,24 +574,21 @@ $loss: var(--color-loss);
     font-weight: 500;
     animation:
         bannerSlideDown 0.3s var(--ease-out-quart) backwards,
-        errorShake 0.4s 0.1s var(--ease-out-quint);
+        errorShake      0.4s 0.1s var(--ease-out-quint);
 }
 
-/* ── INLINE ALERTS & HINTS ──────────────────── */
-$warning: #f59e0b; // amber-500
-$warning-text: #fde68a; // amber-200
-
+/* ── INLINE HINTS ────────────────────────────── */
 .hint-fetching,
 .hint-suggestion {
     display: grid;
     grid-template-rows: 0fr;
     opacity: 0;
-    transition: 
-        grid-template-rows 0.3s var(--ease-out-quart), 
-        opacity 0.3s var(--ease-out-quart), 
-        margin 0.3s var(--ease-out-quart);
+    transition:
+        grid-template-rows 0.3s var(--ease-out-quart),
+        opacity            0.3s var(--ease-out-quart),
+        margin             0.3s var(--ease-out-quart);
     margin-top: 0;
-    
+
     &.is-visible {
         grid-template-rows: 1fr;
         opacity: 1;
@@ -596,7 +614,7 @@ $warning-text: #fde68a; // amber-200
         color: $text-muted;
         margin-right: 8px;
     }
-    
+
     .suggestion-btn {
         color: $accent;
         font-weight: 500;
@@ -604,21 +622,31 @@ $warning-text: #fde68a; // amber-200
         border: none;
         padding: 0;
         cursor: pointer;
-        
+        font-family: var(--font-text);
+        font-size: inherit;
+        line-height: inherit;
+
         &:hover {
             text-decoration: underline;
+        }
+
+        &:focus-visible {
+            outline: 2px solid $accent;
+            outline-offset: 2px;
+            border-radius: 2px;
         }
     }
 }
 
+/* ── INLINE WARNING ──────────────────────────── */
 .warning-box {
     display: grid;
     grid-template-rows: 0fr;
     opacity: 0;
-    transition: 
-        grid-template-rows 0.3s var(--ease-out-quart), 
-        opacity 0.3s var(--ease-out-quart), 
-        margin 0.3s var(--ease-out-quart);
+    transition:
+        grid-template-rows 0.3s var(--ease-out-quart),
+        opacity            0.3s var(--ease-out-quart),
+        margin             0.3s var(--ease-out-quart);
     margin-top: 0;
 
     background: color-mix(in srgb, $warning, transparent 90%);
@@ -626,7 +654,7 @@ $warning-text: #fde68a; // amber-200
     color: $warning-text;
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
-    
+
     &.is-visible {
         grid-template-rows: 1fr;
         opacity: 1;
@@ -636,7 +664,7 @@ $warning-text: #fde68a; // amber-200
     .warning-content {
         overflow: hidden;
     }
-    
+
     .warning-inner {
         padding: 12px;
     }
@@ -648,7 +676,7 @@ $warning-text: #fde68a; // amber-200
         cursor: pointer;
         margin: 0;
     }
-    
+
     input[type="checkbox"] {
         margin-top: 4px;
         accent-color: $warning;
