@@ -188,29 +188,31 @@
                                     (valueChange)="onSpotPriceChange($event)">
                                 </app-interactive-price-input>
                             </div>
+                            <div class="hint-fetching" [class.is-visible]="isFetchingPrice()">
+                                <div class="hint-content">Fetching market spot price...</div>
+                            </div>
                             
-                            @if (isFetchingPrice()) {
-                                <div class="mt-2 text-xs text-gray-400">Fetching market spot price...</div>
-                            } @else if (fetchedSpotPrice() && !hasFiatLeg() && model().spotPrice !== fetchedSpotPrice()) {
-                                <div class="mt-2 text-sm flex items-center">
-                                    <span class="text-gray-400 mr-2">Market Spot Price:</span>
-                                    <button type="button" class="text-primary hover:underline font-medium" (click)="useSuggestedPrice()">
+                            <div class="hint-suggestion" [class.is-visible]="!isFetchingPrice() && fetchedSpotPrice() && !hasFiatLeg() && model().spotPrice !== fetchedSpotPrice()">
+                                <div class="hint-content">
+                                    <span class="suggestion-label">Market Spot Price:</span>
+                                    <button type="button" class="suggestion-btn" (click)="useSuggestedPrice()">
                                         Use {{ fetchedSpotPrice() | currency:model().spotPriceCurrency:'symbol-narrow' }}
                                     </button>
                                 </div>
-                            }
+                            </div>
 
-                            @if (requiresSpotPriceConfirmation()) {
-                                <div class="mt-3 p-3 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm transform transition-all duration-300 origin-top">
-                                    <label class="flex items-start gap-2 cursor-pointer">
-                                        <input type="checkbox"
-                                               class="mt-1 accent-amber-500"
-                                               [checked]="model().spotPriceDeviationConfirmed"
-                                               (change)="onConfirmDeviation($any($event.target).checked)">
-                                        <span>I acknowledge this valuation differs from the market spot price.</span>
-                                    </label>
+                            <div class="warning-box" [class.is-visible]="requiresSpotPriceConfirmation()">
+                                <div class="warning-content">
+                                    <div class="warning-inner">
+                                        <label>
+                                            <input type="checkbox"
+                                                   [checked]="model().spotPriceDeviationConfirmed"
+                                                   (change)="onConfirmDeviation($any($event.target).checked)">
+                                            <span>I acknowledge this valuation differs from the market spot price.</span>
+                                        </label>
+                                    </div>
                                 </div>
-                            }
+                            </div>
                         </div>
                         }
 
