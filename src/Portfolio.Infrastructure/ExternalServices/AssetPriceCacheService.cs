@@ -60,4 +60,36 @@ public class AssetPriceCacheService(
 
         return result;
     }
+
+    public async Task<decimal?> GetHistoricalPriceAsync(string externalId, FiatCurrency currency, DateTime date)
+    {
+        string cacheKey = $"{CacheKeyPrefix}_{externalId}_{currency.Value}_{date:yyyyMMdd}";
+
+        if (memoryCache.TryGetValue(cacheKey, out decimal cachedPrice))
+        {
+            logger.LogDebug("Cache hit for historical asset {AssetId} ({Currency}) at {Date}", externalId, currency.Value, date.ToString("yyyyMMdd"));
+            return cachedPrice;
+        }
+
+        var price = await innerProvider.GetHistoricalPriceAsync(externalId, currency, date);
+        if (price.HasValue)
+        {
+            bool isToday = date.Date == DateTime.UtcNow.Date;
+
+            var cacheOptions = new MemoryCacheEntryOptions();
+
+            if (isToday)
+            {
+                cacheOptions.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+            }
+            else
+            {
+                cacheOptions.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30);
+                cacheOptions.Priority = CacheItemPriority.High;
+            }
+
+            memoryCache.Set(cacheKey, price.Value, cacheOptions);
+        }
+        return price;
+    }
 }

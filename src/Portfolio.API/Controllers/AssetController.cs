@@ -13,6 +13,7 @@ namespace Portfolio.API.Controllers;
 [ApiController]
 public class AssetController(
     IAssetSearchService assetSearchService,
+    IAssetPriceProviderFactory priceProviderFactory,
     IUnitOfWork unitOfWork,
     ISender mediator) : ControllerBase
 {
@@ -43,5 +44,45 @@ public class AssetController(
 
         var result = await mediator.Send(new SyncAssetCommand(request));
         return Ok(result);
+    }
+
+    [HttpGet("{id:guid}/price")]
+    public async Task<ActionResult<decimal>> GetSpotPrice(Guid id, [FromQuery] string fiatCurrency, [FromQuery] DateTime? date = null)
+    {
+        if (!FiatCurrency.TryFromValue(fiatCurrency.ToLowerInvariant(), out var currency))
+        {
+            return BadRequest("Invalid fiat currency.");
+        }
+
+        var asset = await unitOfWork.Assets.GetByIdAsync(id);
+        if (asset == null || string.IsNullOrWhiteSpace(asset.ExternalId))
+        {
+            return NotFound("Asset not found or missing external identifier.");
+        }
+
+        var priceProvider = priceProviderFactory.GetProvider(asset.Type);
+        if (priceProvider == null)
+        {
+            return BadRequest($"No price provider available for asset type '{asset.Type.Name}'.");
+        }
+
+        if (date.HasValue)
+        {
+            var historicalPrice = await priceProvider.GetHistoricalPriceAsync(asset.ExternalId, currency, date.Value);
+            if (historicalPrice.HasValue)
+            {
+                return Ok(historicalPrice.Value);
+            }
+            return NotFound();
+        }
+        else
+        {
+            var prices = await priceProvider.GetPricesAsync([asset.ExternalId], currency);
+            if (prices.TryGetValue(asset.ExternalId, out var price))
+            {
+                return Ok(price);
+            }
+            return NotFound();
+        }
     }
 }

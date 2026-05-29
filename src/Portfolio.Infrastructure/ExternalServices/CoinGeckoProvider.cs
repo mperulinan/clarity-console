@@ -54,6 +54,40 @@ public class CoinGeckoProvider(
         }
     }
 
+    public record CoinGeckoHistoryResponseDto(
+        [property: JsonPropertyName("market_data")] CoinGeckoHistoryMarketDataDto? MarketData
+    );
+
+    public record CoinGeckoHistoryMarketDataDto(
+        [property: JsonPropertyName("current_price")] Dictionary<string, decimal>? CurrentPrice
+    );
+
+    public async Task<decimal?> GetHistoricalPriceAsync(string externalId, FiatCurrency currency, DateTime date)
+    {
+        string dateStr = date.ToString("dd-MM-yyyy");
+        string vsCurrency = currency.Value.ToLower();
+        string url = $"{_baseUrl}coins/{externalId.ToLower()}/history?date={dateStr}&localization=false&x_cg_demo_api_key={_apiKey}";
+
+        try
+        {
+            logger.LogDebug("Fetching historical price for {Id} at {Date} from CoinGecko...", externalId, dateStr);
+            var response = await _httpClient.GetFromJsonAsync<CoinGeckoHistoryResponseDto>(url);
+            
+            if (response?.MarketData?.CurrentPrice != null && response.MarketData.CurrentPrice.TryGetValue(vsCurrency, out var price))
+            {
+                return price;
+            }
+
+            logger.LogWarning("CoinGecko history returned no price for {Id} at {Date}", externalId, dateStr);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to fetch historical price from CoinGecko for asset: {Id} at {Date}", externalId, dateStr);
+            return null;
+        }
+    }
+
     public record CoinGeckoMarketDto(
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("symbol")] string Symbol,

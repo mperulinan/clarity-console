@@ -87,6 +87,40 @@ public class TwelveDataProvider(
         }
     }
 
+    public async Task<decimal?> GetHistoricalPriceAsync(string externalId, FiatCurrency currency, DateTime date)
+    {
+        if (string.IsNullOrWhiteSpace(externalId)) return null;
+
+        string endDate = date.ToString("yyyy-MM-dd");
+        string url = GetApiUrl($"time_series?symbol={Uri.EscapeDataString(externalId)}&interval=1day&end_date={endDate}&outputsize=1");
+
+        try
+        {
+            logger.LogDebug("Fetching historical price for {Symbol} on {Date} from Twelve Data...", externalId, endDate);
+            var response = await httpClient.GetFromJsonAsync<TwelveDataTimeSeriesResponseDto>(url);
+
+            if (response?.Status == "error")
+            {
+                logger.LogWarning("Twelve Data time_series returned error: {Message}", response.Message);
+                return null;
+            }
+
+            var latestValue = response?.Values?.FirstOrDefault();
+            if (latestValue?.Close != null && decimal.TryParse(latestValue.Close, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var price))
+            {
+                return price;
+            }
+
+            logger.LogWarning("Twelve Data time_series returned no values for {Symbol} on {Date}.", externalId, endDate);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to fetch historical price from Twelve Data for symbol: {Symbol}", externalId);
+            return null;
+        }
+    }
+
     // ── IAssetSearchProvider ─────────────────────────────────────────────
 
     public async Task<IEnumerable<SearchAssetResult>> SearchAssetsAsync(string query)
@@ -217,5 +251,16 @@ public class TwelveDataProvider(
 
     private record TwelveDataSearchResponseDto(
         [property: JsonPropertyName("data")] List<TwelveDataSearchItemDto> Data
+    );
+
+    private record TwelveDataTimeSeriesResponseDto(
+        [property: JsonPropertyName("status")] string? Status,
+        [property: JsonPropertyName("message")] string? Message,
+        [property: JsonPropertyName("values")] List<TwelveDataTimeSeriesValueDto>? Values
+    );
+
+    private record TwelveDataTimeSeriesValueDto(
+        [property: JsonPropertyName("datetime")] string? Datetime,
+        [property: JsonPropertyName("close")] string? Close
     );
 }
