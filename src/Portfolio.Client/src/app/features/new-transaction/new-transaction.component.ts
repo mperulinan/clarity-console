@@ -308,16 +308,17 @@ export class NewTransactionComponent implements OnInit {
         effect(() => {
             const asset = this.pricedAsset();
             const currency = this.model().spotPriceCurrency;
+            const date = this.combinedDate();
             
             untracked(async () => {
-                if (!asset?.externalId || !currency) {
+                if (!asset?.id || !currency) {
                     this.fetchedSpotPrice.set(null);
                     return;
                 }
                 
                 this.isFetchingPrice.set(true);
                 try {
-                    const price = await firstValueFrom(this.portfolioService.getSpotPrice(asset.externalId, currency));
+                    const price = await firstValueFrom(this.portfolioService.getSpotPrice(asset.id, currency, date));
                     this.fetchedSpotPrice.set(price > 0 ? price : null);
                 } catch (err) {
                     console.error('Failed to fetch spot price', err);
