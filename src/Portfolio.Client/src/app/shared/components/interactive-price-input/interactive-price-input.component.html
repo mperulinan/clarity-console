@@ -4,19 +4,20 @@
     </mat-label>
 
     @if (currencyPrefix()) {
-    <span matTextPrefix class="mr-1 text-gray-300">{{ currencyPrefix() }}</span>
+    <span matTextPrefix class="price-input__currency-prefix">{{ currencyPrefix() }}</span>
     }
 
     <input matInput type="number" class="price-input__number" [formControl]="internalControl" [placeholder]="'0.00'">
 
     <button matSuffix mat-icon-button (click)="toggleMode()" type="button"
+        class="price-input__mode-toggle"
         [attr.aria-label]="mode() === PriceInputMode.Unit ? 'Switch to Total Value' : 'Switch to Unit Price'"
         [matTooltip]="mode() === PriceInputMode.Unit ? 'Switch to Total Value' : 'Switch to Unit Price'">
         <mat-icon>swap_horiz</mat-icon>
     </button>
 
     @if (showWarning()) {
-    <mat-icon matSuffix class="text-amber-500 mr-2" [matTooltip]="warningMessage()">warning</mat-icon>
+    <mat-icon matSuffix class="price-input__warning-icon" [matTooltip]="warningMessage()">warning</mat-icon>
     }
 
     <mat-hint class="text-xs">

@@ -1,12 +1,54 @@
+/* ══════════════════════════════════════════════════
+   interactive-price-input — The Clarity Console
+   ══════════════════════════════════════════════════ */
+
+/* ── NUMERIC INPUT ──────────────────────────────── */
+/*
+ * Work Sans with tabular-nums provides aligned decimal
+ * columns across unit-price and total-value modes.
+ */
 .price-input__number {
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum";
 }
 
+/* ── COMPUTED VALUE (mat-hint) ──────────────────── */
 .price-input__computed-value {
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum";
     font-weight: 600;
+}
+
+/* ── CURRENCY PREFIX ─────────────────────────────── */
+.mat-mdc-form-field .price-input__currency-prefix {
+    color: var(--color-text-muted);
+    margin-right: 4px;
+    font-family: var(--font-numbers);
+    font-size: var(--text-base);
+}
+
+/* ── MODE TOGGLE BUTTON ─────────────────────────── */
+/*
+ * The swap_horiz icon button sits as matSuffix.
+ * States: default (muted), hover (text), focus-visible (accent ring).
+ * Transitions use the same easing curve as the rest of the system.
+ */
+.mat-mdc-form-field .mat-mdc-icon-button.price-input__mode-toggle {
+    color: var(--color-text-muted);
+    transition: color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+
+    &:hover {
+        color: var(--color-text);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+        border-radius: 50%;
+    }
+}
+
+/* ── WARNING ICON ────────────────────────────────── */
+.price-input__warning-icon {
+    color: #f59e0b;
 }
