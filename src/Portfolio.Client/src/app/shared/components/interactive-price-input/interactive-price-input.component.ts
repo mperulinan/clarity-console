@@ -55,8 +55,9 @@ export class InteractivePriceInputComponent {
     readonly PriceInputMode = PriceInputMode;
 
     mode = signal<PriceInputMode>(PriceInputMode.Unit);
-    private currentUnitPrice = signal<number | null>(null);
-    internalControl = new FormControl<number | null>(null);
+    currentUnitPrice = signal<number | null>(null);
+    /** Text-based control — locale-safe, always parsed with dot as decimal separator. */
+    internalControl = new FormControl<string | null>(null);
 
     currencyPrefix = computed(() =>
         FIAT_CURRENCY_SYMBOLS[this.fiatCurrency() as keyof typeof FIAT_CURRENCY_SYMBOLS] || this.fiatCurrency()
@@ -85,7 +86,7 @@ export class InteractivePriceInputComponent {
                     const displayValue = this.mode() === PriceInputMode.Unit
                         ? v
                         : v * this.safeAmount();
-                    this.internalControl.setValue(displayValue, { emitEvent: false });
+                    this.internalControl.setValue(this.formatNumeric(displayValue), { emitEvent: false });
                 } else {
                     this.internalControl.setValue(null, { emitEvent: false });
                 }
@@ -106,7 +107,8 @@ export class InteractivePriceInputComponent {
             const amount = this.safeAmount();
             untracked(() => {
                 if (this.mode() === PriceInputMode.Total && this.internalControl.value !== null) {
-                    const newUnit = amount > 0 ? this.internalControl.value / amount : null;
+                    const inputVal = this.parseNumericInput(this.internalControl.value);
+                    const newUnit = (amount > 0 && inputVal !== null) ? inputVal / amount : null;
                     this.currentUnitPrice.set(newUnit);
                     this.valueChange.emit(newUnit);
                 }
@@ -116,7 +118,8 @@ export class InteractivePriceInputComponent {
         // Drive currentUnitPrice and notify parent from user input
         this.internalControl.valueChanges
             .pipe(takeUntilDestroyed())
-            .subscribe(val => {
+            .subscribe(raw => {
+                const val = this.parseNumericInput(raw);
                 if (val === null || val < 0) {
                     this.currentUnitPrice.set(null);
                 } else if (this.mode() === PriceInputMode.Unit) {
@@ -137,9 +140,30 @@ export class InteractivePriceInputComponent {
             const displayValue = this.mode() === PriceInputMode.Unit
                 ? price
                 : price * this.safeAmount();
-            this.internalControl.setValue(displayValue, { emitEvent: false });
+            this.internalControl.setValue(this.formatNumeric(displayValue), { emitEvent: false });
         } else {
             this.internalControl.setValue(null, { emitEvent: false });
         }
+    }
+
+    /**
+     * Accepts both dot and comma as decimal separator and always returns a JS number
+     * (which internally uses dot). Rejects values that cannot be parsed.
+     */
+    private parseNumericInput(raw: string | null | undefined): number | null {
+        if (raw === null || raw === undefined || raw.toString().trim() === '') return null;
+        // Normalise: replace comma decimal separator with dot
+        const normalised = raw.toString().trim().replace(',', '.');
+        const parsed = parseFloat(normalised);
+        return isNaN(parsed) ? null : parsed;
+    }
+
+    /**
+     * Formats a JS number to a plain decimal string without locale-specific separators.
+     * Strips unnecessary trailing zeros.
+     */
+    private formatNumeric(value: number): string {
+        // toFixed(8) then trim trailing zeros and possible trailing dot
+        return parseFloat(value.toFixed(8)).toString();
     }
 }
