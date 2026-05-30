@@ -91,7 +91,7 @@ export class NewTransactionComponent implements OnInit {
     transactionTypes = signal<TransactionType[]>([]);
     fiatCurrencies = signal<AssetDto[]>([]);
     taxCurrency = signal<AssetDto | null>(null);
-    
+
     getTransactionIcons = getTransactionIcons;
     readonly TransactionTypeCode = TransactionTypeCode;
 
@@ -176,7 +176,7 @@ export class NewTransactionComponent implements OnInit {
         const t = this.model().timePart;
         if (!d || !t) return new Date();
         const dateObj = new Date(d);
-        
+
         const [hours, minutes, seconds] = t.split(':').map(Number);
         dateObj.setHours(hours || 0, minutes || 0, seconds || 0, 0);
         return dateObj;
@@ -283,7 +283,7 @@ export class NewTransactionComponent implements OnInit {
         const f = this.transactionForm;
         if (f.spotPrice().invalid() || f.fee().invalid()) return false;
         if (!f.feeSpotPrice().disabled() && f.feeSpotPrice().invalid()) return false;
-        
+
         if (this.requiresSpotPriceConfirmation() && !this.model().spotPriceDeviationConfirmed) {
             return false;
         }
@@ -317,9 +317,9 @@ export class NewTransactionComponent implements OnInit {
             const typeData = this.selectedTypeData();
             const taxFiat = this.taxCurrency();
             if (!typeData) return;
-            
+
             const typeValue = typeData.value;
-            
+
             untracked(() => {
                 if (typeValue === TransactionTypeCode.Deposit) {
                     if (taxFiat) {
@@ -402,7 +402,15 @@ export class NewTransactionComponent implements OnInit {
         this.isFetchingPrice.set(true);
         try {
             const price = await firstValueFrom(this.portfolioService.getSpotPrice(asset.id, currency, date));
-            this.fetchedSpotPrice.set(price > 0 ? price : null);
+            console.log(price);
+
+            if (price > 0) {
+                // Round to 2 decimal places to match the currency pipe display
+                const roundedPrice = Math.round(price * 100) / 100;
+                this.fetchedSpotPrice.set(roundedPrice);
+            } else {
+                this.fetchedSpotPrice.set(null);
+            }
         } catch (err) {
             console.error('Failed to fetch spot price', err);
             this.fetchedSpotPrice.set(null);

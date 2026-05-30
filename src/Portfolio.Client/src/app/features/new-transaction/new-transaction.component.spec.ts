@@ -143,6 +143,23 @@ describe('NewTransactionComponent', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
   });
 
+  // ── Spot Price Fetching ────────────────────────────────────────────────
+
+  it('onStep1Next() should fetch spot price and round to 2 decimals', async () => {
+    portfolioServiceSpy.getSpotPrice = vi.fn().mockReturnValue(of(1234.56789));
+    
+    component.model.update(m => ({ ...m, type: 'BUY', amountReceived: 1, spotPriceCurrency: 'USD' as any }));
+    component.toAsset.set(mockAsset);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    component.onStep1Next();
+    await fixture.whenStable();
+
+    expect(portfolioServiceSpy.getSpotPrice).toHaveBeenCalled();
+    expect(component.fetchedSpotPrice()).toBe(1234.57); // rounded
+  });
+
   it('should show server validation message on 400 from addTransaction', async () => {
     portfolioServiceSpy.addTransaction = () =>
       throwError(() =>
