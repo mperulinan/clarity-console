@@ -8,8 +8,8 @@
  * columns across unit-price and total-value modes.
  */
 .price-input__number {
-    font-family: var(--font-numbers);
-    font-variant-numeric: tabular-nums;
+    font-family: var(--font-numbers) !important;
+    font-variant-numeric: tabular-nums !important;
 }
 
 /* ── COMPUTED VALUE (mat-hint) ──────────────────── */
