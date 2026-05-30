@@ -1,6 +1,6 @@
 import {
     Component, OnInit, signal, computed,
-    effect, untracked, inject, ChangeDetectionStrategy
+    effect, untracked, inject, ChangeDetectionStrategy, ViewChild
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -15,7 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatStepperModule } from '@angular/material/stepper';
+import { MatStepperModule, MatStepper } from '@angular/material/stepper';
 
 // Signal Forms
 import {
@@ -82,6 +82,8 @@ const UI_CONFIG: Record<string, any> = {
 export class NewTransactionComponent implements OnInit {
     private readonly portfolioService = inject(PortfolioService);
     private readonly router = inject(Router);
+
+    @ViewChild('stepper') stepper!: MatStepper;
 
     isSubmitting = signal<boolean>(false);
     submitError = signal<string | null>(null);
@@ -289,44 +291,25 @@ export class NewTransactionComponent implements OnInit {
     });
 
     constructor() {
-        // Effect: clear spotPrice when the spot asset changes
+        // Effect: clear spotPrice and fetched suggestion when the spot asset changes
         effect(() => {
             this.fromAsset();
-            untracked(() => this.model.update(m => ({ ...m, spotPrice: 0 })));
+            untracked(() => {
+                this.model.update(m => ({ ...m, spotPrice: 0 }));
+                this.fetchedSpotPrice.set(null);
+            });
         });
         effect(() => {
             this.toAsset();
-            untracked(() => this.model.update(m => ({ ...m, spotPrice: 0 })));
+            untracked(() => {
+                this.model.update(m => ({ ...m, spotPrice: 0 }));
+                this.fetchedSpotPrice.set(null);
+            });
         });
         // Effect: clear feeSpotPrice when fee asset changes
         effect(() => {
             this.feeAsset();
             untracked(() => this.model.update(m => ({ ...m, feeSpotPrice: 0 })));
-        });
-
-        // Effect: fetch spot price from CoinGecko
-        effect(() => {
-            const asset = this.pricedAsset();
-            const currency = this.model().spotPriceCurrency;
-            const date = this.combinedDate();
-            
-            untracked(async () => {
-                if (!asset?.id || !currency) {
-                    this.fetchedSpotPrice.set(null);
-                    return;
-                }
-                
-                this.isFetchingPrice.set(true);
-                try {
-                    const price = await firstValueFrom(this.portfolioService.getSpotPrice(asset.id, currency, date));
-                    this.fetchedSpotPrice.set(price > 0 ? price : null);
-                } catch (err) {
-                    console.error('Failed to fetch spot price', err);
-                    this.fetchedSpotPrice.set(null);
-                } finally {
-                    this.isFetchingPrice.set(false);
-                }
-            });
         });
 
         // Effect: carry over asset selection when transaction type changes
@@ -399,8 +382,39 @@ export class NewTransactionComponent implements OnInit {
         this.model.update(m => ({ ...m, type: value }));
     }
 
+    // ── Step navigation ──────────────────────────────────────────────────
+
+    onStep1Next() {
+        this.stepper.next();
+        this.fetchSpotPrice();
+    }
+
+    private async fetchSpotPrice(): Promise<void> {
+        const asset = this.pricedAsset();
+        const currency = this.model().spotPriceCurrency;
+        const date = this.combinedDate();
+
+        if (!asset?.id || !currency) {
+            this.fetchedSpotPrice.set(null);
+            return;
+        }
+
+        this.isFetchingPrice.set(true);
+        try {
+            const price = await firstValueFrom(this.portfolioService.getSpotPrice(asset.id, currency, date));
+            this.fetchedSpotPrice.set(price > 0 ? price : null);
+        } catch (err) {
+            console.error('Failed to fetch spot price', err);
+            this.fetchedSpotPrice.set(null);
+        } finally {
+            this.isFetchingPrice.set(false);
+        }
+    }
+
     onSpotCurrencyChange(value: string) {
         this.model.update(m => ({ ...m, spotPriceCurrency: value as SupportedFiatCurrency, spotPriceDeviationConfirmed: false }));
+        // Re-fetch since the currency change invalidates the cached suggestion
+        this.fetchSpotPrice();
     }
 
     onSpotPriceChange(value: number | null) {
