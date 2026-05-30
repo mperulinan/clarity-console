@@ -10,6 +10,8 @@ colors:
   gain: "#FAFF70"
   loss: "#9B8EFD"
   error: "#D62828"
+  warning: "#F59E0B"
+  warning-text: "#FDE68A"
   border: "rgba(255, 235, 245, 0.05)"
 typography:
   display:
@@ -94,7 +96,8 @@ A Restrained strategy rooted in a custom Midnight Crimson dark mode.
 ### Semantic
 - **Gold Gain** (#FAFF70): Used exclusively for positive financial values and upward trends.
 - **Purple Loss** (#9B8EFD): Used exclusively for negative financial values, downward trends and wash-sale warnings.
-- **Deep Red Error** (#D62828): Used for data integrity errors and system-level warnings, distinguishing them from financial loss.
+- **Deep Red Error** (#D62828): Used for data integrity errors and system-level failures, distinguishing them from financial loss.
+- **Amber Warning** (#F59E0B): Used for process warnings (e.g., price deviations from market spot) to separate them from negative financial values and hard errors.
 
 **The One Voice Rule.** The primary accent (#FF0054) is used on ≤10% of any given screen. Its rarity is the point.
 
