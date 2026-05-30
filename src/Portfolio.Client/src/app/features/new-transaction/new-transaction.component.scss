@@ -20,23 +20,9 @@
     --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── TOKENS ─────────────────────────────────── */
-$bg-card:      var(--color-bg-surface);
-$bg-base:      var(--color-bg-base);
-$border:       var(--color-border);
-$text-primary: var(--color-text);
-$text-muted:   var(--color-text-muted);
-$accent:       var(--color-primary);
-$gain:         var(--color-gain);
-$loss:         var(--color-loss);
-
-/* Amber warning — not a semantic gain/loss; kept separate from design-system palette */
-$warning:      #f59e0b;
-$warning-text: #fde68a;
-
 /* ── SEMANTIC ICON COLORS ────────────────────── */
-.icon-loss { color: $loss; }
-.icon-gain { color: $gain; }
+.icon-loss { color: var(--color-loss); }
+.icon-gain { color: var(--color-gain); }
 
 /* ── SURFACE ALIAS ───────────────────────────── */
 /*
@@ -45,8 +31,8 @@ $warning-text: #fde68a;
  * the Flat-By-Default rule in DESIGN.md.
  */
 .glass {
-    background: $bg-card !important;
-    border: 1px solid $border !important;
+    background: var(--color-bg-surface) !important;
+    border: 1px solid var(--color-border) !important;
 }
 
 /* ── ANIMATIONS ─────────────────────────────── */
@@ -104,8 +90,8 @@ $warning-text: #fde68a;
 .hero-card {
     animation: slideFadeIn 0.6s var(--ease-out-expo) backwards;
     position: relative;
-    background: $bg-card;
-    border: 1px solid $border;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: 32px;
     overflow: hidden;
@@ -119,7 +105,7 @@ $warning-text: #fde68a;
 .card-title {
     font-size: var(--text-xl);
     font-weight: 700;
-    color: $text-primary;
+    color: var(--color-text);
     margin-bottom: 24px;
     letter-spacing: -0.01em;
     display: flex;
@@ -127,14 +113,14 @@ $warning-text: #fde68a;
     gap: 8px;
 
     mat-icon {
-        color: $accent;
+        color: var(--color-primary);
     }
 }
 
 /* ── FORM SECTIONS ──────────────────────────── */
 .section-card {
-    background: color-mix(in srgb, $bg-card, $bg-base 30%);
-    border: 1px solid color-mix(in srgb, $border, transparent 10%);
+    background: color-mix(in srgb, var(--color-bg-surface), var(--color-bg-base) 30%);
+    border: 1px solid color-mix(in srgb, var(--color-border), transparent 10%);
     border-radius: var(--radius-md);
     padding: 20px;
     margin-bottom: 24px;
@@ -148,7 +134,7 @@ $warning-text: #fde68a;
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: $text-muted;
+        color: var(--color-text-muted);
         margin-bottom: 16px;
 
         mat-icon {
@@ -162,8 +148,8 @@ $warning-text: #fde68a;
 
 /* ── TYPE BUTTONS ───────────────────────────── */
 .type-toggle-grid {
-    background: color-mix(in srgb, $bg-base, $bg-card 40%);
-    border: 1px solid $border;
+    background: color-mix(in srgb, var(--color-bg-base), var(--color-bg-surface) 40%);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     padding: 4px;
     display: grid;
@@ -172,7 +158,7 @@ $warning-text: #fde68a;
 
     mat-button-toggle {
         background: transparent;
-        color: $text-muted;
+        color: var(--color-text-muted);
         border: none;
         border-radius: 6px;
         font-weight: 600;
@@ -186,13 +172,13 @@ $warning-text: #fde68a;
             transform        0.2s var(--ease-out-quart);
 
         &:hover:not(.mat-button-toggle-checked):not(.mat-button-toggle-disabled) {
-            background: color-mix(in srgb, $bg-card, transparent 90%);
+            background: color-mix(in srgb, var(--color-bg-surface), transparent 90%);
             color: color-mix(in srgb, var(--color-text), transparent 10%);
         }
 
         &.mat-button-toggle-checked {
-            background: color-mix(in srgb, $accent, transparent 88%);
-            color: $accent;
+            background: color-mix(in srgb, var(--color-primary), transparent 88%);
+            color: var(--color-primary);
             box-shadow: none;
         }
 
@@ -202,7 +188,7 @@ $warning-text: #fde68a;
 
         /* Keyboard focus — meets WCAG AA, consistent with design system */
         &:focus-visible {
-            outline: 2px solid $accent;
+            outline: 2px solid var(--color-primary);
             outline-offset: -2px;
         }
     }
@@ -218,24 +204,24 @@ $warning-text: #fde68a;
 
     .mat-step-header {
         .mat-step-label {
-            color: $text-muted !important;
+            color: var(--color-text-muted) !important;
             font-family: var(--font-text) !important;
 
             &.mat-step-label-active {
-                color: $text-primary !important;
+                color: var(--color-text) !important;
                 font-weight: 600;
             }
         }
 
         .mat-step-icon {
             background-color: rgba(255, 255, 255, 0.1) !important;
-            color: $text-muted;
+            color: var(--color-text-muted);
         }
 
         &.mat-step-header-active {
             .mat-step-icon {
-                background-color: $accent !important;
-                color: $bg-base !important;
+                background-color: var(--color-primary) !important;
+                color: var(--color-bg-base) !important;
                 box-shadow: none;
             }
         }
@@ -247,20 +233,20 @@ $warning-text: #fde68a;
     }
 
     .mat-mdc-text-field-wrapper {
-        background-color: color-mix(in srgb, $bg-base, $bg-card 45%) !important;
+        background-color: color-mix(in srgb, var(--color-bg-base), var(--color-bg-surface) 45%) !important;
         border-radius: 8px 8px 0 0;
     }
 
     .mdc-line-ripple::before {
-        border-bottom-color: color-mix(in srgb, $border, transparent 20%) !important;
+        border-bottom-color: color-mix(in srgb, var(--color-border), transparent 20%) !important;
     }
 
     .mdc-line-ripple::after {
-        border-bottom-color: $accent !important;
+        border-bottom-color: var(--color-primary) !important;
     }
 
     .mdc-text-field:not(.mdc-text-field--disabled) .mdc-floating-label {
-        color: $text-muted !important;
+        color: var(--color-text-muted) !important;
         font-family: var(--font-text) !important;
     }
 
@@ -273,11 +259,11 @@ $warning-text: #fde68a;
     }
 
     .mat-mdc-select-value {
-        color: $text-primary !important;
+        color: var(--color-text) !important;
     }
 
     .mat-mdc-select-arrow {
-        color: $text-muted !important;
+        color: var(--color-text-muted) !important;
     }
 }
 
@@ -285,7 +271,7 @@ $warning-text: #fde68a;
 .field-group-label {
     font-size: var(--text-xs);
     font-weight: 600;
-    color: $text-muted;
+    color: var(--color-text-muted);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     margin-bottom: 8px;
@@ -316,9 +302,9 @@ $warning-text: #fde68a;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     font-family: var(--font-text);
-    color: $text-muted;
-    background: color-mix(in srgb, $text-primary, transparent 96%);
-    border: 1px solid $border;
+    color: var(--color-text-muted);
+    background: color-mix(in srgb, var(--color-text), transparent 96%);
+    border: 1px solid var(--color-border);
 }
 
 .summary-grid {
@@ -329,30 +315,30 @@ $warning-text: #fde68a;
 
     /* Icons inside summary labels are structural, not semantic state signals */
     .summary-cell__label mat-icon {
-        color: $text-muted;
+        color: var(--color-text-muted);
         opacity: 0.9;
     }
 
     /* Direction hint icons (icon-gain / icon-loss) are neutral in Review context */
     .summary-cell__label .icon-gain,
     .summary-cell__label .icon-loss {
-        color: $text-muted;
+        color: var(--color-text-muted);
         opacity: 0.9;
     }
 }
 
 .summary-cell {
     padding: 8px 12px;
-    background: color-mix(in srgb, $bg-base, $bg-card 50%);
+    background: color-mix(in srgb, var(--color-bg-base), var(--color-bg-surface) 50%);
     border-radius: var(--radius-md);
-    border: 1px solid $border;
+    border: 1px solid var(--color-border);
     display: flex;
     flex-direction: column;
     justify-content: center;
     transition: background 0.15s var(--ease-out-quart);
 
     &:hover {
-        background: color-mix(in srgb, $text-primary, transparent 96%);
+        background: color-mix(in srgb, var(--color-text), transparent 96%);
     }
 }
 
@@ -367,7 +353,7 @@ $warning-text: #fde68a;
     font-family: var(--font-text);
     font-size: var(--text-micro);
     font-weight: 600;
-    color: $text-muted;
+    color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 4px;
@@ -383,13 +369,13 @@ $warning-text: #fde68a;
 
 .review-divider {
     height: 1px;
-    background: $border;
+    background: var(--color-border);
     margin: 18px 0;
 }
 
 .summary-cell__value {
     font-weight: 500;
-    color: $text-primary;
+    color: var(--color-text);
     font-size: var(--text-base);
 }
 
@@ -397,7 +383,7 @@ $warning-text: #fde68a;
     font-family: var(--font-numbers);
     font-variant-numeric: tabular-nums;
     font-weight: 500;
-    color: $text-primary;
+    color: var(--color-text);
     font-size: var(--text-lg);
 }
 
@@ -411,10 +397,10 @@ $warning-text: #fde68a;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: color-mix(in srgb, $text-primary, transparent 96%);
+    background: color-mix(in srgb, var(--color-text), transparent 96%);
     padding: 2px 6px;
     border-radius: 4px;
-    color: $text-primary;
+    color: var(--color-text);
     font-family: var(--font-text);
     font-size: var(--text-xs);
     font-weight: 600;
@@ -443,7 +429,7 @@ $warning-text: #fde68a;
     font-family: var(--font-text);
     font-size: var(--text-mini);
     font-weight: 600;
-    color: $text-muted;
+    color: var(--color-text-muted);
     margin-bottom: 4px;
 }
 
@@ -453,7 +439,7 @@ $warning-text: #fde68a;
     font-variant-numeric: tabular-nums;
     font-weight: 500;
     font-size: var(--text-lg);
-    color: $text-primary;
+    color: var(--color-text);
 }
 
 /* ── FINANCIALS TILES ────────────────────────── */
@@ -474,14 +460,14 @@ $warning-text: #fde68a;
     border-radius: 0;
     padding: 14px 0 0;
     margin-top: 14px;
-    border-top: 1px solid $border;
+    border-top: 1px solid var(--color-border);
 
     .fee-tile-label {
         display: block;
         font-family: var(--font-text);
         font-size: var(--text-micro);
         font-weight: 600;
-        color: $text-muted;
+        color: var(--color-text-muted);
         text-transform: uppercase;
         letter-spacing: 0.08em;
         margin-bottom: 4px;
@@ -496,19 +482,19 @@ $warning-text: #fde68a;
 
     .fee-tile-badge {
         font-size: var(--text-micro);
-        color: $text-muted;
+        color: var(--color-text-muted);
         text-transform: uppercase;
         padding: 2px 6px;
         border-radius: 4px;
-        background: color-mix(in srgb, $text-primary, transparent 96%);
-        border: 1px solid $border;
+        background: color-mix(in srgb, var(--color-text), transparent 96%);
+        border: 1px solid var(--color-border);
     }
 
     .fee-tile-total {
         font-family: var(--font-numbers);
         font-variant-numeric: tabular-nums;
         font-size: var(--text-md);
-        color: color-mix(in srgb, $text-primary, transparent 25%);
+        color: color-mix(in srgb, var(--color-text), transparent 25%);
         font-weight: 600;
     }
 }
@@ -535,7 +521,7 @@ $warning-text: #fde68a;
     gap: 12px;
     margin-top: 32px;
     padding-top: 24px;
-    border-top: 1px solid $border;
+    border-top: 1px solid var(--color-border);
 
     /* Flush: sits directly below step content, no divider */
     &--flush {
@@ -557,7 +543,7 @@ $warning-text: #fde68a;
     font-size: var(--text-2xl);
     font-weight: 300;
     letter-spacing: -0.02em;
-    color: $text-primary;
+    color: var(--color-text);
 }
 
 /* ── ERROR BANNER ────────────────────────────── */
@@ -602,7 +588,7 @@ $warning-text: #fde68a;
 
 .hint-fetching .hint-content {
     font-size: var(--text-xs);
-    color: $text-muted;
+    color: var(--color-text-muted);
 }
 
 .hint-suggestion .hint-content {
@@ -611,12 +597,12 @@ $warning-text: #fde68a;
     align-items: center;
 
     .suggestion-label {
-        color: $text-muted;
+        color: var(--color-text-muted);
         margin-right: 8px;
     }
 
     .suggestion-btn {
-        color: $accent;
+        color: var(--color-primary);
         font-weight: 500;
         background: transparent;
         border: none;
@@ -631,7 +617,7 @@ $warning-text: #fde68a;
         }
 
         &:focus-visible {
-            outline: 2px solid $accent;
+            outline: 2px solid var(--color-primary);
             outline-offset: 2px;
             border-radius: 2px;
         }
@@ -649,9 +635,9 @@ $warning-text: #fde68a;
         margin             0.3s var(--ease-out-quart);
     margin-top: 0;
 
-    background: color-mix(in srgb, $warning, transparent 90%);
-    border: 1px solid color-mix(in srgb, $warning, transparent 80%);
-    color: $warning-text;
+    background: color-mix(in srgb, var(--color-warning), transparent 90%);
+    border: 1px solid color-mix(in srgb, var(--color-warning), transparent 80%);
+    color: var(--color-warning-text);
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
 
@@ -679,7 +665,7 @@ $warning-text: #fde68a;
 
     input[type="checkbox"] {
         margin-top: 4px;
-        accent-color: $warning;
+        accent-color: var(--color-warning);
         cursor: pointer;
     }
 }
