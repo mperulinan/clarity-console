@@ -199,9 +199,9 @@
 
                             <div class="hint-informational" [class.is-visible]="showMissingPricePrompt()">
                                 <div class="hint-content">
-                                    <mat-icon class="informational-icon">info</mat-icon>
+                                    <mat-icon class="informational-icon">info_outline</mat-icon>
                                     <span>Historical price data unavailable. Look up the price of <strong>{{
-                                            pricedAssetSymbol() }}</strong> on <strong>{{ combinedDate() | date:'medium'
+                                            pricedAssetSymbol() }}</strong> on <strong>{{ combinedDate() | date:'MMM d, y, h:mm a'
                                             }}</strong>.</span>
                                 </div>
                             </div>

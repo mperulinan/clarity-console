@@ -592,6 +592,33 @@
     color: var(--color-text-muted);
 }
 
+.hint-informational .hint-content {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: flex-start;
+    line-height: 1.5;
+
+    .informational-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-right: 6px;
+        margin-top: 2px;
+        opacity: 0.8;
+        flex-shrink: 0;
+    }
+
+    span {
+        flex: 1;
+    }
+
+    strong {
+        font-weight: 600;
+        color: inherit;
+    }
+}
+
 .hint-suggestion .hint-content {
     font-size: var(--text-sm);
     display: flex;
