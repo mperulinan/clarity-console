@@ -10,7 +10,8 @@
 
         <div class="flex flex-col mt-4">
             <!-- mock stepper header -->
-            <div class="flex gap-8 mb-8 mt-2" style="border-bottom: 1px solid var(--color-border); padding-bottom: 16px;">
+            <div class="flex gap-8 mb-8 mt-2"
+                style="border-bottom: 1px solid var(--color-border); padding-bottom: 16px;">
                 <app-skeleton type="line" width="100px" height="20px" style="margin: 0"></app-skeleton>
                 <app-skeleton type="line" width="100px" height="20px" style="margin: 0; opacity: 0.5"></app-skeleton>
                 <app-skeleton type="line" width="100px" height="20px" style="margin: 0; opacity: 0.5"></app-skeleton>
@@ -62,14 +63,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 mt-6">
                         <div>
                             <div id="type-label" class="field-group-label">Transaction Type</div>
-                            <mat-button-toggle-group
-                                [value]="model().type" (change)="onTypeChange($event.value)"
+                            <mat-button-toggle-group [value]="model().type" (change)="onTypeChange($event.value)"
                                 class="type-toggle-grid w-full" aria-labelledby="type-label"
                                 hideSingleSelectionIndicator="true">
                                 @for (type of transactionTypes(); track type.value) {
                                 <mat-button-toggle [value]="type.value">
                                     <div class="flex items-center">
-                                        <mat-icon class="toggle-icon">{{ getTransactionIcons(type.value).typeIcon }}</mat-icon>
+                                        <mat-icon class="toggle-icon">{{ getTransactionIcons(type.value).typeIcon
+                                            }}</mat-icon>
                                         {{ type.name }}
                                     </div>
                                 </mat-button-toggle>
@@ -99,9 +100,7 @@
                             <mat-icon>{{ uiLabels().fromIcon }}</mat-icon> {{ uiLabels().fromTitle }}
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <app-asset-selector
-                                placeholder="e.g. BTC, ETH"
-                                [value]="fromAsset()"
+                            <app-asset-selector placeholder="e.g. BTC, ETH" [value]="fromAsset()"
                                 [disabled]="model().type === TransactionTypeCode.Withdrawal"
                                 (assetChange)="fromAsset.set($event)">
                             </app-asset-selector>
@@ -120,9 +119,7 @@
                             <mat-icon>{{ uiLabels().toIcon }}</mat-icon> {{ uiLabels().toTitle }}
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <app-asset-selector
-                                placeholder="e.g. BTC, ETH"
-                                [value]="toAsset()"
+                            <app-asset-selector placeholder="e.g. BTC, ETH" [value]="toAsset()"
                                 [disabled]="model().type === TransactionTypeCode.Deposit"
                                 (assetChange)="toAsset.set($event)">
                             </app-asset-selector>
@@ -135,7 +132,8 @@
                     }
 
                     <div class="action-buttons action-buttons--flush">
-                        <app-button type="button" variant="tonal" color="primary" (click)="onStep1Next()" [disabled]="!isStep1Valid()">Next</app-button>
+                        <app-button type="button" variant="tonal" color="primary" (click)="onStep1Next()"
+                            [disabled]="!isStep1Valid()">Next</app-button>
                     </div>
                 </mat-step>
 
@@ -153,8 +151,7 @@
                             <div class="price-input-row">
                                 <mat-form-field appearance="fill">
                                     <mat-label>Currency</mat-label>
-                                    <mat-select
-                                        [value]="model().spotPriceCurrency"
+                                    <mat-select [value]="model().spotPriceCurrency"
                                         (selectionChange)="onSpotCurrencyChange($event.value)">
                                         <mat-select-trigger>
                                             <div class="flex items-center gap-2">
@@ -177,12 +174,9 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <app-interactive-price-input
-                                    [assetSymbol]="pricedAssetSymbol()"
-                                    [assetAmount]="pricedAssetAmount()"
-                                    [fiatCurrency]="model().spotPriceCurrency"
-                                    [value]="model().spotPrice || null"
-                                    [disabled]="hasFiatLeg()"
+                                <app-interactive-price-input [assetSymbol]="pricedAssetSymbol()"
+                                    [assetAmount]="pricedAssetAmount()" [fiatCurrency]="model().spotPriceCurrency"
+                                    [value]="model().spotPrice || null" [disabled]="hasFiatLeg()"
                                     [showWarning]="requiresSpotPriceConfirmation()"
                                     [warningMessage]="'Deviation from market spot price: ' + (spotPriceDeviation() * 100 | number:'1.0-2') + '%'"
                                     (valueChange)="onSpotPriceChange($event)">
@@ -191,13 +185,24 @@
                             <div class="hint-fetching" [class.is-visible]="isFetchingPrice()">
                                 <div class="hint-content">Fetching market spot price...</div>
                             </div>
-                            
-                            <div class="hint-suggestion" [class.is-visible]="!isFetchingPrice() && fetchedSpotPrice() && !hasFiatLeg() && model().spotPrice !== fetchedSpotPrice()">
+
+                            <div class="hint-suggestion"
+                                [class.is-visible]="!isFetchingPrice() && fetchedSpotPrice() && !hasFiatLeg() && model().spotPrice !== fetchedSpotPrice()">
                                 <div class="hint-content">
                                     <span class="suggestion-label">Market Spot Price:</span>
                                     <button type="button" class="suggestion-btn" (click)="useSuggestedPrice()">
-                                        Use {{ fetchedSpotPrice() | currency:model().spotPriceCurrency:'symbol-narrow' }}
+                                        Use {{ fetchedSpotPrice() | currency:model().spotPriceCurrency:'symbol-narrow'
+                                        }}
                                     </button>
+                                </div>
+                            </div>
+
+                            <div class="hint-informational" [class.is-visible]="showMissingPricePrompt()">
+                                <div class="hint-content">
+                                    <mat-icon class="informational-icon">info</mat-icon>
+                                    <span>Historical price data unavailable. Look up the price of <strong>{{
+                                            pricedAssetSymbol() }}</strong> on <strong>{{ combinedDate() | date:'medium'
+                                            }}</strong>.</span>
                                 </div>
                             </div>
 
@@ -205,10 +210,10 @@
                                 <div class="warning-content">
                                     <div class="warning-inner">
                                         <label>
-                                            <input type="checkbox"
-                                                   [checked]="model().spotPriceDeviationConfirmed"
-                                                   (change)="onConfirmDeviation($any($event.target).checked)">
-                                            <span>I acknowledge this valuation differs from the market spot price.</span>
+                                            <input type="checkbox" [checked]="model().spotPriceDeviationConfirmed"
+                                                (change)="onConfirmDeviation($any($event.target).checked)">
+                                            <span>I acknowledge this valuation differs from the market spot
+                                                price.</span>
                                         </label>
                                     </div>
                                 </div>
@@ -223,11 +228,8 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <app-asset-selector
-                                        label="Fee Asset"
-                                        placeholder="e.g. USD, BNB"
-                                        [value]="feeAsset()"
-                                        (assetChange)="feeAsset.set($event)">
+                                    <app-asset-selector label="Fee Asset" placeholder="e.g. USD, BNB"
+                                        [value]="feeAsset()" (assetChange)="feeAsset.set($event)">
                                     </app-asset-selector>
                                 </div>
                                 <mat-form-field appearance="fill">
@@ -245,8 +247,7 @@
                             <div class="price-input-row mt-3">
                                 <mat-form-field appearance="fill">
                                     <mat-label>Currency</mat-label>
-                                    <mat-select
-                                        [value]="model().feeSpotPriceCurrency"
+                                    <mat-select [value]="model().feeSpotPriceCurrency"
                                         (selectionChange)="onFeeCurrencyChange($event.value)"
                                         [disabled]="!showFeeFiatValuation() || isFeeAssetSameAsSpotAsset()">
                                         <mat-select-trigger>
@@ -270,10 +271,8 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <app-interactive-price-input
-                                    [assetSymbol]="feeAssetSymbol()"
-                                    [assetAmount]="model().fee"
-                                    [fiatCurrency]="model().feeSpotPriceCurrency"
+                                <app-interactive-price-input [assetSymbol]="feeAssetSymbol()"
+                                    [assetAmount]="model().fee" [fiatCurrency]="model().feeSpotPriceCurrency"
                                     [value]="model().feeSpotPrice || null"
                                     [disabled]="!showFeeFiatValuation() || isFeeAssetSameAsSpotAsset()"
                                     (valueChange)="onFeeSpotPriceChange($event)">
@@ -285,8 +284,10 @@
                     </div>
 
                     <div class="action-buttons action-buttons--flush">
-                        <app-button type="button" variant="text" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
-                        <app-button type="button" variant="tonal" color="primary" (click)="stepper.next()" [disabled]="!isStep2Valid()">Next</app-button>
+                        <app-button type="button" variant="text" color="muted" class="back-btn"
+                            (click)="stepper.previous()">Back</app-button>
+                        <app-button type="button" variant="tonal" color="primary" (click)="stepper.next()"
+                            [disabled]="!isStep2Valid()">Next</app-button>
                     </div>
                 </mat-step>
 
@@ -309,13 +310,15 @@
                                 </div>
                                 <div class="summary-cell">
                                     <span class="summary-cell__label">Date &amp; Time</span>
-                                    <span class="summary-cell__value">{{ combinedDate() | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                                    <span class="summary-cell__value">{{ combinedDate() | date:'dd/MM/yyyy HH:mm:ss'
+                                        }}</span>
                                 </div>
 
                                 @if (selectedTypeData()?.requiresFromAsset) {
                                 <div class="summary-cell summary-cell--padded">
                                     <span class="summary-cell__label">
-                                        <mat-icon class="icon-loss">{{ uiLabels().fromIcon }}</mat-icon> {{ uiLabels().fromTitle }}
+                                        <mat-icon class="icon-loss">{{ uiLabels().fromIcon }}</mat-icon> {{
+                                        uiLabels().fromTitle }}
                                     </span>
                                     <div class="asset-row mt-2">
                                         <span class="summary-amount">{{ model().amountSpent }}</span>
@@ -333,7 +336,8 @@
                                 @if (selectedTypeData()?.requiresToAsset) {
                                 <div class="summary-cell summary-cell--padded">
                                     <span class="summary-cell__label">
-                                        <mat-icon class="icon-gain">{{ uiLabels().toIcon }}</mat-icon> {{ uiLabels().toTitle }}
+                                        <mat-icon class="icon-gain">{{ uiLabels().toIcon }}</mat-icon> {{
+                                        uiLabels().toTitle }}
                                     </span>
                                     <div class="asset-row mt-2">
                                         <span class="summary-amount">{{ model().amountReceived }}</span>
@@ -373,7 +377,8 @@
                                         <span class="summary-tile-label">Total Fiat Value</span>
                                         <div class="flex items-center sm:justify-end gap-2">
                                             <span class="summary-total-value">
-                                                {{ (pricedAssetAmount() * model().spotPrice) | currency:model().spotPriceCurrency:'symbol' }}
+                                                {{ (pricedAssetAmount() * model().spotPrice) |
+                                                currency:model().spotPriceCurrency:'symbol' }}
                                             </span>
                                         </div>
                                     </div>
@@ -409,7 +414,8 @@
                                             <span class="fee-tile-label">Fee Price per {{ feeAssetSymbol() }}</span>
                                             <div class="flex items-center gap-2">
                                                 <span class="fee-tile-amount">{{ effectiveFeeSpotPrice() }}</span>
-                                                <span class="fee-tile-badge">{{ effectiveFeeSpotPriceCurrency() }}</span>
+                                                <span class="fee-tile-badge">{{ effectiveFeeSpotPriceCurrency()
+                                                    }}</span>
                                             </div>
                                         </div>
                                         }
@@ -424,7 +430,8 @@
                                                 @if (hasFiatFee()) {
                                                 {{ model().fee | currency:feeAssetSymbol():'symbol' }}
                                                 } @else {
-                                                {{ (model().fee * (effectiveFeeSpotPrice() || 0)) | currency:effectiveFeeSpotPriceCurrency():'symbol' }}
+                                                {{ (model().fee * (effectiveFeeSpotPrice() || 0)) |
+                                                currency:effectiveFeeSpotPriceCurrency():'symbol' }}
                                                 }
                                             </span>
                                         </div>
@@ -453,7 +460,8 @@
 
                     <!-- ── ACTIONS ────────────────────────────────────────── -->
                     <div class="action-buttons action-buttons--flush">
-                        <app-button type="button" variant="text" color="muted" class="back-btn" (click)="stepper.previous()">Back</app-button>
+                        <app-button type="button" variant="text" color="muted" class="back-btn"
+                            (click)="stepper.previous()">Back</app-button>
                         <app-button type="button" variant="text" color="muted" (click)="onCancel()">Cancel</app-button>
                         <app-button variant="outlined" color="primary" type="submit"
                             [disabled]="transactionForm().invalid() || isSubmitting()">

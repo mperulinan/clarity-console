@@ -194,6 +194,15 @@ export class NewTransactionComponent implements OnInit {
     // ── Spot Price Deviation ─────────────────────────────────────────────
     fetchedSpotPrice = signal<number | null>(null);
     isFetchingPrice = signal<boolean>(false);
+    hasAttemptedPriceFetch = signal<boolean>(false);
+
+    showMissingPricePrompt = computed(() => {
+        return !this.isFetchingPrice() && 
+               this.hasAttemptedPriceFetch() && 
+               this.fetchedSpotPrice() === null && 
+               !this.hasFiatLeg() && 
+               this.model().spotPrice === 0;
+    });
 
     spotPriceDeviation = computed(() => {
         const current = this.model().spotPrice;
@@ -297,6 +306,7 @@ export class NewTransactionComponent implements OnInit {
             untracked(() => {
                 this.model.update(m => ({ ...m, spotPrice: 0 }));
                 this.fetchedSpotPrice.set(null);
+                this.hasAttemptedPriceFetch.set(false);
             });
         });
         effect(() => {
@@ -304,6 +314,7 @@ export class NewTransactionComponent implements OnInit {
             untracked(() => {
                 this.model.update(m => ({ ...m, spotPrice: 0 }));
                 this.fetchedSpotPrice.set(null);
+                this.hasAttemptedPriceFetch.set(false);
             });
         });
         // Effect: clear feeSpotPrice when fee asset changes
@@ -394,10 +405,12 @@ export class NewTransactionComponent implements OnInit {
 
         if (!asset?.id || !currency) {
             this.fetchedSpotPrice.set(null);
+            this.hasAttemptedPriceFetch.set(false);
             return;
         }
 
         this.isFetchingPrice.set(true);
+        this.hasAttemptedPriceFetch.set(true);
         try {
             const price = await firstValueFrom(this.portfolioService.getSpotPrice(asset.id, currency, date));
             console.log(price);

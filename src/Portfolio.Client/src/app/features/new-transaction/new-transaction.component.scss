@@ -565,7 +565,8 @@
 
 /* ── INLINE HINTS ────────────────────────────── */
 .hint-fetching,
-.hint-suggestion {
+.hint-suggestion,
+.hint-informational {
     display: grid;
     grid-template-rows: 0fr;
     opacity: 0;
