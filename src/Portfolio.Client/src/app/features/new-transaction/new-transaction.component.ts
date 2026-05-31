@@ -332,13 +332,11 @@ export class NewTransactionComponent implements OnInit {
                         this.toAsset.set(null);
                     }
                 } else {
+                    this.fromAsset.set(null);
+                    this.toAsset.set(null);
                     if (typeData.requiresFromAsset && !typeData.requiresToAsset && !this.fromAsset() && this.toAsset()) {
-                        this.fromAsset.set(this.toAsset());
-                        this.toAsset.set(null);
                         this.model.update(m => ({ ...m, amountSpent: m.amountReceived > 0 ? m.amountReceived : m.amountSpent }));
                     } else if (typeData.requiresToAsset && !typeData.requiresFromAsset && !this.toAsset() && this.fromAsset()) {
-                        this.toAsset.set(this.fromAsset());
-                        this.fromAsset.set(null);
                         this.model.update(m => ({ ...m, amountReceived: m.amountSpent > 0 ? m.amountSpent : m.amountReceived }));
                     }
                 }
