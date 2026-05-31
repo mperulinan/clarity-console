@@ -191,8 +191,8 @@
                                 <div class="hint-content">
                                     <span class="suggestion-label">Market Spot Price:</span>
                                     <button type="button" class="suggestion-btn" (click)="useSuggestedPrice()">
-                                        Use {{ fetchedSpotPrice() | currency:model().spotPriceCurrency:'symbol-narrow'
-                                        }}
+                                        <mat-icon class="suggestion-icon">bolt</mat-icon>
+                                        Use {{ fetchedSpotPrice() | currency:model().spotPriceCurrency:'symbol-narrow' }}
                                     </button>
                                 </div>
                             </div>
