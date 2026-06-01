@@ -618,9 +618,9 @@
     line-height: 1.5;
 
     .informational-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: var(--text-md);
+        width: var(--text-md);
+        height: var(--text-md);
         margin-right: 6px;
         margin-top: 2px;
         opacity: 0.8;
