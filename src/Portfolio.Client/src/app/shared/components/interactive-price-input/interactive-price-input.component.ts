@@ -44,9 +44,6 @@ export class InteractivePriceInputComponent {
     readonly value = input<number | null>(null);
     /** Whether the input should be non-interactive. */
     readonly disabled = input<boolean>(false);
-    /** Warning state */
-    readonly showWarning = input<boolean>(false);
-    readonly warningMessage = input<string>('');
 
     // ── Outputs ──────────────────────────────────────────────────────────
     /** Emits the derived unit price whenever it changes. */

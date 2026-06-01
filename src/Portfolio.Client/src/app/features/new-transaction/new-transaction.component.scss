@@ -513,6 +513,24 @@
     }
 }
 
+.price-metadata-row {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: 16px;
+    align-items: start;
+    width: 100%;
+
+    @media (max-width: 599px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.metadata-col-left,
+.metadata-col-right {
+    display: flex;
+    flex-direction: column;
+}
+
 /* ── ACTIONS ────────────────────────────────── */
 .action-buttons {
     display: flex;
@@ -622,11 +640,13 @@
 .hint-suggestion .hint-content {
     font-size: var(--text-sm);
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
 
     .suggestion-label {
         color: var(--color-text-muted);
-        margin-right: 8px;
+        margin-right: 0;
     }
 
     .suggestion-btn {
@@ -669,8 +689,8 @@
     }
 }
 
-/* ── INLINE WARNING ──────────────────────────── */
-.warning-box {
+/* ── DEVIATION CONFIRM ──────────────────────────── */
+.deviation-confirm {
     display: grid;
     grid-template-rows: 0fr;
     opacity: 0;
@@ -680,27 +700,35 @@
         margin             0.3s var(--ease-out-quart);
     margin-top: 0;
 
-    background: color-mix(in srgb, var(--color-warning), transparent 90%);
-    border: 1px solid color-mix(in srgb, var(--color-warning), transparent 80%);
-    color: var(--color-warning-text);
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-
     &.is-visible {
         grid-template-rows: 1fr;
         opacity: 1;
-        margin-top: 12px;
+        margin-top: 8px;
     }
 
-    .warning-content {
+    .hint-content {
         overflow: hidden;
     }
 
-    .warning-inner {
-        padding: 12px;
+    .deviation-confirm__content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+        gap: 8px;
     }
 
-    label {
+    .subtle-warning-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: var(--color-warning);
+        opacity: 0.6;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .deviation-confirm__label {
         display: flex;
         align-items: flex-start;
         gap: 8px;
@@ -709,8 +737,24 @@
     }
 
     input[type="checkbox"] {
-        margin-top: 4px;
-        accent-color: var(--color-warning);
+        margin-top: 3px;
+        accent-color: var(--color-primary);
         cursor: pointer;
+    }
+
+    .deviation-confirm__text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .deviation-confirm__main {
+        font-size: var(--text-sm);
+        color: var(--color-text-muted);
+    }
+
+    .deviation-confirm__meta {
+        font-size: var(--text-xs);
+        color: color-mix(in srgb, var(--color-text-muted), transparent 40%);
     }
 }
