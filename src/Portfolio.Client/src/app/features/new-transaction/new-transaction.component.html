@@ -211,17 +211,15 @@
                                 <div class="metadata-col-right">
                                     <div class="deviation-confirm" [class.is-visible]="requiresSpotPriceConfirmation()">
                                         <div class="hint-content deviation-confirm__content">
+                                            <span class="deviation-confirm__meta flex items-center gap-1">
+                                                <mat-icon class="subtle-warning-icon">warning_amber</mat-icon>
+                                                Valuation differs by {{ spotPriceDeviation() * 100 | number:'1.0-1' }}%
+                                            </span>
                                             <label class="deviation-confirm__label">
                                                 <input type="checkbox" [checked]="model().spotPriceDeviationConfirmed"
                                                     (change)="onConfirmDeviation($any($event.target).checked)">
-                                                <span class="deviation-confirm__text">
-                                                    <span class="deviation-confirm__main">I confirm this price differs
-                                                        from the market rate.</span>
-                                                    <span class="deviation-confirm__meta">{{ spotPriceDeviation() * 100
-                                                        | number:'1.0-1' }}% off</span>
-                                                </span>
+                                                <span class="deviation-confirm__main">Proceed with this valuation</span>
                                             </label>
-                                            <mat-icon class="subtle-warning-icon">warning_amber</mat-icon>
                                         </div>
                                     </div>
                                 </div>

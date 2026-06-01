@@ -712,40 +712,33 @@
 
     .deviation-confirm__content {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
         align-items: flex-start;
         width: 100%;
-        gap: 8px;
+        gap: 4px;
     }
 
     .subtle-warning-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: var(--text-md);
+        width: var(--text-md);
+        height: var(--text-md);
         color: var(--color-warning);
-        opacity: 0.6;
+        opacity: 0.8;
         flex-shrink: 0;
-        margin-top: 2px;
     }
 
     .deviation-confirm__label {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 8px;
         cursor: pointer;
         margin: 0;
     }
 
     input[type="checkbox"] {
-        margin-top: 3px;
+        margin-top: 0;
         accent-color: var(--color-primary);
         cursor: pointer;
-    }
-
-    .deviation-confirm__text {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
     }
 
     .deviation-confirm__main {
@@ -756,5 +749,7 @@
     .deviation-confirm__meta {
         font-size: var(--text-xs);
         color: color-mix(in srgb, var(--color-text-muted), transparent 40%);
+        display: flex;
+        align-items: center;
     }
 }
