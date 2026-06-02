@@ -197,11 +197,11 @@ export class NewTransactionComponent implements OnInit {
     hasAttemptedPriceFetch = signal<boolean>(false);
 
     showMissingPricePrompt = computed(() => {
-        return !this.isFetchingPrice() && 
-               this.hasAttemptedPriceFetch() && 
-               this.fetchedSpotPrice() === null && 
-               !this.hasFiatLeg() && 
-               this.model().spotPrice === 0;
+        return !this.isFetchingPrice() &&
+            this.hasAttemptedPriceFetch() &&
+            this.fetchedSpotPrice() === null &&
+            !this.hasFiatLeg() &&
+            this.model().spotPrice === 0;
     });
 
     spotPriceDeviation = computed(() => {
@@ -212,7 +212,7 @@ export class NewTransactionComponent implements OnInit {
     });
 
     requiresSpotPriceConfirmation = computed(() => {
-        return !this.hasFiatLeg() && this.spotPriceDeviation() > 0.01;
+        return !this.hasFiatLeg() && this.spotPriceDeviation() > 0.03;
     });
 
     // ── Signal Form ──────────────────────────────────────────────────────
