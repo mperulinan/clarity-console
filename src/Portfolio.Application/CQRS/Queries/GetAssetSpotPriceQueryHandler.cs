@@ -27,17 +27,23 @@ public class GetAssetSpotPriceQueryHandler(
             throw new ArgumentException($"No price provider available for asset type '{asset.Type.Name}'.");
         }
 
+        // Only fetch historical prices if the requested UTC date is strictly in the past.
+        // If it's today (or future due to timezones), fetch the live spot price.
         if (request.Date.HasValue)
         {
-            return await priceProvider.GetHistoricalPriceAsync(asset.ExternalId, currency, request.Date.Value);
+            var isHistorical = request.Date.Value.Date < DateTime.UtcNow.Date;
+            if (isHistorical)
+            {
+                return await priceProvider.GetHistoricalPriceAsync(asset.ExternalId, currency, request.Date.Value);
+            }
         }
-        
+
         var prices = await priceProvider.GetPricesAsync([asset.ExternalId], currency);
         if (prices.TryGetValue(asset.ExternalId, out var price))
         {
             return price;
         }
-        
+
         return null;
     }
 }
