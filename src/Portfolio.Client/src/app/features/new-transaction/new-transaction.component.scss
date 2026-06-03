@@ -377,6 +377,11 @@
     font-weight: 500;
     color: var(--color-text);
     font-size: var(--text-base);
+
+    &--numbers {
+        font-family: var(--font-numbers);
+        font-variant-numeric: tabular-nums;
+    }
 }
 
 .summary-amount {
