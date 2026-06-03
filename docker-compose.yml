@@ -1,0 +1,24 @@
+name: portfolio
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/Portfolio.API/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    # Note: Use `dotnet run` for hot-reload during development. 
+    # This docker-compose service is mainly for testing the production build locally.
+
+  client:
+    build:
+      context: src/Portfolio.Client
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    # Note: Use `ng serve` for hot-reload during development.
+    # This docker-compose service is mainly for testing the production build locally.
