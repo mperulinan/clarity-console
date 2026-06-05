@@ -71,6 +71,10 @@ describe('PortfolioService', () => {
     let result: PortfolioReport | undefined;
     service.getPortfolioReport().subscribe(r => result = r);
 
+    const reqTypes = httpMock.expectOne(`${environment.apiUrl}/Transaction/types`);
+    expect(reqTypes.request.method).toBe('GET');
+    reqTypes.flush([]);
+
     const req = httpMock.expectOne(`${environment.apiUrl}/Portfolio/tax-report`);
     expect(req.request.method).toBe('GET');
     req.flush(rawReport);

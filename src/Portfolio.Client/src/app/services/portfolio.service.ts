@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, forkJoin, map, shareReplay } from 'rxjs';
 import { PortfolioMetrics } from '../models/portfolio-metrics';
 import { PortfolioReport } from '../models/portfolio-report';
 import { NewTransactionRequest } from '../models/new-transaction-request';
@@ -16,22 +16,34 @@ export class PortfolioService {
 
     private readonly http = inject(HttpClient);
 
+    private transactionTypes$ = this.http.get<TransactionType[]>(`${this.apiUrl}/Transaction/types`).pipe(
+        shareReplay(1)
+    );
+
     getPortfolioReport(): Observable<PortfolioReport> {
-        return this.http.get<PortfolioReport>(`${this.apiUrl}/Portfolio/tax-report`).pipe(
-            map(report => ({
-                ...report,
-                reportingCurrency: report.reportingCurrency,
-                transactions: report.transactions.map(pt => this.normalizeProcessedTransaction(pt)),
-                holdings: report.holdings,
-                yearSummaries: (report.yearSummaries || []).map(ys => ({
-                    ...ys,
-                    totalGains: Number(ys.totalGains),
-                    totalLosses: Number(ys.totalLosses),
-                    netPL: Number(ys.netPL),
-                    disallowedLosses: Number(ys.disallowedLosses),
-                    year: Number(ys.year)
-                }))
-            }))
+        return forkJoin({
+            report: this.http.get<PortfolioReport>(`${this.apiUrl}/Portfolio/tax-report`),
+            types: this.getTransactionTypes()
+        }).pipe(
+            map(({ report, types }) => {
+                const typesMap = new Map<string, TransactionType>();
+                types.forEach(t => typesMap.set(t.value, t));
+
+                return {
+                    ...report,
+                    reportingCurrency: report.reportingCurrency,
+                    transactions: report.transactions.map(pt => this.normalizeProcessedTransaction(pt, typesMap)),
+                    holdings: report.holdings,
+                    yearSummaries: (report.yearSummaries || []).map(ys => ({
+                        ...ys,
+                        totalGains: Number(ys.totalGains),
+                        totalLosses: Number(ys.totalLosses),
+                        netPL: Number(ys.netPL),
+                        disallowedLosses: Number(ys.disallowedLosses),
+                        year: Number(ys.year)
+                    }))
+                };
+            })
         );
     }
 
@@ -44,7 +56,7 @@ export class PortfolioService {
     }
 
     getTransactionTypes(): Observable<TransactionType[]> {
-        return this.http.get<TransactionType[]>(`${this.apiUrl}/Transaction/types`);
+        return this.transactionTypes$;
     }
 
     searchAssets(query: string, type?: string): Observable<AssetDto[]> {
@@ -80,18 +92,28 @@ export class PortfolioService {
      * The .NET backend serializes `decimal` as JSON strings for precision,
      * but JS arithmetic operators and Angular pipes require real numbers.
      */
-    private normalizeProcessedTransaction(pt: ProcessedTransaction): ProcessedTransaction {
+    private normalizeProcessedTransaction(pt: ProcessedTransaction, typesMap: Map<string, TransactionType>): ProcessedTransaction {
         return {
             ...pt,
             profitLoss: pt.profitLoss != null ? Number(pt.profitLoss) : undefined,
             totalLossAmount: pt.totalLossAmount != null ? Number(pt.totalLossAmount) : undefined,
-            transaction: this.normalizeTransaction(pt.transaction)
+            transaction: this.normalizeTransaction(pt.transaction, typesMap)
         };
     }
 
-    private normalizeTransaction(t: Transaction): Transaction {
+    private normalizeTransaction(t: Transaction, typesMap: Map<string, TransactionType>): Transaction {
+        const typeValue = t.type as unknown as string;
+        
+        const mappedType: TransactionType = typesMap.get(typeValue) || {
+            value: typeValue,
+            name: typeValue,
+            requiresFromAsset: false,
+            requiresToAsset: false
+        };
+
         return {
             ...t,
+            type: mappedType,
             amountSpent: Number(t.amountSpent),
             amountReceived: Number(t.amountReceived),
             spotPriceUSD: t.spotPriceUSD != null ? Number(t.spotPriceUSD) : undefined,
