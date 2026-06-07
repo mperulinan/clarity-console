@@ -6,94 +6,163 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
+  # ─────────────────────────────────────────────
+  # 1. Build & Test — .NET API (GitHub-hosted)
+  # ─────────────────────────────────────────────
   build-and-test-api:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
-    - name: Restore dependencies
-      run: dotnet restore src/Portfolio.API/Portfolio.API.csproj
-    - name: Build
-      run: dotnet build src/Portfolio.API/Portfolio.API.csproj --no-restore
-    # Uncomment when tests are added
-    # - name: Test
-    #   run: dotnet test src/Portfolio.API/Portfolio.API.csproj --no-build --verbosity normal
+      - uses: actions/checkout@v4
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore src/Portfolio.API/Portfolio.API.csproj
+
+      - name: Build
+        run: dotnet build src/Portfolio.API/Portfolio.API.csproj --no-restore
+
+      # Uncomment when tests are added
+      # - name: Test
+      #   run: dotnet test src/Portfolio.API/Portfolio.API.csproj --no-build --verbosity normal
+
+  # ─────────────────────────────────────────────
+  # 2. Build & Test — Angular Client (GitHub-hosted)
+  # ─────────────────────────────────────────────
   build-and-test-client:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js 22.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: 'npm'
-        cache-dependency-path: 'src/Portfolio.Client/package-lock.json'
-    - name: Install dependencies
-      working-directory: ./src/Portfolio.Client
-      run: npm ci
-    - name: Build
-      working-directory: ./src/Portfolio.Client
-      run: npm run build
-    # Uncomment when tests are ready (requires ChromeHeadless configuration in Karma/Vitest)
-    # - name: Test
-    #   working-directory: ./src/Portfolio.Client
-    #   run: npm run test
+      - uses: actions/checkout@v4
 
-  build-and-push-docker-images:
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+          cache-dependency-path: 'src/Portfolio.Client/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./src/Portfolio.Client
+        run: npm ci
+
+      - name: Build
+        working-directory: ./src/Portfolio.Client
+        run: npm run build
+
+      # Uncomment when tests are ready (requires ChromeHeadless configuration in Karma/Vitest)
+      # - name: Test
+      #   working-directory: ./src/Portfolio.Client
+      #   run: npm run test
+
+  # ─────────────────────────────────────────────
+  # 3. Deploy to IIS — Self-hosted Windows runner
+  # ─────────────────────────────────────────────
+  deploy-to-iis:
     needs: [build-and-test-api, build-and-test-client]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
+    runs-on: self-hosted
+
+    env:
+      API_PUBLISH_DIR: publish\api
+      CLIENT_DIST_DIR: src\Portfolio.Client\dist\portfolio.client\browser
+      IIS_API_PATH: C:\inetpub\wwwroot\portfolio-api
+      IIS_CLIENT_PATH: C:\inetpub\wwwroot\portfolio-client
+      APP_POOL_API: PortfolioAPI
+      APP_POOL_CLIENT: PortfolioClient
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Log in to the Container registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      # ── .NET API ──────────────────────────────
+      - name: Publish API (Release)
+        run: |
+          dotnet publish src/Portfolio.API/Portfolio.API.csproj `
+            -c Release `
+            -o ${{ env.API_PUBLISH_DIR }}
+        shell: powershell
 
-    - name: Extract metadata (tags, labels) for API
-      id: meta-api
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api
+      - name: Write production appsettings overrides
+        # Injects secrets into appsettings.json inside the publish output.
+        # .NET reads this file automatically when ASPNETCORE_ENVIRONMENT=Production.
+        run: |
+          $config = @{
+            ConnectionStrings = @{
+              Portfolio = "${{ secrets.DB_CONNECTION_STRING }}"
+            }
+            CoinGecko = @{
+              BaseUrl = "https://api.coingecko.com/api/v3/"
+              ApiKey  = "${{ secrets.COINGECKO_API_KEY }}"
+            }
+            TwelveData = @{
+              BaseUrl = "https://api.twelvedata.com/"
+              ApiKey  = "${{ secrets.TWELVEDATA_API_KEY }}"
+            }
+          }
+          $config | ConvertTo-Json -Depth 5 | `
+            Set-Content -Path "${{ env.API_PUBLISH_DIR }}\appsettings.json" -Encoding UTF8
+        shell: powershell
 
-    - name: Build and push API Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: src/Portfolio.API/Dockerfile
-        push: true
-        tags: ${{ steps.meta-api.outputs.tags }}
-        labels: ${{ steps.meta-api.outputs.labels }}
+      - name: Stop IIS App Pool — API
+        run: |
+          Import-Module WebAdministration
+          if ((Get-WebAppPoolState -Name "${{ env.APP_POOL_API }}").Value -eq "Started") {
+            Stop-WebAppPool -Name "${{ env.APP_POOL_API }}"
+            Start-Sleep -Seconds 3
+          }
+        shell: powershell
 
-    - name: Extract metadata (tags, labels) for Client
-      id: meta-client
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-client
+      - name: Deploy API to IIS
+        run: |
+          robocopy "${{ env.API_PUBLISH_DIR }}" "${{ env.IIS_API_PATH }}" /MIR /NP /NFL /NDL
+          # robocopy exit codes 0-7 are success (0=no change, 1=copied, etc.)
+          if ($LASTEXITCODE -le 7) { exit 0 } else { exit $LASTEXITCODE }
+        shell: powershell
 
-    - name: Build and push Client Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: src/Portfolio.Client
-        file: src/Portfolio.Client/Dockerfile
-        push: true
-        tags: ${{ steps.meta-client.outputs.tags }}
-        labels: ${{ steps.meta-client.outputs.labels }}
+      - name: Start IIS App Pool — API
+        run: |
+          Import-Module WebAdministration
+          Start-WebAppPool -Name "${{ env.APP_POOL_API }}"
+        shell: powershell
+
+      # ── Angular Client ────────────────────────
+      - name: Install Client dependencies
+        working-directory: ./src/Portfolio.Client
+        run: npm ci
+        shell: powershell
+
+      - name: Build Angular Client (production)
+        working-directory: ./src/Portfolio.Client
+        run: npm run build
+        shell: powershell
+
+      - name: Stop IIS App Pool — Client
+        run: |
+          Import-Module WebAdministration
+          if ((Get-WebAppPoolState -Name "${{ env.APP_POOL_CLIENT }}").Value -eq "Started") {
+            Stop-WebAppPool -Name "${{ env.APP_POOL_CLIENT }}"
+            Start-Sleep -Seconds 3
+          }
+        shell: powershell
+
+      - name: Deploy Client to IIS
+        run: |
+          robocopy "${{ env.CLIENT_DIST_DIR }}" "${{ env.IIS_CLIENT_PATH }}" /MIR /NP /NFL /NDL
+          if ($LASTEXITCODE -le 7) { exit 0 } else { exit $LASTEXITCODE }
+        shell: powershell
+
+      - name: Start IIS App Pool — Client
+        run: |
+          Import-Module WebAdministration
+          Start-WebAppPool -Name "${{ env.APP_POOL_CLIENT }}"
+        shell: powershell
+
+      - name: Deployment summary
+        run: |
+          Write-Host "✅ API deployed to ${{ env.IIS_API_PATH }}"
+          Write-Host "✅ Client deployed to ${{ env.IIS_CLIENT_PATH }}"
+        shell: powershell
