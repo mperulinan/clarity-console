@@ -66,6 +66,12 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: self-hosted
 
+    # Override the default PowerShell execution policy for every step in this job.
+    # The runner machine may have Restricted/AllSigned policy which blocks .ps1 scripts.
+    defaults:
+      run:
+        shell: powershell -ExecutionPolicy Bypass -File {0}
+
     env:
       API_PUBLISH_DIR: publish\api
       CLIENT_DIST_DIR: src\Portfolio.Client\dist\portfolio.client\browser
@@ -81,14 +87,11 @@ jobs:
       # ── .NET API ──────────────────────────────
       - name: Publish API (Release)
         run: |
-          dotnet publish src/Portfolio.API/Portfolio.API.csproj `
-            -c Release `
-            -o ${{ env.API_PUBLISH_DIR }}
-        shell: powershell
+          dotnet publish src/Portfolio.API/Portfolio.API.csproj -c Release -o ${{ env.API_PUBLISH_DIR }}
 
       - name: Write production appsettings overrides
         # Injects secrets into appsettings.json inside the publish output.
-        # .NET reads this file automatically when ASPNETCORE_ENVIRONMENT=Production.
+        # The source appsettings.json in your repo is never modified.
         run: |
           $config = @{
             ConnectionStrings = @{
@@ -103,9 +106,8 @@ jobs:
               ApiKey  = "${{ secrets.TWELVEDATA_API_KEY }}"
             }
           }
-          $config | ConvertTo-Json -Depth 5 | `
+          $config | ConvertTo-Json -Depth 5 |
             Set-Content -Path "${{ env.API_PUBLISH_DIR }}\appsettings.json" -Encoding UTF8
-        shell: powershell
 
       - name: Stop IIS App Pool — API
         run: |
@@ -114,31 +116,26 @@ jobs:
             Stop-WebAppPool -Name "${{ env.APP_POOL_API }}"
             Start-Sleep -Seconds 3
           }
-        shell: powershell
 
       - name: Deploy API to IIS
         run: |
           robocopy "${{ env.API_PUBLISH_DIR }}" "${{ env.IIS_API_PATH }}" /MIR /NP /NFL /NDL
           # robocopy exit codes 0-7 are success (0=no change, 1=copied, etc.)
           if ($LASTEXITCODE -le 7) { exit 0 } else { exit $LASTEXITCODE }
-        shell: powershell
 
       - name: Start IIS App Pool — API
         run: |
           Import-Module WebAdministration
           Start-WebAppPool -Name "${{ env.APP_POOL_API }}"
-        shell: powershell
 
       # ── Angular Client ────────────────────────
       - name: Install Client dependencies
         working-directory: ./src/Portfolio.Client
         run: npm ci
-        shell: powershell
 
       - name: Build Angular Client (production)
         working-directory: ./src/Portfolio.Client
         run: npm run build
-        shell: powershell
 
       - name: Stop IIS App Pool — Client
         run: |
@@ -147,22 +144,18 @@ jobs:
             Stop-WebAppPool -Name "${{ env.APP_POOL_CLIENT }}"
             Start-Sleep -Seconds 3
           }
-        shell: powershell
 
       - name: Deploy Client to IIS
         run: |
           robocopy "${{ env.CLIENT_DIST_DIR }}" "${{ env.IIS_CLIENT_PATH }}" /MIR /NP /NFL /NDL
           if ($LASTEXITCODE -le 7) { exit 0 } else { exit $LASTEXITCODE }
-        shell: powershell
 
       - name: Start IIS App Pool — Client
         run: |
           Import-Module WebAdministration
           Start-WebAppPool -Name "${{ env.APP_POOL_CLIENT }}"
-        shell: powershell
 
       - name: Deployment summary
         run: |
           Write-Host "✅ API deployed to ${{ env.IIS_API_PATH }}"
           Write-Host "✅ Client deployed to ${{ env.IIS_CLIENT_PATH }}"
-        shell: powershell
