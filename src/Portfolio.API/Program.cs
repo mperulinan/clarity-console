@@ -1,8 +1,9 @@
+using System.Text.Json.Serialization;
 using Ardalis.SmartEnum.SystemTextJson;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Portfolio.API.BackgroundServices;
-using Portfolio.API.Infrastructure;
+using Portfolio.API.Middleware;
 using Portfolio.Application.CQRS.Queries;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Services;
@@ -12,8 +13,6 @@ using Portfolio.Domain.Services;
 using Portfolio.Infrastructure.ExternalServices;
 using Portfolio.Infrastructure.Persistence;
 using Portfolio.Infrastructure.Persistence.Repositories;
-using System.Text.Json.Serialization;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 

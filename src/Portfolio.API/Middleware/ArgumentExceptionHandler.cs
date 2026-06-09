@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 
-namespace Portfolio.API.Infrastructure;
+namespace Portfolio.API.Middleware;
 
 /// <summary>
 /// Maps domain/business rule violations to 400 responses with a readable message.
