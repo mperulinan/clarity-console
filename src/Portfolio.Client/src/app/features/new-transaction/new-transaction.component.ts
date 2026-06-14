@@ -47,6 +47,7 @@ const UI_CONFIG: Record<string, any> = {
         toTitle: 'Asset Bought', toIcon: 'shopping_cart', toAmount: 'Amount Bought'
     },
     [TransactionTypeCode.Reward]: { toTitle: 'Asset Rewarded', toIcon: 'workspace_premium', toAmount: 'Amount Rewarded' },
+    [TransactionTypeCode.Loss]: { fromTitle: 'Asset Lost', fromIcon: 'money_off', fromAmount: 'Amount Lost' },
     DEFAULT: {
         fromTitle: 'Disposed Asset', fromIcon: 'transit_enterexit', fromAmount: 'Total Amount Spent',
         toTitle: 'Acquired Asset', toIcon: 'account_balance_wallet', toAmount: 'Total Amount Received'

@@ -39,5 +39,6 @@ export enum TransactionTypeCode {
     Deposit = 'DEPOSIT',
     Withdrawal = 'WITHDRAWAL',
     Swap = 'SWAP',
-    Reward = 'REWARD'
+    Reward = 'REWARD',
+    Loss = 'LOSS'
 }
