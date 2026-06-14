@@ -69,12 +69,12 @@ public class InventoryCalculatorTests
             spotCurrency ?? (spotPriceEUR.HasValue && spotPriceUSD == 0 ? FiatCurrency.EUR : FiatCurrency.USD),
             feeCurrency ?? (feeEurPrice.HasValue && !feeUsdPrice.HasValue ? FiatCurrency.EUR : (feeUsdPrice.HasValue ? FiatCurrency.USD : null)),
             notes);
-        
+
         if (fromAsset != null)
         {
             tx.FromAsset = new Asset(fromAsset, fromAsset, null, null, fromAsset == "USD" || fromAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto);
         }
-        
+
         if (toAsset != null)
         {
             tx.ToAsset = new Asset(toAsset, toAsset, null, null, toAsset == "USD" || toAsset == "EUR" ? AssetType.Fiat : AssetType.Crypto);
@@ -119,7 +119,7 @@ public class InventoryCalculatorTests
 
         var sellTx = report.Transactions.Last();
         Assert.Equal(25000m, sellTx.ProfitLoss);
-        
+
         // Remaining inventory: 0.5 BTC @ $20,000 basis = $10,000 total value
         AssetHolding holdingBtc = report.Holdings.Single(h => h.Id == btcId);
         Assert.Equal(0.5m, holdingBtc.Quantity);
@@ -138,10 +138,10 @@ public class InventoryCalculatorTests
 
         // Reward: Receive 1 ETH when price is $2000. Fee is 0.
         var rewardTx = CreateTx(
-            date: new DateTime(2023, 1, 1), 
-            type: TransactionType.Reward, 
-            toAsset: eth, 
-            received: 1m, 
+            date: new DateTime(2023, 1, 1),
+            type: TransactionType.Reward,
+            toAsset: eth,
+            received: 1m,
             spotPriceUSD: 2000m
         );
 
@@ -213,7 +213,7 @@ public class InventoryCalculatorTests
         var sellTx = reportTransactions[1];
         Assert.False(sellTx.IsLossDisallowed);
         Assert.Equal(-10000m, sellTx.ProfitLoss);
-                
+
         // Ensure no disallowance link
         Assert.Empty(reportTransactions[2].DisallowsPreviousLosses);
     }
@@ -242,7 +242,7 @@ public class InventoryCalculatorTests
         var sellTx = reportTransactions[1];
         Assert.False(sellTx.IsLossDisallowed);
         Assert.Equal(-10000m, sellTx.ProfitLoss);
-                
+
         // Ensure no disallowance link
         Assert.Empty(reportTransactions[2].DisallowsPreviousLosses);
     }
@@ -311,27 +311,27 @@ public class InventoryCalculatorTests
             // Transfer 5 ETH. Fee 0.1 ETH. FeeAsset = ETH.
             CreateTx(date: new DateTime(2023, 1, 2), fromAsset: eth, toAsset: usd, spent: 5m, received: 5000m, spotPriceUSD: 1000m, fee: 0.1m, feeAsset: eth, feeUsdPrice: 1000m)
         };
-        
+
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
         var reportTransactions = report.Transactions.ToList();
-        
+
         var buyTx = reportTransactions[0];
-        
+
         // Fee PL: Consumed 0.1 ETH. Cost Basis $100. (0.1 * 1000).
         // Fee Value at time of spend: 0.1 * 1000 = $100.
         // Fee PL = 100 - 100 = 0.
-        
+
         // Inventory remaining:
         // Initial: 10.
         // Spent for swap: 5.
         // Spent for fee: 0.1.
         // Remaining: 4.9.
-        
+
         var ethId = transactions.First(t => t.FromAsset?.Symbol == eth).FromAssetId!.Value;
         var holding = report.Holdings.Single(h => h.Id == ethId);
         Assert.Equal(4.9m, holding.Quantity);
     }
-    
+
     [Fact]
     public void CalculateInventory_ShouldTrackCostBasisOfSold()
     {
@@ -346,19 +346,19 @@ public class InventoryCalculatorTests
             // Sell 0.5 BTC @ 15k (Proceeds 7.5k)
             CreateTx(date: new DateTime(2023, 1, 2), fromAsset: btc, toAsset: usd, spent: 0.5m, received: 7500m, spotPriceUSD: 15000m)
         };
-        
+
         var btcId = transactions.First(t => t.ToAsset?.Symbol == btc).ToAssetId!.Value;
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
         var holding = report.Holdings.Single(h => h.Id == btcId);
-        
+
         // Sold 0.5 BTC. Cost basis was 10k * 0.5 = 5k.
         Assert.Equal(5000m, holding.CostBasisOfSold);
-        
+
         // Remaining 0.5 BTC. Cost basis is 5k.
         // Total Invested implicit check = CostBasisOfSold + (Quantity * AvgCost) = 5k + 5k = 10k.
         Assert.Equal(10000m, holding.AvgCost);
         Assert.Equal(0.5m, holding.Quantity);
-        
+
         // Realized PL = 7.5k - 5k = 2.5k.
         Assert.Equal(2500m, holding.RealizedPL);
     }
@@ -376,16 +376,46 @@ public class InventoryCalculatorTests
             // 2. Withdraw 5k EUR.
             CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Withdrawal, fromAsset: eur, spent: 5000m, spotPriceEUR: 1m)
         };
-        
+
         var eurId = transactions.First(t => t.ToAsset?.Symbol == eur).ToAssetId!.Value;
         var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
         var holding = report.Holdings.Single(h => h.Id == eurId);
-        
+
         // 10k EUR deposited. 
         // 5k EUR withdrawn.
-        
+
         Assert.Equal(5000m, holding.Quantity);
         Assert.Equal(0m, holding.RealizedPL);
         Assert.Equal(5000m, holding.CostBasisOfSold);
+    }
+
+    [Fact]
+    public void CalculateInventory_Loss_ShouldRealizeNegativePL_Equal_To_CostBasis()
+    {
+        var eur = "EUR";
+        var btc = "BTC";
+        var transactions = new List<Transaction>
+        {
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 10000m, spotPriceEUR: 1m),
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Swap, fromAsset: eur, toAsset: btc, spent: 5000m, received: 1m, spotPriceEUR: 1m),
+            // Loss of 0.5 BTC. Spot price doesn't matter for proceeds, but let's say it's 6000 EUR
+            CreateTx(date: new DateTime(2023, 1, 3), type: TransactionType.Loss, fromAsset: btc, spent: 0.5m, spotPriceEUR: 6000m)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
+
+        Assert.DoesNotContain(report.Transactions, t => t.Error != null);
+
+        var btcId = transactions.First(t => t.ToAsset?.Symbol == btc).ToAssetId!.Value;
+        var btcHolding = report.Holdings.SingleOrDefault(h => h.Id == btcId);
+
+        Assert.NotNull(btcHolding);
+        Assert.Equal(0.5m, btcHolding.Quantity);
+
+        // Cost basis of the 0.5 lost BTC is 2500 EUR. Proceeds are 0. PL is -2500.
+        Assert.Equal(-2500m, btcHolding.RealizedPL);
+
+        var lossTx = report.Transactions.Single(t => t.Transaction.Type == TransactionType.Loss);
+        Assert.Equal(-2500m, lossTx.ProfitLoss);
     }
 }

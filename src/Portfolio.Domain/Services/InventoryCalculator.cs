@@ -75,7 +75,7 @@ public class InventoryCalculator : IInventoryCalculator
                 UpdateTracker(realizedPLTracker, feeAssetId, feePL);
             }
 
-            if ((tx.Type == TransactionType.Swap || tx.Type == TransactionType.Withdrawal) && tx.AmountSpent > 0 && tx.FromAssetId.HasValue)
+            if ((tx.Type == TransactionType.Swap || tx.Type == TransactionType.Withdrawal || tx.Type == TransactionType.Loss) && tx.AmountSpent > 0 && tx.FromAssetId.HasValue)
             {
                 Guid fromAssetId = tx.FromAssetId.Value;
                 decimal outflowPL = ConsumeInventory(fifoQueue, fromAssetId, tx.AmountSpent, pt, isFee: false, currency, costBasisSoldTracker, lossCandidates);
@@ -189,7 +189,7 @@ public class InventoryCalculator : IInventoryCalculator
         decimal? exitPrice = isFee ? tx.GetFeeAssetPrice(currency) : tx.GetFromAssetPrice(currency);
         if (!exitPrice.HasValue) return 0;
 
-        decimal proceeds = amountToConsume * exitPrice.Value;
+        decimal proceeds = (!isFee && tx.Type == TransactionType.Loss) ? 0 : amountToConsume * exitPrice.Value;
         
         UpdateTracker(costBasisSoldTracker, assetId, totalCostBasis);
 

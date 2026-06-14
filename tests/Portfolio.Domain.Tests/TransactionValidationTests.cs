@@ -124,6 +124,7 @@ public class TransactionValidationTests
         ));
         Assert.Contains("ToAssetId must be null", ex.Message);
     }
+
     [Fact]
     public void Constructor_ShouldFail_WhenBothPricesAreNull()
     {
@@ -138,5 +139,37 @@ public class TransactionValidationTests
             0, null, null, null, null, FiatCurrency.USD, null, null
         ));
         Assert.Contains("Either SpotPriceUSD or SpotPriceEUR must logically have a value depending on the Input Currency.", ex.Message);
+    }
+
+    [Fact]
+    public void Constructor_Loss_ShouldSucceed_WithFromAssetOnly()
+    {
+        // Arrange & Act
+        var tx = new Transaction(
+            DateTime.UtcNow,
+            TransactionType.Loss,
+            _assetId, // FromAssetId
+            null, // ToAssetId
+            1, 0, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
+        );
+
+        // Assert
+        Assert.Equal(TransactionType.Loss, tx.Type);
+        Assert.Equal(_assetId, tx.FromAssetId);
+        Assert.Null(tx.ToAssetId);
+    }
+
+    [Fact]
+    public void Constructor_Loss_ShouldFail_WhenToAssetIsProvided()
+    {
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentException>(() => new Transaction(
+            DateTime.UtcNow,
+            TransactionType.Loss,
+            _assetId,
+            _assetId, // ToAssetId provided
+            1, 0, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
+        ));
+        Assert.Contains("ToAssetId must be null", ex.Message);
     }
 }

@@ -8,6 +8,7 @@ public class TransactionType : SmartEnum<TransactionType, string>
     public static readonly TransactionType Swap = new("Swap", "SWAP", requiresFrom: true, requiresTo: true, triggersWashSale: true);
     public static readonly TransactionType Deposit = new("Deposit", "DEPOSIT", requiresFrom: false, requiresTo: true, triggersWashSale: false);
     public static readonly TransactionType Withdrawal = new("Withdrawal", "WITHDRAWAL", requiresFrom: true, requiresTo: false, triggersWashSale: false);
+    public static readonly TransactionType Loss = new("Loss", "LOSS", requiresFrom: true, requiresTo: false, triggersWashSale: false);
 
     public bool RequiresFromAsset { get; }
     public bool RequiresToAsset { get; }
