@@ -1,8 +1,9 @@
 export const TRANSACTION_ICONS: Record<string, { typeIcon: string; fromIcon: string; toIcon: string }> = {
-    SWAP: { typeIcon: 'swap_horiz', fromIcon: 'sell', toIcon: 'shopping_cart' },
-    WITHDRAWAL: { typeIcon: 'north_east', fromIcon: '', toIcon: '' },
-    DEPOSIT: { typeIcon: 'south_east', fromIcon: '', toIcon: '' },
-    REWARD: { typeIcon: 'workspace_premium', fromIcon: '', toIcon: '' },
+    SWAP:       { typeIcon: 'swap_horiz',        fromIcon: 'sell',        toIcon: 'shopping_cart' },
+    WITHDRAWAL: { typeIcon: 'north_east',        fromIcon: '',            toIcon: '' },
+    DEPOSIT:    { typeIcon: 'south_east',        fromIcon: '',            toIcon: '' },
+    REWARD:     { typeIcon: 'workspace_premium', fromIcon: '',            toIcon: '' },
+    LOSS:       { typeIcon: 'money_off',         fromIcon: 'money_off',   toIcon: '' },
 };
 
 export function getTransactionIcons(typeValue: string): { typeIcon: string; fromIcon: string; toIcon: string } {

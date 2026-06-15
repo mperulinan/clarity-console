@@ -63,19 +63,43 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 mt-6">
                         <div>
                             <div id="type-label" class="field-group-label">Transaction Type</div>
-                            <mat-button-toggle-group [value]="model().type" (change)="onTypeChange($event.value)"
-                                class="type-toggle-grid w-full" aria-labelledby="type-label"
-                                hideSingleSelectionIndicator="true">
-                                @for (type of transactionTypes(); track type.value) {
-                                <mat-button-toggle [value]="type.value">
-                                    <div class="flex items-center">
-                                        <mat-icon class="toggle-icon">{{ getTransactionIcons(type.value).typeIcon
-                                            }}</mat-icon>
-                                        {{ type.name }}
+                            <div class="type-selector" role="radiogroup" aria-labelledby="type-label">
+
+                                <!-- ── TRANSFERS (no P&L impact) ─────── -->
+                                <div class="type-group">
+                                    <span class="type-group-label">Transfers</span>
+                                    <div class="type-group-buttons">
+                                        @for (type of transferTypes(); track type.value) {
+                                        <button type="button" class="type-btn"
+                                            [class.is-selected]="model().type === type.value"
+                                            role="radio"
+                                            [attr.aria-checked]="model().type === type.value"
+                                            (click)="onTypeChange(type.value)">
+                                            <mat-icon class="toggle-icon">{{ getTransactionIcons(type.value).typeIcon }}</mat-icon>
+                                            {{ type.name }}
+                                        </button>
+                                        }
                                     </div>
-                                </mat-button-toggle>
-                                }
-                            </mat-button-toggle-group>
+                                </div>
+
+                                <!-- ── TAXABLE EVENTS (P&L impact) ───── -->
+                                <div class="type-group">
+                                    <span class="type-group-label">Taxable Events</span>
+                                    <div class="type-group-buttons">
+                                        @for (type of pnlTypes(); track type.value) {
+                                        <button type="button" class="type-btn"
+                                            [class.is-selected]="model().type === type.value"
+                                            role="radio"
+                                            [attr.aria-checked]="model().type === type.value"
+                                            (click)="onTypeChange(type.value)">
+                                            <mat-icon class="toggle-icon">{{ getTransactionIcons(type.value).typeIcon }}</mat-icon>
+                                            {{ type.name }}
+                                        </button>
+                                        }
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
 
                         <div class="date-time-group">

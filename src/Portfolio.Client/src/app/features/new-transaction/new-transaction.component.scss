@@ -81,7 +81,7 @@
         animation: none !important;
     }
 
-    .type-toggle-grid mat-button-toggle {
+    .type-btn {
         transition: none !important;
     }
 }
@@ -146,51 +146,84 @@
     }
 }
 
-/* ── TYPE BUTTONS ───────────────────────────── */
-.type-toggle-grid {
+/* ── TYPE SELECTOR ─────────────────────────── */
+.type-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.type-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.type-group-label {
+    font-size: var(--text-micro);
+    font-weight: 500;
+    color: color-mix(in srgb, var(--color-text-muted), transparent 35%);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding-left: 4px;
+}
+
+.type-group-buttons {
     background: color-mix(in srgb, var(--color-bg-base), var(--color-bg-surface) 40%);
     border: 1px solid var(--color-border);
     border-radius: 8px;
     padding: 4px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    display: flex;
     gap: 4px;
+    flex-wrap: wrap;
+}
 
-    mat-button-toggle {
-        background: transparent;
-        color: var(--color-text-muted);
-        border: none;
-        border-radius: 6px;
-        font-weight: 600;
-        min-width: 0;
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-        transition:
-            background-color 0.2s var(--ease-out-quart),
-            color            0.2s var(--ease-out-quart),
-            transform        0.2s var(--ease-out-quart);
+.type-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 90px;
+    padding: 6px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--color-text-muted);
+    font-family: var(--font-text);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    overflow: hidden;
+    transition:
+        background-color 0.2s var(--ease-out-quart),
+        color            0.2s var(--ease-out-quart),
+        transform        0.2s var(--ease-out-quart);
+    white-space: nowrap;
 
-        &:hover:not(.mat-button-toggle-checked):not(.mat-button-toggle-disabled) {
-            background: color-mix(in srgb, var(--color-bg-surface), transparent 90%);
-            color: color-mix(in srgb, var(--color-text), transparent 10%);
-        }
+    &:hover:not(.is-selected) {
+        background: color-mix(in srgb, var(--color-bg-surface), transparent 90%);
+        color: color-mix(in srgb, var(--color-text), transparent 10%);
+    }
 
-        &.mat-button-toggle-checked {
-            background: color-mix(in srgb, var(--color-primary), transparent 88%);
-            color: var(--color-primary);
-            box-shadow: none;
-        }
+    &.is-selected {
+        background: color-mix(in srgb, var(--color-primary), transparent 88%);
+        color: var(--color-primary);
+    }
 
-        &:active:not(.mat-button-toggle-disabled) {
-            transform: scale(0.97);
-        }
+    &:active {
+        transform: scale(0.97);
+    }
 
-        /* Keyboard focus — meets WCAG AA, consistent with design system */
-        &:focus-visible {
-            outline: 2px solid var(--color-primary);
-            outline-offset: -2px;
-        }
+    /* Keyboard focus — meets WCAG AA, consistent with design system */
+    &:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: -2px;
+    }
+
+    mat-icon.toggle-icon {
+        flex-shrink: 0;
     }
 }
 

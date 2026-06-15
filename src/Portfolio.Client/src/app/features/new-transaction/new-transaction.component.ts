@@ -14,7 +14,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatStepperModule, MatStepper } from '@angular/material/stepper';
 
 // Signal Forms
@@ -68,7 +67,6 @@ const UI_CONFIG: Record<string, any> = {
         MatDatepickerModule,
         MatButtonModule,
         MatIconModule,
-        MatButtonToggleModule,
         MatStepperModule,
         AssetSelectorComponent,
         InteractivePriceInputComponent,
@@ -90,6 +88,23 @@ export class NewTransactionComponent implements OnInit {
     submitError = signal<string | null>(null);
     isLoadingTypes = signal<boolean>(true);
     transactionTypes = signal<TransactionType[]>([]);
+
+    /** Types that do NOT affect P&L — simple fund movements */
+    transferTypes = computed(() =>
+        this.transactionTypes().filter(t =>
+            t.value === TransactionTypeCode.Deposit ||
+            t.value === TransactionTypeCode.Withdrawal
+        )
+    );
+
+    /** Types that DO affect P&L — disposals, income, and exchanges */
+    pnlTypes = computed(() =>
+        this.transactionTypes().filter(t =>
+            t.value !== TransactionTypeCode.Deposit &&
+            t.value !== TransactionTypeCode.Withdrawal
+        )
+    );
+
     fiatCurrencies = signal<AssetDto[]>([]);
     taxCurrency = signal<AssetDto | null>(null);
 
