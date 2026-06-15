@@ -45,7 +45,7 @@ public class InventoryCalculator : IInventoryCalculator
             if (tx.AmountReceived > 0 && tx.ToAssetId.HasValue)
             {
                 Guid toAssetId = tx.ToAssetId.Value;
-                if (tx.Type == TransactionType.Reward)
+                if (tx.Type.GeneratesTaxableIncome)
                 {
                     decimal rewardProfit = (tx.AmountReceived * toAssetPrice) - (tx.Fee * feeAssetPrice);
                     pt.ProfitLoss = rewardProfit;
@@ -75,7 +75,7 @@ public class InventoryCalculator : IInventoryCalculator
                 UpdateTracker(realizedPLTracker, feeAssetId, feePL);
             }
 
-            if ((tx.Type == TransactionType.Swap || tx.Type == TransactionType.Withdrawal || tx.Type == TransactionType.Loss) && tx.AmountSpent > 0 && tx.FromAssetId.HasValue)
+            if (tx.Type.RequiresFromAsset && tx.AmountSpent > 0 && tx.FromAssetId.HasValue)
             {
                 Guid fromAssetId = tx.FromAssetId.Value;
                 decimal outflowPL = ConsumeInventory(fifoQueue, fromAssetId, tx.AmountSpent, pt, isFee: false, currency, costBasisSoldTracker, lossCandidates);
@@ -189,11 +189,15 @@ public class InventoryCalculator : IInventoryCalculator
         decimal? exitPrice = isFee ? tx.GetFeeAssetPrice(currency) : tx.GetFromAssetPrice(currency);
         if (!exitPrice.HasValue) return 0;
 
-        decimal proceeds = (!isFee && tx.Type == TransactionType.Loss) ? 0 : amountToConsume * exitPrice.Value;
-        
         UpdateTracker(costBasisSoldTracker, assetId, totalCostBasis);
 
-        decimal pl = proceeds - totalCostBasis;
+        decimal pl = 0;
+        if (isFee || tx.Type.IsTaxableDisposal)
+        {
+            decimal proceeds = (!isFee && tx.Type.ProceedsAreZero) ? 0 : amountToConsume * exitPrice.Value;
+            pl = proceeds - totalCostBasis;
+        }
+
         pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;
         
         if (!isFee && pl < 0 && lossCandidates != null)
