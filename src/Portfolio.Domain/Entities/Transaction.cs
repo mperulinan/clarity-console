@@ -158,7 +158,7 @@ public class Transaction
 
     public decimal? GetFromAssetPrice(FiatCurrency currency)
     {
-        if (Type == TransactionType.Reward || Type == TransactionType.Deposit) return null;
+        if (!Type.RequiresFromAsset) return null;
 
         if (currency == FiatCurrency.USD) return SpotPriceUSD;
         if (currency == FiatCurrency.EUR) return SpotPriceEUR;
@@ -167,14 +167,14 @@ public class Transaction
 
     public decimal? GetToAssetPrice(FiatCurrency currency)
     {
-        if (Type == TransactionType.Reward || Type == TransactionType.Deposit)
+        if (!Type.RequiresFromAsset)
         {
             if (currency == FiatCurrency.USD) return SpotPriceUSD;
             if (currency == FiatCurrency.EUR) return SpotPriceEUR;
             return null;
         }
 
-        if (Type == TransactionType.Withdrawal) return null;
+        if (!Type.RequiresToAsset) return null;
 
         // For Swap: derive ToAsset price from FromAsset price (SpotPrice)
         decimal? fromPrice = GetFromAssetPrice(currency);
