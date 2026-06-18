@@ -18,11 +18,33 @@ public class TransactionController(ISender sender) : ControllerBase
         return report.Transactions.Select(t => t.Transaction);
     }
 
+    [HttpGet("{id}")]
+    public async Task<ActionResult<TransactionDto>> GetTransaction(int id)
+    {
+        var result = await sender.Send(new GetTransactionByIdQuery(id));
+        if (result is null) return NotFound();
+        return Ok(result);
+    }
+
     [HttpPost]
     public async Task<ActionResult> PostTransaction(NewTransactionRequest request)
     {
         var result = await sender.Send(new AddTransactionCommand(request));
         return Ok(result);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> PutTransaction(int id, NewTransactionRequest request)
+    {
+        var result = await sender.Send(new UpdateTransactionCommand(id, request));
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteTransaction(int id)
+    {
+        await sender.Send(new DeleteTransactionCommand(id));
+        return NoContent();
     }
 
     [HttpGet("types")]

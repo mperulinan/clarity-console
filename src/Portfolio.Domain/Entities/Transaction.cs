@@ -156,6 +156,67 @@ public class Transaction
         UsdEurExchangeRate = usdEurRate;
     }
 
+    public void Update(
+        DateTime date,
+        TransactionType transactionType,
+        Guid? fromAssetId,
+        Guid? toAssetId,
+        decimal amountSpent,
+        decimal amountReceived,
+        decimal? spotPriceUSD,
+        decimal? spotPriceEUR,
+        decimal fee,
+        Guid? feeAssetId,
+        decimal? feeSpotPriceUSD,
+        decimal? feeSpotPriceEUR,
+        FiatCurrency? spotPriceInputCurrency,
+        FiatCurrency? feePriceInputCurrency,
+        string? notes)
+    {
+        Date = date;
+        Type = transactionType ?? throw new ArgumentNullException(nameof(transactionType));
+
+        if (Type.RequiresFromAsset && !fromAssetId.HasValue)
+            throw new ArgumentException($"FromAssetId is required for {Type.Name}");
+        if (!Type.RequiresFromAsset && fromAssetId.HasValue)
+            throw new ArgumentException($"FromAssetId must be null for {Type.Name}");
+            
+        if (Type.RequiresToAsset && !toAssetId.HasValue)
+            throw new ArgumentException($"ToAssetId is required for {Type.Name}");
+        if (!Type.RequiresToAsset && toAssetId.HasValue)
+            throw new ArgumentException($"ToAssetId must be null for {Type.Name}");
+
+        if (Type == TransactionType.Deposit && FiatCurrency.FromIdOrDefault(toAssetId) != FiatCurrency.TaxCurrency)
+            throw new ArgumentException($"Deposit must be in the tax currency ({FiatCurrency.TaxCurrency.Symbol}).");
+            
+        if (Type == TransactionType.Withdrawal && FiatCurrency.FromIdOrDefault(fromAssetId) != FiatCurrency.TaxCurrency)
+            throw new ArgumentException($"Withdrawal must be in the tax currency ({FiatCurrency.TaxCurrency.Symbol}).");
+
+        FromAssetId = fromAssetId;
+        ToAssetId = toAssetId;
+        AmountSpent = amountSpent;
+        AmountReceived = amountReceived;
+        Fee = fee;
+        FeeAssetId = feeAssetId;
+
+        ProcessFiatDerivations(ref spotPriceUSD, ref spotPriceEUR, ref spotPriceInputCurrency);
+        ProcessFeeFiatDerivations(ref feeSpotPriceUSD, ref feeSpotPriceEUR, ref feePriceInputCurrency);
+
+        if (spotPriceInputCurrency == null)
+            throw new ArgumentException("SpotPriceInputCurrency must be provided if the transaction does not implicitly involve a Fiat currency.");
+
+        if (!spotPriceUSD.HasValue && !spotPriceEUR.HasValue)
+            throw new ArgumentException("Either SpotPriceUSD or SpotPriceEUR must logically have a value depending on the Input Currency.");
+
+        SpotPriceUSD = spotPriceUSD;
+        SpotPriceEUR = spotPriceEUR;
+        FeePriceUSD = feeSpotPriceUSD;
+        FeePriceEUR = feeSpotPriceEUR;
+        SpotPriceInputCurrency = spotPriceInputCurrency;
+        FeePriceInputCurrency = feePriceInputCurrency;
+        Notes = notes;
+    }
+
     public decimal? GetFromAssetPrice(FiatCurrency currency)
     {
         if (!Type.RequiresFromAsset) return null;

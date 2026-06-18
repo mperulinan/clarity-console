@@ -18,10 +18,12 @@ public static class TransactionMapper
             AmountReceived = transaction.AmountReceived,
             SpotPriceUSD = transaction.SpotPriceUSD,
             SpotPriceEUR = transaction.SpotPriceEUR,
+            SpotPriceInputCurrency = transaction.SpotPriceInputCurrency?.Value,
             Fee = transaction.Fee,
             FeeAsset = transaction.FeeAsset?.ToDto(),
             FeePriceUSD = transaction.FeePriceUSD,
             FeePriceEUR = transaction.FeePriceEUR,
+            FeePriceInputCurrency = transaction.FeePriceInputCurrency?.Value,
             UsdEurExchangeRate = transaction.UsdEurExchangeRate,
             Notes = transaction.Notes
         };

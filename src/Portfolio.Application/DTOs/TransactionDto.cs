@@ -13,10 +13,12 @@ public class TransactionDto
     public decimal AmountReceived { get; set; }
     public decimal? SpotPriceUSD { get; set; }
     public decimal? SpotPriceEUR { get; set; }
+    public string? SpotPriceInputCurrency { get; set; }
     public decimal Fee { get; set; }
     public AssetDto? FeeAsset { get; set; }
     public decimal? FeePriceUSD { get; set; }
     public decimal? FeePriceEUR { get; set; }
+    public string? FeePriceInputCurrency { get; set; }
     public decimal? UsdEurExchangeRate { get; set; }
     public string? Notes { get; set; }
 }
