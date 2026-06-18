@@ -456,11 +456,11 @@ export class TransactionFormComponent implements OnInit {
                 type: t.type.value,
                 amountSpent: t.amountSpent,
                 amountReceived: t.amountReceived,
-                spotPrice: t.spotPriceInputCurrency === 'USD' ? (t.spotPriceUSD ?? 0) : (t.spotPriceEUR ?? 0),
-                spotPriceCurrency: (t.spotPriceInputCurrency as SupportedFiatCurrency) || DEFAULT_FIAT_CURRENCY,
+                spotPrice: t.spotPriceInputCurrency?.toUpperCase() === 'USD' ? (t.spotPriceUSD ?? 0) : (t.spotPriceEUR ?? 0),
+                spotPriceCurrency: (t.spotPriceInputCurrency?.toUpperCase() as SupportedFiatCurrency) || DEFAULT_FIAT_CURRENCY,
                 fee: t.fee,
-                feeSpotPrice: t.feePriceInputCurrency === 'USD' ? (t.feePriceUSD ?? 0) : (t.feePriceEUR ?? 0),
-                feeSpotPriceCurrency: (t.feePriceInputCurrency as SupportedFiatCurrency) || DEFAULT_FIAT_CURRENCY,
+                feeSpotPrice: t.feePriceInputCurrency?.toUpperCase() === 'USD' ? (t.feePriceUSD ?? 0) : (t.feePriceEUR ?? 0),
+                feeSpotPriceCurrency: (t.feePriceInputCurrency?.toUpperCase() as SupportedFiatCurrency) || DEFAULT_FIAT_CURRENCY,
                 notes: t.notes || '',
                 spotPriceDeviationConfirmed: true // Since it's an existing transaction
             });

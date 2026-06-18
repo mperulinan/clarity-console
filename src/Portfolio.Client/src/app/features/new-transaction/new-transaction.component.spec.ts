@@ -193,4 +193,30 @@ describe('NewTransactionComponent', () => {
     expect(component.submitError()).toContain('Could not reach the server');
     expect(component.isSubmitting()).toBe(false);
   });
+
+  // ── Form Population ────────────────────────────────────────────────────
+
+  it('should uppercase fiat currency strings when populating form from an existing transaction', async () => {
+    portfolioServiceSpy.getTransaction = vi.fn().mockReturnValue(of({
+        id: 1,
+        date: new Date().toISOString(),
+        type: mockTypes[0],
+        amountSpent: 100,
+        amountReceived: 2,
+        spotPriceUSD: 50,
+        spotPriceInputCurrency: 'usd', // from backend
+        fee: 0,
+        feePriceInputCurrency: 'eur' // from backend
+    }));
+
+    component.transactionId.set(1);
+    await component.checkEditMode(1);
+    await fixture.whenStable();
+
+    expect(portfolioServiceSpy.getTransaction).toHaveBeenCalledWith(1);
+    
+    const m = component.model();
+    expect(m.spotPriceCurrency).toBe('USD');
+    expect(m.feeSpotPriceCurrency).toBe('EUR');
+  });
 });
