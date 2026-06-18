@@ -48,4 +48,19 @@ public class DeleteTransactionCommandTests
         Assert.Null(result);
         Assert.Equal(1, uow.SaveChangesCallCount);
     }
+    
+    [Fact]
+    public async Task Handle_ShouldNotCallSaveChanges_WhenTransactionDoesNotExist()
+    {
+        // Arrange
+        var uow = new FakeUnitOfWork();
+        var handler = new DeleteTransactionCommandHandler(uow, NullLogger<DeleteTransactionCommandHandler>.Instance);
+        var command = new DeleteTransactionCommand(999);
+
+        // Act — should not throw
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert — no side-effects
+        Assert.Equal(0, uow.SaveChangesCallCount);
+    }
 }

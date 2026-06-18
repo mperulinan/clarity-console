@@ -66,4 +66,70 @@ public class UpdateTransactionCommandTests
         Assert.NotNull(result);
         Assert.Equal(updated.Id, result.Id);
     }
+
+    [Fact]
+    public async Task Handle_ShouldThrowKeyNotFoundException_WhenTransactionDoesNotExist()
+    {
+        // Arrange
+        var uow = new FakeUnitOfWork();
+        var handler = new UpdateTransactionCommandHandler(uow, NullLogger<UpdateTransactionCommandHandler>.Instance);
+        var request = new NewTransactionRequest
+        {
+            Date = DateTime.UtcNow,
+            TransactionTypeCode = TransactionType.Deposit,
+            ToAssetId = FiatCurrency.TaxCurrency.Id,
+            AmountReceived = 100,
+            SpotPriceUSD = 1,
+            SpotPriceInputCurrency = "USD"
+        };
+        var command = new UpdateTransactionCommand(999, request);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            handler.Handle(command, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowArgumentException_WhenSpotPriceInputCurrencyIsInvalid()
+    {
+        // Arrange
+        var uow = new FakeUnitOfWork();
+        var handler = new UpdateTransactionCommandHandler(uow, NullLogger<UpdateTransactionCommandHandler>.Instance);
+
+        var existingTx = new Transaction(
+            date: DateTime.UtcNow.AddDays(-1),
+            transactionType: TransactionType.Deposit,
+            fromAssetId: null,
+            toAssetId: FiatCurrency.TaxCurrency.Id,
+            amountSpent: 0,
+            amountReceived: 100,
+            spotPriceUSD: 1,
+            spotPriceEUR: 0.9m,
+            fee: 0,
+            feeAssetId: null,
+            feeSpotPriceUSD: null,
+            feeSpotPriceEUR: null,
+            usdEurExchangeRate: 1.1m,
+            spotPriceInputCurrency: FiatCurrency.USD,
+            feePriceInputCurrency: null,
+            notes: null
+        );
+        typeof(Transaction).GetProperty(nameof(Transaction.Id))?.SetValue(existingTx, 1);
+        await uow.Transactions.AddAsync(existingTx);
+
+        var request = new NewTransactionRequest
+        {
+            Date = DateTime.UtcNow,
+            TransactionTypeCode = TransactionType.Deposit,
+            ToAssetId = FiatCurrency.TaxCurrency.Id,
+            AmountReceived = 100,
+            SpotPriceUSD = 1,
+            SpotPriceInputCurrency = "GBP" // unsupported
+        };
+        var command = new UpdateTransactionCommand(1, request);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(command, CancellationToken.None));
+    }
 }
