@@ -19,7 +19,12 @@ export const routes: Routes = [
     {
         path: 'new-transaction',
         title: 'New Transaction • Clarity Console',
-        loadComponent: () => import('./features/new-transaction/new-transaction.component').then(m => m.NewTransactionComponent)
+        loadComponent: () => import('./features/new-transaction/new-transaction.component').then(m => m.TransactionFormComponent)
+    },
+    {
+        path: 'edit-transaction/:id',
+        title: 'Edit Transaction • Clarity Console',
+        loadComponent: () => import('./features/new-transaction/new-transaction.component').then(m => m.TransactionFormComponent)
     },
     { path: '**', redirectTo: '' }
 ];

@@ -3,7 +3,7 @@ import {
     effect, untracked, inject, ChangeDetectionStrategy, ViewChild
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 // Material
@@ -34,7 +34,7 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
 import { PortfolioService } from '../../services/portfolio.service';
 import { AssetDto } from '../../models/asset';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
-import { TransactionType, TransactionTypeCode } from '../../models/transaction';
+import { TransactionType, TransactionTypeCode, Transaction } from '../../models/transaction';
 import { DEFAULT_FIAT_CURRENCY, SupportedFiatCurrency } from '../../shared/constants/currency.constants';
 import { parseHttpError } from '../../shared/utils/http-error-message';
 
@@ -54,7 +54,7 @@ const UI_CONFIG: Record<string, any> = {
 };
 
 @Component({
-    selector: 'app-new-transaction',
+    selector: 'app-transaction-form',
     standalone: true,
     imports: [
         CommonModule,
@@ -78,9 +78,14 @@ const UI_CONFIG: Record<string, any> = {
     styleUrl: './new-transaction.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NewTransactionComponent implements OnInit {
+export class TransactionFormComponent implements OnInit {
     private readonly portfolioService = inject(PortfolioService);
     private readonly router = inject(Router);
+    private readonly route = inject(ActivatedRoute);
+
+    transactionId = signal<number | null>(null);
+    isLoadingData = signal<boolean>(false);
+    isPopulating = signal<boolean>(false);
 
     @ViewChild('stepper') stepper!: MatStepper;
 
@@ -320,6 +325,7 @@ export class NewTransactionComponent implements OnInit {
         effect(() => {
             this.fromAsset();
             untracked(() => {
+                if (this.isPopulating()) return;
                 this.model.update(m => ({ ...m, spotPrice: 0 }));
                 this.fetchedSpotPrice.set(null);
                 this.hasAttemptedPriceFetch.set(false);
@@ -328,6 +334,7 @@ export class NewTransactionComponent implements OnInit {
         effect(() => {
             this.toAsset();
             untracked(() => {
+                if (this.isPopulating()) return;
                 this.model.update(m => ({ ...m, spotPrice: 0 }));
                 this.fetchedSpotPrice.set(null);
                 this.hasAttemptedPriceFetch.set(false);
@@ -336,7 +343,10 @@ export class NewTransactionComponent implements OnInit {
         // Effect: clear feeSpotPrice when fee asset changes
         effect(() => {
             this.feeAsset();
-            untracked(() => this.model.update(m => ({ ...m, feeSpotPrice: 0 })));
+            untracked(() => {
+                if (this.isPopulating()) return;
+                this.model.update(m => ({ ...m, feeSpotPrice: 0 }));
+            });
         });
 
         // Effect: carry over asset selection when transaction type changes
@@ -348,6 +358,8 @@ export class NewTransactionComponent implements OnInit {
             const typeValue = typeData.value;
 
             untracked(() => {
+                if (this.isPopulating()) return;
+
                 if (typeValue === TransactionTypeCode.Deposit) {
                     if (taxFiat) {
                         this.toAsset.set(taxFiat);
@@ -379,10 +391,12 @@ export class NewTransactionComponent implements OnInit {
                 if (types.length > 0) {
                     this.model.update(m => ({ ...m, type: types[0].value }));
                 }
+                this.checkEditMode();
             },
             error: err => {
                 console.error('Failed to load transaction types', err);
                 this.isLoadingTypes.set(false);
+                this.checkEditMode();
             }
         });
 
@@ -394,11 +408,66 @@ export class NewTransactionComponent implements OnInit {
         this.portfolioService.getTaxCurrency().subscribe({
             next: taxFiat => {
                 this.taxCurrency.set(taxFiat);
-                // Also initialize spot prices to tax currency
-                this.model.update(m => ({ ...m, spotPriceCurrency: taxFiat.symbol as SupportedFiatCurrency, feeSpotPriceCurrency: taxFiat.symbol as SupportedFiatCurrency }));
+                if (!this.transactionId()) {
+                    this.model.update(m => ({ ...m, spotPriceCurrency: taxFiat.symbol as SupportedFiatCurrency, feeSpotPriceCurrency: taxFiat.symbol as SupportedFiatCurrency }));
+                }
             },
             error: err => console.error('Failed to load tax currency', err)
         });
+    }
+
+    private async checkEditMode() {
+        const idParam = this.route.snapshot.paramMap.get('id');
+        if (!idParam) {
+            return;
+        }
+
+        const id = Number(idParam);
+            this.transactionId.set(id);
+            this.isLoadingData.set(true);
+            try {
+                const t = await firstValueFrom(this.portfolioService.getTransaction(id));
+                if (t) {
+                    this.populateForm(t);
+                } else {
+                    console.error('Transaction not found');
+                    this.router.navigate(['/transactions']);
+                }
+            } catch (err) {
+                console.error('Failed to load transaction', err);
+            } finally {
+                this.isLoadingData.set(false);
+            }
+    }
+
+    private populateForm(t: Transaction) {
+        this.isPopulating.set(true);
+        const d = new Date(t.date);
+        
+        // Disable tracking effects temporarily
+        untracked(() => {
+            if (t.fromAsset) this.fromAsset.set(t.fromAsset);
+            if (t.toAsset) this.toAsset.set(t.toAsset);
+            if (t.feeAsset) this.feeAsset.set(t.feeAsset);
+
+            this.model.set({
+                datePart: d,
+                timePart: `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`,
+                type: t.type.value,
+                amountSpent: t.amountSpent,
+                amountReceived: t.amountReceived,
+                spotPrice: t.spotPriceInputCurrency === 'USD' ? (t.spotPriceUSD ?? 0) : (t.spotPriceEUR ?? 0),
+                spotPriceCurrency: (t.spotPriceInputCurrency as SupportedFiatCurrency) || DEFAULT_FIAT_CURRENCY,
+                fee: t.fee,
+                feeSpotPrice: t.feePriceInputCurrency === 'USD' ? (t.feePriceUSD ?? 0) : (t.feePriceEUR ?? 0),
+                feeSpotPriceCurrency: (t.feePriceInputCurrency as SupportedFiatCurrency) || DEFAULT_FIAT_CURRENCY,
+                notes: t.notes || '',
+                spotPriceDeviationConfirmed: true // Since it's an existing transaction
+            });
+        });
+        
+        // Ensure Angular registers the state before we release the populating flag
+        setTimeout(() => this.isPopulating.set(false));
     }
 
     // ── Model update helpers (used by template event bindings) ──────────
@@ -508,8 +577,12 @@ export class NewTransactionComponent implements OnInit {
         };
 
         try {
-            await firstValueFrom(this.portfolioService.addTransaction(request));
-            this.router.navigate(['/']);
+            if (this.transactionId()) {
+                await firstValueFrom(this.portfolioService.updateTransaction(this.transactionId()!, request));
+            } else {
+                await firstValueFrom(this.portfolioService.addTransaction(request));
+            }
+            this.router.navigate(['/transactions']);
         } catch (err) {
             console.error('Failed to save transaction', err);
             const { message } = parseHttpError(err, { action: 'save the transaction' });

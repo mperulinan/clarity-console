@@ -55,6 +55,27 @@ export class PortfolioService {
         return this.http.post<void>(`${this.apiUrl}/Transaction`, request);
     }
 
+    updateTransaction(id: number, request: NewTransactionRequest): Observable<void> {
+        return this.http.put<void>(`${this.apiUrl}/Transaction/${id}`, request);
+    }
+
+    deleteTransaction(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/Transaction/${id}`);
+    }
+
+    getTransaction(id: number): Observable<Transaction> {
+        return forkJoin({
+            tx: this.http.get<Transaction>(`${this.apiUrl}/Transaction/${id}`),
+            types: this.getTransactionTypes()
+        }).pipe(
+            map(({ tx, types }) => {
+                const typesMap = new Map<string, TransactionType>();
+                types.forEach(t => typesMap.set(t.value, t));
+                return this.normalizeTransaction(tx, typesMap);
+            })
+        );
+    }
+
     getTransactionTypes(): Observable<TransactionType[]> {
         return this.transactionTypes$;
     }

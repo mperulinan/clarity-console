@@ -22,6 +22,7 @@ import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { getTransactionIcons } from '../../shared/constants/transaction-icons.constants';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 type SortField = 'date' | 'type' | 'from' | 'to' | 'spotPrice' | 'fee' | 'profitLoss';
 type SortDir = 'asc' | 'desc';
@@ -97,6 +98,11 @@ export class TransactionsComponent implements OnInit {
     private readonly document = inject(DOCUMENT);
 
     ngOnInit() {
+        this.loadTransactions();
+    }
+
+    private loadTransactions() {
+        this.isLoading.set(true);
         this.portfolioService.getPortfolioReport()
             .pipe(
                 finalize(() => this.isLoading.set(false)),
@@ -132,6 +138,32 @@ export class TransactionsComponent implements OnInit {
 
     openNewTransaction() {
         this.router.navigate(['/new-transaction']);
+    }
+
+    editTransaction(id: number) {
+        this.router.navigate(['/edit-transaction', id]);
+    }
+
+    deleteTransaction(id: number) {
+        const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+            data: {
+                title: 'Delete Transaction',
+                message: 'Are you sure you want to delete this transaction? This action cannot be undone.',
+                confirmText: 'Delete'
+            },
+            panelClass: 'dark-dialog-panel'
+        });
+
+        dialogRef.afterClosed().subscribe(confirmed => {
+            if (confirmed) {
+                this.portfolioService.deleteTransaction(id).subscribe({
+                    next: () => {
+                        this.loadTransactions();
+                    },
+                    error: err => console.error('Failed to delete transaction', err)
+                });
+            }
+        });
     }
 
     getSpotPrice(row: ProcessedTransaction): number | undefined {

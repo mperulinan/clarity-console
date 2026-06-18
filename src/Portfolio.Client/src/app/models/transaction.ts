@@ -20,10 +20,12 @@ export interface Transaction {
     amountReceived: number;
     spotPriceUSD?: number;
     spotPriceEUR?: number;
+    spotPriceInputCurrency?: string;
     fee: number;
     feeAsset?: AssetDto;
     feePriceUSD?: number;
     feePriceEUR?: number;
+    feePriceInputCurrency?: string;
     usdEurExchangeRate?: number;
     notes?: string;
 }
