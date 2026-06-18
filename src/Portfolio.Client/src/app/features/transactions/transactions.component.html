@@ -178,7 +178,7 @@
                         <mat-icon class="sort-icon" aria-hidden="true">{{ getSortIcon('profitLoss') }}</mat-icon>
                     </th>
                     <th class="col-status">Status</th>
-                    <th class="col-actions text-right">Actions</th>
+                    <th class="col-actions text-center">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -296,12 +296,12 @@
 
                     <!-- Actions -->
                     <td class="col-actions">
-                        <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
-                            <button mat-icon-button (click)="editTransaction(row.transaction.id)" aria-label="Edit transaction" matTooltip="Edit" class="!w-8 !h-8 !leading-8">
-                                <mat-icon class="text-text-secondary hover:text-primary !text-[20px] leading-[20px] w-5 h-5 flex justify-center items-center">edit</mat-icon>
+                        <div class="flex items-center justify-center gap-1">
+                            <button mat-icon-button (click)="editTransaction(row.transaction.id)" aria-label="Edit transaction" class="action-icon-btn">
+                                <mat-icon>edit</mat-icon>
                             </button>
-                            <button mat-icon-button (click)="deleteTransaction(row.transaction.id)" aria-label="Delete transaction" matTooltip="Delete" class="!w-8 !h-8 !leading-8">
-                                <mat-icon class="text-text-secondary hover:text-danger !text-[20px] leading-[20px] w-5 h-5 flex justify-center items-center">delete</mat-icon>
+                            <button mat-icon-button (click)="deleteTransaction(row.transaction.id)" aria-label="Delete transaction" class="action-icon-btn">
+                                <mat-icon>delete</mat-icon>
                             </button>
                         </div>
                     </td>
