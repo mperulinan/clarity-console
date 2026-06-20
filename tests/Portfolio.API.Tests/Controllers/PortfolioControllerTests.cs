@@ -40,7 +40,7 @@ public class PortfolioControllerTests(CustomWebApplicationFactory<Program> facto
 
         // Assert
         response.EnsureSuccessStatusCode();
-        var metrics = await response.Content.ReadFromJsonAsync<PortfolioMetricsDto>();
+        var metrics = await response.Content.ReadFromJsonAsync<PortfolioMetricsDto>(_factory.GetJsonOptions());
 
 
         Assert.NotNull(metrics);
