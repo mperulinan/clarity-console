@@ -116,13 +116,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
-// Only redirect to HTTPS in production
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
-
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseExceptionHandler();
