@@ -89,6 +89,7 @@ builder.Services.AddScoped<IAssetSynchronizationService, AssetSynchronizationSer
 builder.Services.AddScoped<IAssetMarketDataService, AssetMarketDataService>();
 builder.Services.AddScoped<IPortfolioMetricsCalculator, PortfolioMetricsCalculator>();
 builder.Services.AddHostedService<AssetCatalogSyncBackgroundService>();
+builder.Services.AddHostedService<ExchangeRateSyncBackgroundService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddExceptionHandler<ArgumentExceptionHandler>();

@@ -16,11 +16,21 @@ public class FrankfurterExchangeRateProvider(
     public async Task<decimal> GetExchangeRateAsync(FiatCurrency from, FiatCurrency to) =>
         await GetRateAsync("latest", from.Value, to.Value);
 
-    public async Task<decimal> GetUsdEurRateAsync(DateTime date) =>
-        await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.USD.Value, FiatCurrency.EUR.Value);
+    public async Task<decimal> GetUsdEurRateAsync(DateTime date)
+    {
+        if (date.Date >= DateTime.UtcNow.Date)
+            throw new NotSupportedException("Exchange rates for the current or future dates are not available yet.");
 
-    public async Task<decimal> GetEurUsdRateAsync(DateTime date) =>
-        await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.EUR.Value, FiatCurrency.USD.Value);
+        return await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.USD.Value, FiatCurrency.EUR.Value);
+    }
+
+    public async Task<decimal> GetEurUsdRateAsync(DateTime date)
+    {
+        if (date.Date >= DateTime.UtcNow.Date)
+            throw new NotSupportedException("Exchange rates for the current or future dates are not available yet.");
+
+        return await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.EUR.Value, FiatCurrency.USD.Value);
+    }
 
     private async Task<decimal> GetRateAsync(string path, string from, string to)
     {
