@@ -15,7 +15,7 @@ public class CalculateExchangeRatesCommandHandler(
         logger.LogInformation("Starting background calculation for missing exchange rates.");
         
         var allTransactions = await uow.Transactions.GetAllAsync();
-        var transactions = allTransactions.Where(t => t.Date.Date < DateTime.UtcNow.Date && t.HasIncompleteExchangeRates).ToList();
+        var transactions = allTransactions.Where(t => t.HasIncompleteExchangeRates).ToList();
 
         if (transactions.Count == 0)
         {
@@ -34,6 +34,10 @@ public class CalculateExchangeRatesCommandHandler(
             {
                 var rate = await exchangeRateProvider.GetUsdEurRateAsync(date);
                 ratesByDate[date] = rate;
+            }
+            catch (NotSupportedException)
+            {
+                logger.LogInformation("Exchange rate for date {Date} is not yet available. Skipping.", date);
             }
             catch (Exception ex)
             {

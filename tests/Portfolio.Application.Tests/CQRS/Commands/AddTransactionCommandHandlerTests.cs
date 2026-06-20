@@ -1,9 +1,7 @@
-using NSubstitute;
 using Portfolio.Application.CQRS.Commands;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Tests.Fakes;
 using Portfolio.Domain.Enums;
-using Portfolio.Domain.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Portfolio.Application.Tests.CQRS.Commands;
