@@ -114,19 +114,27 @@ public class TransactionControllerTests(CustomWebApplicationFactory<Program> fac
             SpotPriceInputCurrency = "USD"
         };
 
-        // Act — must use the API's JsonSerializerOptions so TransactionType is serialized
-        // as its string value (SmartEnum), not as a plain object, which would cause a 400.
-        var response = await _client.PostAsJsonAsync("/api/Transaction", request, jsonOptions);
+        // Act 1: Create the transaction
+        var postResponse = await _client.PostAsJsonAsync("/api/Transaction", request, jsonOptions);
+        postResponse.EnsureSuccessStatusCode();
+        var createdResult = await postResponse.Content.ReadFromJsonAsync<TransactionDto>(jsonOptions);
+
+        Assert.NotNull(createdResult);
+        Assert.True(createdResult.Id > 0);
+        Assert.Equal(request.AmountSpent, createdResult.AmountSpent);
+        Assert.Equal(request.AmountReceived, createdResult.AmountReceived);
+
+        // Act 2: Fetch the created transaction to verify the database saved the asset links
+        var getResponse = await _client.GetAsync($"/api/Transaction/{createdResult.Id}");
+        getResponse.EnsureSuccessStatusCode();
+        var fetchedResult = await getResponse.Content.ReadFromJsonAsync<TransactionDto>(jsonOptions);
 
         // Assert
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<TransactionDto>(jsonOptions);
-
-        Assert.NotNull(result);
-        Assert.True(result.Id > 0);
-        Assert.Equal(request.AmountSpent, result.AmountSpent);
-        Assert.Equal(request.AmountReceived, result.AmountReceived);
-        Assert.Equal(request.FromAssetId, result.FromAsset?.Id);
-        Assert.Equal(request.ToAssetId, result.ToAsset?.Id);
+        Assert.NotNull(fetchedResult);
+        Assert.Equal(createdResult.Id, fetchedResult.Id);
+        Assert.NotNull(fetchedResult.FromAsset);
+        Assert.NotNull(fetchedResult.ToAsset);
+        Assert.Equal(request.FromAssetId, fetchedResult.FromAsset.Id);
+        Assert.Equal(request.ToAssetId, fetchedResult.ToAsset.Id);
     }
 }
