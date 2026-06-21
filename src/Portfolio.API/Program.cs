@@ -14,6 +14,7 @@ using Portfolio.Infrastructure.ExternalServices;
 using Portfolio.Infrastructure.Persistence;
 using Portfolio.Infrastructure.Persistence.Repositories;
 
+
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
@@ -88,8 +89,10 @@ builder.Services.AddScoped<IAssetSynchronizationService, AssetSynchronizationSer
 
 builder.Services.AddScoped<IAssetMarketDataService, AssetMarketDataService>();
 builder.Services.AddScoped<IPortfolioMetricsCalculator, PortfolioMetricsCalculator>();
+builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<AssetCatalogSyncBackgroundService>();
 builder.Services.AddHostedService<ExchangeRateSyncBackgroundService>();
+builder.Services.AddHostedService<QueuedHostedService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddExceptionHandler<ArgumentExceptionHandler>();
