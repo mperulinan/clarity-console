@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
-import { finalize, timer } from 'rxjs';
+import { finalize, switchMap, timer, take } from 'rxjs';
 
 import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
@@ -112,9 +112,38 @@ export class TransactionsComponent implements OnInit {
                 next: report => {
                     this.baseCurrency.set(report.reportingCurrency);
                     this.allTransactions.set(report.transactions);
+                    this.pollMissingSpotPrices();
                 },
                 error: err => console.error('Failed to load transactions', err)
             });
+    }
+
+    private pollMissingSpotPrices() {
+        const missingIds = this.allTransactions()
+            .map(t => t.transaction)
+            .filter(t => t.spotPriceEUR == null || t.spotPriceUSD == null)
+            .map(t => t.id);
+
+        if (missingIds.length === 0) return;
+
+        missingIds.forEach(id => {
+            // Poll up to 3 times, every 1.5 seconds
+            timer(1500, 1500).pipe(
+                take(3),
+                switchMap(() => this.portfolioService.getTransaction(id)),
+                takeUntilDestroyed(this.destroyRef)
+            ).subscribe({
+                next: updatedTx => {
+                    if (updatedTx.spotPriceEUR != null || updatedTx.spotPriceUSD != null) {
+                        this.allTransactions.update(all => all.map(pt => 
+                            pt.transaction.id === updatedTx.id 
+                                ? { ...pt, transaction: updatedTx } 
+                                : pt
+                        ));
+                    }
+                }
+            });
+        });
     }
 
     toggleSort(field: SortField) {
