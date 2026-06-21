@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
-import { finalize, switchMap, timer, take } from 'rxjs';
+import { finalize, switchMap, timer, take, takeWhile } from 'rxjs';
 
 import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
@@ -127,10 +127,11 @@ export class TransactionsComponent implements OnInit {
         if (missingIds.length === 0) return;
 
         missingIds.forEach(id => {
-            // Poll up to 3 times, every 1.5 seconds
+            // Poll every 1.5 seconds, but stop as soon as we get the exchange rate (or max 3 tries)
             timer(1500, 1500).pipe(
-                take(3),
                 switchMap(() => this.portfolioService.getTransaction(id)),
+                takeWhile(updatedTx => updatedTx.spotPriceEUR == null || updatedTx.spotPriceUSD == null, true),
+                take(3),
                 takeUntilDestroyed(this.destroyRef)
             ).subscribe({
                 next: updatedTx => {
