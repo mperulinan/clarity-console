@@ -1,4 +1,6 @@
+using NSubstitute;
 using Portfolio.Application.CQRS.Commands;
+using Portfolio.Application.Interfaces;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Tests.Fakes;
 using Portfolio.Domain.Enums;
@@ -13,7 +15,8 @@ public class AddTransactionCommandHandlerTests
     {
         // Arrange
         var uow = new FakeUnitOfWork();
-        var handler = new AddTransactionCommandHandler(uow, NullLogger<AddTransactionCommandHandler>.Instance);
+        var backgroundQueue = Substitute.For<IBackgroundTaskQueue>();
+        var handler = new AddTransactionCommandHandler(uow, backgroundQueue, NullLogger<AddTransactionCommandHandler>.Instance);
 
         var request = new NewTransactionRequest
         {
@@ -40,5 +43,8 @@ public class AddTransactionCommandHandlerTests
         
         Assert.NotNull(result);
         Assert.Equal(saved.Id, result.Id);
+        
+        await backgroundQueue.Received(1).QueueBackgroundWorkItemAsync(
+            Arg.Is<SyncTransactionExchangeRateCommand>(c => c.TransactionId == saved.Id));
     }
 }
