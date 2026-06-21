@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Portfolio.Application.DTOs;
+using Portfolio.Application.Interfaces;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 
@@ -8,7 +9,10 @@ namespace Portfolio.Application.CQRS.Commands;
 
 public record UpdateTransactionCommand(int Id, NewTransactionRequest Request) : IRequest<TransactionDto>;
 
-public class UpdateTransactionCommandHandler(IUnitOfWork uow, ILogger<UpdateTransactionCommandHandler> logger)
+public class UpdateTransactionCommandHandler(
+    IUnitOfWork uow, 
+    IBackgroundTaskQueue backgroundQueue,
+    ILogger<UpdateTransactionCommandHandler> logger)
     : IRequestHandler<UpdateTransactionCommand, TransactionDto>
 {
     public async Task<TransactionDto> Handle(UpdateTransactionCommand command, CancellationToken cancellationToken)
@@ -55,6 +59,9 @@ public class UpdateTransactionCommandHandler(IUnitOfWork uow, ILogger<UpdateTran
         await uow.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Updated transaction {TransactionId}.", transaction.Id);
+
+        // Queue a background sync job so the Spot Price updates immediately
+        await backgroundQueue.QueueBackgroundWorkItemAsync(new SyncTransactionExchangeRateCommand(transaction.Id));
 
         return new TransactionDto
         {

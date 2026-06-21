@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
+using Portfolio.Application.Interfaces;
 using Portfolio.Application.CQRS.Commands;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Tests.Fakes;
@@ -14,7 +16,8 @@ public class UpdateTransactionCommandTests
     {
         // Arrange
         var uow = new FakeUnitOfWork();
-        var handler = new UpdateTransactionCommandHandler(uow, NullLogger<UpdateTransactionCommandHandler>.Instance);
+        var backgroundQueue = Substitute.For<IBackgroundTaskQueue>();
+        var handler = new UpdateTransactionCommandHandler(uow, backgroundQueue, NullLogger<UpdateTransactionCommandHandler>.Instance);
 
         var existingTx = new Transaction(
             date: DateTime.UtcNow.AddDays(-1),
@@ -65,6 +68,9 @@ public class UpdateTransactionCommandTests
         
         Assert.NotNull(result);
         Assert.Equal(updated.Id, result.Id);
+        
+        await backgroundQueue.Received(1).QueueBackgroundWorkItemAsync(
+            Arg.Is<SyncTransactionExchangeRateCommand>(c => c.TransactionId == updated.Id));
     }
 
     [Fact]
@@ -72,7 +78,8 @@ public class UpdateTransactionCommandTests
     {
         // Arrange
         var uow = new FakeUnitOfWork();
-        var handler = new UpdateTransactionCommandHandler(uow, NullLogger<UpdateTransactionCommandHandler>.Instance);
+        var backgroundQueue = Substitute.For<IBackgroundTaskQueue>();
+        var handler = new UpdateTransactionCommandHandler(uow, backgroundQueue, NullLogger<UpdateTransactionCommandHandler>.Instance);
         var request = new NewTransactionRequest
         {
             Date = DateTime.UtcNow,
@@ -94,7 +101,8 @@ public class UpdateTransactionCommandTests
     {
         // Arrange
         var uow = new FakeUnitOfWork();
-        var handler = new UpdateTransactionCommandHandler(uow, NullLogger<UpdateTransactionCommandHandler>.Instance);
+        var backgroundQueue = Substitute.For<IBackgroundTaskQueue>();
+        var handler = new UpdateTransactionCommandHandler(uow, backgroundQueue, NullLogger<UpdateTransactionCommandHandler>.Instance);
 
         var existingTx = new Transaction(
             date: DateTime.UtcNow.AddDays(-1),
