@@ -76,6 +76,20 @@ export class PortfolioService {
         );
     }
 
+    getProcessedTransaction(id: number): Observable<ProcessedTransaction> {
+        return this.http.get<ProcessedTransaction>(`${this.apiUrl}/Transaction/${id}/processed`).pipe(
+            map(pt => ({
+                ...pt,
+                transaction: {
+                    ...pt.transaction,
+                    spotPriceUSD: pt.transaction.spotPriceUSD != null ? Number(pt.transaction.spotPriceUSD) : undefined,
+                    spotPriceEUR: pt.transaction.spotPriceEUR != null ? Number(pt.transaction.spotPriceEUR) : undefined,
+                    usdEurExchangeRate: pt.transaction.usdEurExchangeRate != null ? Number(pt.transaction.usdEurExchangeRate) : undefined,
+                }
+            }))
+        );
+    }
+
     getTransactionTypes(): Observable<TransactionType[]> {
         return this.transactionTypes$;
     }
