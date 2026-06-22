@@ -26,6 +26,14 @@ public class TransactionController(ISender sender) : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id}/processed")]
+    public async Task<ActionResult<ProcessedTransactionDto>> GetProcessedTransaction(int id)
+    {
+        var result = await sender.Send(new GetProcessedTransactionByIdQuery(id));
+        if (result is null) return NotFound();
+        return Ok(result);
+    }
+
     [HttpPost]
     public async Task<ActionResult> PostTransaction(NewTransactionRequest request)
     {
