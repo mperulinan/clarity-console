@@ -101,18 +101,18 @@ export class TransactionsComponent implements OnInit {
         this.loadTransactions();
     }
 
-    private loadTransactions() {
-        this.isLoading.set(true);
+    private loadTransactions(silent: boolean = false) {
+        if (!silent) this.isLoading.set(true);
         this.portfolioService.getPortfolioReport()
             .pipe(
-                finalize(() => this.isLoading.set(false)),
+                finalize(() => { if (!silent) this.isLoading.set(false); }),
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe({
                 next: report => {
                     this.baseCurrency.set(report.reportingCurrency);
                     this.allTransactions.set(report.transactions);
-                    this.pollMissingSpotPrices();
+                    if (!silent) this.pollMissingSpotPrices();
                 },
                 error: err => console.error('Failed to load transactions', err)
             });
@@ -129,17 +129,15 @@ export class TransactionsComponent implements OnInit {
         missingIds.forEach(id => {
             // Poll every 1.5 seconds, but stop as soon as we get the exchange rate (or max 3 tries)
             timer(1500, 1500).pipe(
-                switchMap(() => this.portfolioService.getTransaction(id)),
-                takeWhile(updatedTx => updatedTx.spotPriceEUR == null || updatedTx.spotPriceUSD == null, true),
+                switchMap(() => this.portfolioService.getProcessedTransaction(id)),
+                takeWhile(updatedPt => updatedPt.transaction.spotPriceEUR == null || updatedPt.transaction.spotPriceUSD == null, true),
                 take(3),
                 takeUntilDestroyed(this.destroyRef)
             ).subscribe({
-                next: updatedTx => {
-                    if (updatedTx.spotPriceEUR != null || updatedTx.spotPriceUSD != null) {
+                next: updatedPt => {
+                    if (updatedPt.transaction.spotPriceEUR != null || updatedPt.transaction.spotPriceUSD != null) {
                         this.allTransactions.update(all => all.map(pt => 
-                            pt.transaction.id === updatedTx.id 
-                                ? { ...pt, transaction: updatedTx } 
-                                : pt
+                            pt.transaction.id === updatedPt.transaction.id ? updatedPt : pt
                         ));
                     }
                 }
