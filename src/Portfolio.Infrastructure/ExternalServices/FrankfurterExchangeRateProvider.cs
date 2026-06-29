@@ -9,41 +9,43 @@ namespace Portfolio.Infrastructure.ExternalServices;
 public class FrankfurterExchangeRateProvider(
     HttpClient httpClient, 
     IConfiguration configuration,
-    ILogger<FrankfurterExchangeRateProvider> logger) : IExchangeRateProvider
+    ILogger<FrankfurterExchangeRateProvider> logger,
+    TimeProvider? timeProvider = null) : IExchangeRateProvider
 {
     private readonly string _baseUrl = (configuration["Frankfurter:BaseUrl"] ?? "https://api.frankfurter.app/").TrimEnd('/') + "/";
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
 
     public async Task<decimal> GetExchangeRateAsync(FiatCurrency from, FiatCurrency to) =>
-        await GetRateAsync("latest", from.Value, to.Value);
+        await GetRateAsync("latest", from.Symbol, to.Symbol);
 
     public async Task<decimal> GetUsdEurRateAsync(DateTime date)
     {
-        if (date.Date >= DateTime.UtcNow.Date)
+        if (date.Date >= _timeProvider.GetUtcNow().Date)
             throw new NotSupportedException("Exchange rates for the current or future dates are not available yet.");
 
-        return await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.USD.Value, FiatCurrency.EUR.Value);
+        return await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.USD.Symbol, FiatCurrency.EUR.Symbol);
     }
 
     public async Task<decimal> GetEurUsdRateAsync(DateTime date)
     {
-        if (date.Date >= DateTime.UtcNow.Date)
+        if (date.Date >= _timeProvider.GetUtcNow().Date)
             throw new NotSupportedException("Exchange rates for the current or future dates are not available yet.");
 
-        return await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.EUR.Value, FiatCurrency.USD.Value);
+        return await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.EUR.Symbol, FiatCurrency.USD.Symbol);
     }
 
     private async Task<decimal> GetRateAsync(string path, string from, string to)
     {
-        if (from == to) return 1.0m;
+        if (from.Equals(to, StringComparison.OrdinalIgnoreCase)) return 1.0m;
 
-        var url = $"{_baseUrl}{path}?from={from.ToUpper()}&to={to.ToUpper()}";
+        var url = $"{_baseUrl}{path}?from={from.ToUpperInvariant()}&to={to.ToUpperInvariant()}";
 
         try
         {
             logger.LogDebug("Fetching exchange rate {From}->{To} for {Path} from Frankfurter...", from, to, path);
             var response = await httpClient.GetFromJsonAsync<FrankfurterResponse>(url);
             
-            if (response?.Rates != null && response.Rates.TryGetValue(to.ToUpper(), out var rate))
+            if (response?.Rates != null && response.Rates.TryGetValue(to.ToUpperInvariant(), out var rate))
             {
                 logger.LogInformation("Exchange rate {From}->{To} for {Date} is {Rate}", from, to, response.Date, rate);
                 return rate;
