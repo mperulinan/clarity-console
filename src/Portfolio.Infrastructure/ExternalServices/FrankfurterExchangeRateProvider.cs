@@ -18,20 +18,18 @@ public class FrankfurterExchangeRateProvider(
     public async Task<decimal> GetExchangeRateAsync(FiatCurrency from, FiatCurrency to) =>
         await GetRateAsync("latest", from.Symbol, to.Symbol);
 
-    public async Task<decimal> GetUsdEurRateAsync(DateTime date)
+    public Task<decimal> GetUsdEurRateAsync(DateTime date) =>
+        GetHistoricalRateAsync(date, FiatCurrency.USD.Symbol, FiatCurrency.EUR.Symbol);
+
+    public Task<decimal> GetEurUsdRateAsync(DateTime date) =>
+        GetHistoricalRateAsync(date, FiatCurrency.EUR.Symbol, FiatCurrency.USD.Symbol);
+
+    private async Task<decimal> GetHistoricalRateAsync(DateTime date, string from, string to)
     {
         if (date.Date >= _timeProvider.GetUtcNow().Date)
             throw new NotSupportedException("Exchange rates for the current or future dates are not available yet.");
 
-        return await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.USD.Symbol, FiatCurrency.EUR.Symbol);
-    }
-
-    public async Task<decimal> GetEurUsdRateAsync(DateTime date)
-    {
-        if (date.Date >= _timeProvider.GetUtcNow().Date)
-            throw new NotSupportedException("Exchange rates for the current or future dates are not available yet.");
-
-        return await GetRateAsync(date.ToString("yyyy-MM-dd"), FiatCurrency.EUR.Symbol, FiatCurrency.USD.Symbol);
+        return await GetRateAsync(date.ToString("yyyy-MM-dd"), from, to);
     }
 
     private async Task<decimal> GetRateAsync(string path, string from, string to)
