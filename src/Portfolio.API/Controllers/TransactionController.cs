@@ -18,6 +18,14 @@ public class TransactionController(ISender sender) : ControllerBase
         return report.Transactions.Select(t => t.Transaction);
     }
 
+    [HttpGet("processed")]
+    public async Task<ActionResult<IEnumerable<ProcessedTransactionDto>>> GetProcessedTransactions(
+        [FromQuery] string? currency = null)
+    {
+        var result = await sender.Send(new GetProcessedTransactionsQuery(currency));
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<TransactionDto>> GetTransaction(int id)
     {
