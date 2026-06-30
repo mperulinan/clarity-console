@@ -172,4 +172,43 @@ public class TransactionValidationTests
         ));
         Assert.Contains("ToAssetId must be null", ex.Message);
     }
+
+    [Fact]
+    public void Constructor_ShouldFail_WhenDateIsInFuture()
+    {
+        // Act & Assert
+        var futureDate = DateTime.UtcNow.AddDays(1);
+        var ex = Assert.Throws<ArgumentException>(() => new Transaction(
+            futureDate,
+            TransactionType.Deposit,
+            null,
+            FiatCurrency.TaxCurrency.Id,
+            0, 100, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
+        ));
+        Assert.Contains("Transaction date cannot be in the future", ex.Message);
+    }
+
+    [Fact]
+    public void Update_ShouldFail_WhenDateIsInFuture()
+    {
+        // Arrange
+        var tx = new Transaction(
+            DateTime.UtcNow,
+            TransactionType.Deposit,
+            null,
+            FiatCurrency.TaxCurrency.Id,
+            0, 100, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
+        );
+
+        // Act & Assert
+        var futureDate = DateTime.UtcNow.AddDays(1);
+        var ex = Assert.Throws<ArgumentException>(() => tx.Update(
+            futureDate,
+            TransactionType.Deposit,
+            null,
+            FiatCurrency.TaxCurrency.Id,
+            0, 100, 1, null, 0, null, null, null, FiatCurrency.USD, null, null
+        ));
+        Assert.Contains("Transaction date cannot be in the future", ex.Message);
+    }
 }

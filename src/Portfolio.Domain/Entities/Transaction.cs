@@ -52,6 +52,9 @@ public class Transaction
         string? notes)
     {
         Date = date;
+        if (Date > DateTime.UtcNow)
+            throw new ArgumentException("Transaction date cannot be in the future.", nameof(date));
+
         Type = transactionType ?? throw new ArgumentNullException(nameof(transactionType));
 
         if (Type.RequiresFromAsset && !fromAssetId.HasValue)
@@ -174,6 +177,9 @@ public class Transaction
         string? notes)
     {
         Date = date;
+        if (Date > DateTime.UtcNow)
+            throw new ArgumentException("Transaction date cannot be in the future.", nameof(date));
+
         Type = transactionType ?? throw new ArgumentNullException(nameof(transactionType));
 
         if (Type.RequiresFromAsset && !fromAssetId.HasValue)
