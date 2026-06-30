@@ -116,6 +116,8 @@ export class TransactionFormComponent implements OnInit {
     getTransactionIcons = getTransactionIcons;
     readonly TransactionTypeCode = TransactionTypeCode;
 
+    maxDate = new Date();
+
     // ── Form model — flat, no nulls (Signal Forms requirement) ───────────
     model = signal({
         datePart: new Date() as Date | null,
@@ -241,6 +243,16 @@ export class TransactionFormComponent implements OnInit {
         required(s.type, { message: 'Transaction type is required' });
         required(s.datePart, { message: 'Date is required' });
         required(s.timePart, { message: 'Time is required' });
+
+        const dateValidator = () => {
+            if (this.combinedDate() > new Date()) {
+                return { kind: 'maxDate', message: 'Transaction date cannot be in the future' };
+            }
+            return undefined;
+        };
+
+        validate(s.datePart, dateValidator);
+        validate(s.timePart, dateValidator);
 
         // Amounts — conditionally required based on type
         validate(s.amountSpent, ({ value, valueOf }) => {

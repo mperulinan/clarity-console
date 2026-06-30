@@ -106,7 +106,7 @@
                             <div class="field-group-label">Date &amp; Time</div>
                             <div class="date-time-grid">
                                 <mat-form-field appearance="fill">
-                                    <input matInput [matDatepicker]="picker" [formField]="transactionForm.datePart">
+                                    <input matInput [matDatepicker]="picker" [max]="maxDate" [formField]="transactionForm.datePart">
                                     <mat-datepicker-toggle matPrefix [for]="picker"></mat-datepicker-toggle>
                                     <mat-datepicker #picker></mat-datepicker>
                                 </mat-form-field>
