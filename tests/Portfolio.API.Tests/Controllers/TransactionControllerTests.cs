@@ -59,6 +59,31 @@ public class TransactionControllerTests(CustomWebApplicationFactory<Program> fac
     }
 
     [Fact]
+    public async Task GetProcessedTransactions_ReturnsProcessedTransactionList()
+    {
+        // Arrange
+        var (usdId, btcId) = SeedAssets();
+        var jsonOptions = _factory.GetJsonOptions();
+
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<PortfolioContext>();
+        var tx = new Transaction(DateTime.UtcNow, TransactionType.Swap, usdId, btcId, 1000, 0.1m, 10000, null, 0, null, null, null, null, FiatCurrency.USD, null, null);
+        context.Transactions.Add(tx);
+        context.SaveChanges();
+
+        // Act
+        var response = await _client.GetAsync("/api/Transaction/processed?currency=USD");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<ProcessedTransactionDto>>(jsonOptions);
+
+        Assert.NotNull(result);
+        Assert.NotEmpty(result);
+        Assert.Contains(result, pt => pt.Transaction.Id == tx.Id);
+    }
+
+    [Fact]
     public async Task GetTransaction_ExistingId_ReturnsTransaction()
     {
         // Arrange
