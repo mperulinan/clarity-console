@@ -47,6 +47,22 @@ export class PortfolioService {
         );
     }
 
+    getProcessedTransactions(currency: string): Observable<ProcessedTransaction[]> {
+        return forkJoin({
+            transactions: this.http.get<ProcessedTransaction[]>(
+                `${this.apiUrl}/Transaction/processed`,
+                { params: new HttpParams().set('currency', currency) }
+            ),
+            types: this.getTransactionTypes()
+        }).pipe(
+            map(({ transactions, types }) => {
+                const typesMap = new Map<string, TransactionType>();
+                types.forEach(t => typesMap.set(t.value, t));
+                return transactions.map(pt => this.normalizeProcessedTransaction(pt, typesMap));
+            })
+        );
+    }
+
     getPortfolioMetrics(): Observable<PortfolioMetrics> {
         return this.http.get<PortfolioMetrics>(`${this.apiUrl}/Portfolio/metrics`);
     }

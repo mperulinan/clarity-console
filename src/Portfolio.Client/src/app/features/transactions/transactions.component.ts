@@ -40,7 +40,7 @@ type SortDir = 'asc' | 'desc';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TransactionsComponent implements OnInit {
-    baseCurrency = signal<string>(DEFAULT_FIAT_CURRENCY);
+    readonly baseCurrency = DEFAULT_FIAT_CURRENCY;
 
     private allTransactions = signal<ProcessedTransaction[]>([]);
     isLoading = signal(true);
@@ -68,9 +68,7 @@ export class TransactionsComponent implements OnInit {
                     cmp = (a.transaction.toAsset?.symbol ?? '').localeCompare(b.transaction.toAsset?.symbol ?? '');
                     break;
                 case 'spotPrice':
-                    const priceA = this.baseCurrency() === 'EUR' ? a.transaction.spotPriceEUR : a.transaction.spotPriceUSD;
-                    const priceB = this.baseCurrency() === 'EUR' ? b.transaction.spotPriceEUR : b.transaction.spotPriceUSD;
-                    cmp = (priceA ?? 0) - (priceB ?? 0);
+                    cmp = (this.getSpotPrice(a) ?? 0) - (this.getSpotPrice(b) ?? 0);
                     break;
                 case 'fee':
                     cmp = a.transaction.fee - b.transaction.fee;
@@ -103,15 +101,14 @@ export class TransactionsComponent implements OnInit {
 
     private loadTransactions(silent: boolean = false) {
         if (!silent) this.isLoading.set(true);
-        this.portfolioService.getPortfolioReport()
+        this.portfolioService.getProcessedTransactions(this.baseCurrency)
             .pipe(
                 finalize(() => { if (!silent) this.isLoading.set(false); }),
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe({
-                next: report => {
-                    this.baseCurrency.set(report.reportingCurrency);
-                    this.allTransactions.set(report.transactions);
+                next: transactions => {
+                    this.allTransactions.set(transactions);
                     if (!silent) this.pollMissingSpotPrices();
                 },
                 error: err => console.error('Failed to load transactions', err)
@@ -121,22 +118,22 @@ export class TransactionsComponent implements OnInit {
     private pollMissingSpotPrices() {
         const missingIds = this.allTransactions()
             .map(t => t.transaction)
-            .filter(t => t.spotPriceEUR == null || t.spotPriceUSD == null)
+            .filter(t => this.getSpotPrice({ transaction: t } as any) == null)
             .map(t => t.id);
 
         if (missingIds.length === 0) return;
 
         missingIds.forEach(id => {
-            // Poll every 1.5 seconds, but stop as soon as we get the exchange rate (or max 3 tries)
+            // Poll every 1.5 seconds, but stop as soon as we get the spot price (or max 3 tries)
             timer(1500, 1500).pipe(
                 switchMap(() => this.portfolioService.getProcessedTransaction(id)),
-                takeWhile(updatedPt => updatedPt.transaction.spotPriceEUR == null || updatedPt.transaction.spotPriceUSD == null, true),
+                takeWhile(updatedPt => this.getSpotPrice(updatedPt) == null, true),
                 take(3),
                 takeUntilDestroyed(this.destroyRef)
             ).subscribe({
                 next: updatedPt => {
-                    if (updatedPt.transaction.spotPriceEUR != null || updatedPt.transaction.spotPriceUSD != null) {
-                        this.allTransactions.update(all => all.map(pt => 
+                    if (this.getSpotPrice(updatedPt) != null) {
+                        this.allTransactions.update(all => all.map(pt =>
                             pt.transaction.id === updatedPt.transaction.id ? updatedPt : pt
                         ));
                     }
@@ -195,7 +192,7 @@ export class TransactionsComponent implements OnInit {
     }
 
     getSpotPrice(row: ProcessedTransaction): number | undefined {
-        return this.baseCurrency() === 'EUR' ? row.transaction.spotPriceEUR : row.transaction.spotPriceUSD;
+        return this.baseCurrency === 'EUR' ? row.transaction.spotPriceEUR : row.transaction.spotPriceUSD;
     }
 
     viewWashSaleDetails(row: ProcessedTransaction) {
@@ -221,7 +218,7 @@ export class TransactionsComponent implements OnInit {
                 data: {
                     lossTx: row,
                     repurchaseTx: repurchaseTx,
-                    currency: this.baseCurrency()
+                    currency: this.baseCurrency
                 },
                 panelClass: 'dark-dialog-panel'
             });

@@ -243,9 +243,9 @@
                     <!-- Spot Price -->
                     <td class="col-num hide-on-mobile">
                         @if (getSpotPrice(row); as spotPrice) {
-                        <span class="cell-primary">{{ spotPrice | currency:baseCurrency():'symbol':'1.2-6'
+                        <span class="cell-primary">{{ spotPrice | currency:baseCurrency:'symbol':'1.2-6'
                             }}</span>
-                        <span class="cell-secondary">{{ baseCurrency() }}</span>
+                        <span class="cell-secondary">{{ baseCurrency }}</span>
                         } @else {
                         <span class="cell-muted">—</span>
                         }
@@ -268,7 +268,7 @@
                             [class.negative]="row.profitLoss < 0" [class.pl-disallowed]="row.isLossDisallowed">
                             <span class="pl-amount">
                                 {{ row.profitLoss >= 0 ? '+' : '' }}{{ row.profitLoss |
-                                currency:baseCurrency():'symbol':'1.2-2'
+                                currency:baseCurrency:'symbol':'1.2-2'
                                 }}
                             </span>
                         </div>
