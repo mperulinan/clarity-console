@@ -418,4 +418,33 @@ public class InventoryCalculatorTests
         var lossTx = report.Transactions.Single(t => t.Transaction.Type == TransactionType.Loss);
         Assert.Equal(-2500m, lossTx.ProfitLoss);
     }
+
+    [Fact]
+    public void CalculateInventory_Loss_ShouldIncludeFeeInNegativePL()
+    {
+        var eur = FiatCurrency.EUR.Symbol;
+        var btc = "BTC";
+        var transactions = new List<Transaction>
+        {
+            // 1. Deposit 10100 EUR.
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 10100m, spotPriceEUR: 1m),
+
+            // 2. Buy 1 BTC for 10000 EUR. Cost basis = 10000 EUR / BTC
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Swap, fromAsset: eur, toAsset: btc, spent: 10000m, received: 1m, spotPriceEUR: 1m),
+            
+            // 3. Lose 0.5 BTC, and pay a fee of 100 EUR in the process.
+            // The cost basis of 0.5 BTC is 5000 EUR. 
+            // The total loss should be the lost asset's cost basis (5000) + the fee (100) = 5100 EUR loss.
+            CreateTx(date: new DateTime(2023, 1, 3), type: TransactionType.Loss, fromAsset: btc, spent: 0.5m, spotPriceEUR: 10000m, fee: 100m, feeAsset: eur, feeEurPrice: 1m)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
+
+        Assert.DoesNotContain(report.Transactions, t => t.Error != null);
+
+        var lossTx = report.Transactions.Single(t => t.Transaction.Type == TransactionType.Loss);
+        
+        // -5000 (Lost Asset Cost Basis) - 100 (Fee) = -5100 EUR Total PL
+        Assert.Equal(-5100m, lossTx.ProfitLoss); 
+    }
 }

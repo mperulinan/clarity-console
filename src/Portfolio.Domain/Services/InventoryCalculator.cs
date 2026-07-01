@@ -194,8 +194,15 @@ public class InventoryCalculator : IInventoryCalculator
         decimal pl = 0;
         if (isFee || tx.Type.IsTaxableDisposal)
         {
-            decimal proceeds = (!isFee && tx.Type.ProceedsAreZero) ? 0 : amountToConsume * exitPrice.Value;
-            pl = proceeds - totalCostBasis;
+            if (isFee)
+            {
+                pl = -totalCostBasis;
+            }
+            else
+            {
+                decimal proceeds = tx.Type.ProceedsAreZero ? 0 : amountToConsume * exitPrice.Value;
+                pl = proceeds - totalCostBasis;
+            }
         }
 
         pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;
