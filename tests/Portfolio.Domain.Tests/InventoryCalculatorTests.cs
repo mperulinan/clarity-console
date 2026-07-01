@@ -447,4 +447,30 @@ public class InventoryCalculatorTests
         // -5000 (Lost Asset Cost Basis) - 100 (Fee) = -5100 EUR Total PL
         Assert.Equal(-5100m, lossTx.ProfitLoss); 
     }
+
+    [Fact]
+    public void CalculateInventory_Reward_ShouldIncludeFeeInNetPL()
+    {
+        var eur = FiatCurrency.EUR.Symbol;
+        var btc = "BTC";
+        var transactions = new List<Transaction>
+        {
+            // 1. Deposit 150 EUR.
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 150m, spotPriceEUR: 1m),
+            
+            // 2. Receive Reward of 1 BTC (worth 1000 EUR), and pay a fee of 150 EUR.
+            // Income = 1000 EUR. 
+            // Fee Expense = 150 EUR (Capital gain on EUR is 0). Net Fee Impact = -150.
+            // Total P/L = 1000 - 150 = 850 EUR.
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Reward, toAsset: btc, received: 1m, spotPriceEUR: 1000m, fee: 150m, feeAsset: eur, feeEurPrice: 1m)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
+
+        Assert.DoesNotContain(report.Transactions, t => t.Error != null);
+
+        var rewardTx = report.Transactions.Single(t => t.Transaction.Type == TransactionType.Reward);
+        
+        Assert.Equal(850m, rewardTx.ProfitLoss); 
+    }
 }

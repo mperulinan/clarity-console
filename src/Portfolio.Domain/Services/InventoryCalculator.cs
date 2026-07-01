@@ -47,7 +47,7 @@ public class InventoryCalculator : IInventoryCalculator
                 Guid toAssetId = tx.ToAssetId.Value;
                 if (tx.Type.GeneratesTaxableIncome)
                 {
-                    decimal rewardProfit = (tx.AmountReceived * toAssetPrice) - (tx.Fee * feeAssetPrice);
+                    decimal rewardProfit = tx.AmountReceived * toAssetPrice;
                     pt.ProfitLoss = rewardProfit;
 
                     UpdateTracker(realizedPLTracker, toAssetId, rewardProfit);
