@@ -379,23 +379,6 @@ $error-soft: color-mix(in srgb, var(--color-error), transparent 94%);
     white-space: nowrap;
 }
 
-.asset-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: color-mix(in srgb, $text, transparent 96%);
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 2px;
-}
-
-.asset-icon-xs {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
 .event-type-icon {
     font-size: var(--text-md);
     width: var(--text-md);

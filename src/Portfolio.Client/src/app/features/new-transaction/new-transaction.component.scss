@@ -324,22 +324,6 @@
 }
 
 /* ── REVIEW SUMMARY ──────────────────────────── */
-.currency-badge {
-    display: inline-flex;
-    align-items: center;
-    height: 18px;
-    padding: 0 6px;
-    border-radius: 4px;
-    font-size: var(--text-micro);
-    font-weight: 650;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-family: var(--font-text);
-    color: var(--color-text-muted);
-    background: color-mix(in srgb, var(--color-text), transparent 96%);
-    border: 1px solid var(--color-border);
-}
-
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -431,35 +415,6 @@
     gap: 10px;
 }
 
-.asset-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: color-mix(in srgb, var(--color-text), transparent 96%);
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: var(--color-text);
-    font-family: var(--font-text);
-    font-size: var(--text-xs);
-    font-weight: 600;
-
-    &--compact {
-        padding: 2px 6px;
-        font-size: var(--text-mini);
-    }
-}
-
-.asset-badge__icon {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    flex: 0 0 auto;
-}
-
-.asset-badge__symbol {
-    line-height: 1;
-}
-
 /* ── FINANCIALS TILE LABELS ───────────────────── */
 /* Prose-style label: sentence case, no tracking override */
 .summary-tile-label {
@@ -516,16 +471,6 @@
         font-variant-numeric: tabular-nums;
         color: var(--color-text);
         font-weight: 500;
-    }
-
-    .fee-tile-badge {
-        font-size: var(--text-micro);
-        color: var(--color-text-muted);
-        text-transform: uppercase;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background: color-mix(in srgb, var(--color-text), transparent 96%);
-        border: 1px solid var(--color-border);
     }
 
     .fee-tile-total {

@@ -155,7 +155,7 @@
                         Spot Price
                         <mat-icon class="sort-icon" aria-hidden="true">{{ getSortIcon('spotPrice') }}</mat-icon>
                     </th>
-                    <th class="col-num sortable hide-on-mobile" 
+                    <th class="sortable hide-on-mobile" 
                         [class.is-sorted]="sortField() === 'fee'" 
                         (click)="toggleSort('fee')"
                         (keydown.enter)="toggleSort('fee')"
@@ -251,10 +251,12 @@
                     </td>
 
                     <!-- Fee -->
-                    <td class="col-num hide-on-mobile">
+                    <td class="hide-on-mobile">
                         @if (row.transaction.fee > 0) {
-                        <span class="cell-primary">{{ row.transaction.fee | number:'1.2-8' }}</span>
-                        <span class="cell-secondary">{{ row.transaction.feeAsset?.symbol || '' }}</span>
+                        <div class="flex flex-col items-start gap-1">
+                            <span class="cell-primary">{{ row.transaction.fee | number:'1.2-8' }}</span>
+                            <app-asset-chip size="sm" [symbol]="row.transaction.feeAsset?.symbol || ''" [imageUrl]="row.transaction.feeAsset?.imageUrl"></app-asset-chip>
+                        </div>
                         } @else {
                         <span class="cell-muted">—</span>
                         }

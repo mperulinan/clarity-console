@@ -19,6 +19,7 @@ import { WashSaleDetailsDialogComponent } from '../../shared/components/wash-sal
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { AssetChipComponent } from '../../shared/components/asset-chip/asset-chip.component';
 
 
 @Component({
@@ -26,7 +27,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
     standalone: true,
     imports: [
         CommonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DatePipe, DecimalPipe,
-        SkeletonComponent, BadgeComponent, EmptyStateComponent
+        SkeletonComponent, BadgeComponent, EmptyStateComponent, AssetChipComponent
     ],
     templateUrl: './tax-report.component.html',
     styleUrl: './tax-report.component.scss',

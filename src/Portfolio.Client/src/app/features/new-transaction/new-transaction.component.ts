@@ -29,6 +29,7 @@ import { ButtonComponent } from '../../shared/components/button/button.component
 import { getTransactionIcons } from '../../shared/constants/transaction-icons.constants';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
+import { AssetChipComponent } from '../../shared/components/asset-chip/asset-chip.component';
 
 // Services & models
 import { PortfolioService } from '../../services/portfolio.service';
@@ -72,7 +73,8 @@ const UI_CONFIG: Record<string, any> = {
         InteractivePriceInputComponent,
         ButtonComponent,
         BadgeComponent,
-        SkeletonComponent
+        SkeletonComponent,
+        AssetChipComponent
     ],
     templateUrl: './new-transaction.component.html',
     styleUrl: './new-transaction.component.scss',

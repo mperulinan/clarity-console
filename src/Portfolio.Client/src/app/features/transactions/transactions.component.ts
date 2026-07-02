@@ -21,6 +21,7 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { AssetChipComponent } from '../../shared/components/asset-chip/asset-chip.component';
 import { getTransactionIcons } from '../../shared/constants/transaction-icons.constants';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
@@ -33,7 +34,7 @@ type SortDir = 'asc' | 'desc';
     imports: [
         CommonModule, MatIconModule, MatTooltipModule, MatButtonModule, 
         CurrencyPipe, DatePipe, DecimalPipe,
-        SkeletonComponent, BadgeComponent, ButtonComponent, EmptyStateComponent
+        SkeletonComponent, BadgeComponent, ButtonComponent, EmptyStateComponent, AssetChipComponent
     ],
     templateUrl: './transactions.component.html',
     styleUrl: './transactions.component.scss',

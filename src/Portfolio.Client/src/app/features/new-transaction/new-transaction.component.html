@@ -352,13 +352,10 @@
                                     </span>
                                     <div class="asset-row mt-2">
                                         <span class="summary-amount">{{ model().amountSpent }}</span>
-                                        <span class="asset-badge"
-                                            [attr.aria-label]="'Asset ' + (fromAsset()?.symbol || 'N/A')">
-                                            @if (fromAsset()?.imageUrl) {
-                                            <img [src]="fromAsset()?.imageUrl" alt="" class="asset-badge__icon">
-                                            }
-                                            <span class="asset-badge__symbol">{{ fromAsset()?.symbol || 'N/A' }}</span>
-                                        </span>
+                                        <app-asset-chip 
+                                            [symbol]="fromAsset()?.symbol || 'N/A'" 
+                                            [imageUrl]="fromAsset()?.imageUrl">
+                                        </app-asset-chip>
                                     </div>
                                 </div>
                                 }
@@ -371,13 +368,10 @@
                                     </span>
                                     <div class="asset-row mt-2">
                                         <span class="summary-amount">{{ model().amountReceived }}</span>
-                                        <span class="asset-badge"
-                                            [attr.aria-label]="'Asset ' + (toAsset()?.symbol || 'N/A')">
-                                            @if (toAsset()?.imageUrl) {
-                                            <img [src]="toAsset()?.imageUrl" alt="" class="asset-badge__icon">
-                                            }
-                                            <span class="asset-badge__symbol">{{ toAsset()?.symbol || 'N/A' }}</span>
-                                        </span>
+                                        <app-asset-chip 
+                                            [symbol]="toAsset()?.symbol || 'N/A'" 
+                                            [imageUrl]="toAsset()?.imageUrl">
+                                        </app-asset-chip>
                                     </div>
                                 </div>
                                 }
@@ -394,10 +388,7 @@
                                             Price per {{ pricedAssetSymbol() }}
                                         </span>
                                         <div class="flex items-center gap-2">
-                                            <span class="summary-price-value">{{ model().spotPrice || '-' }}</span>
-                                            @if (model().spotPrice) {
-                                            <span class="currency-badge">{{ model().spotPriceCurrency }}</span>
-                                            }
+                                            <span class="summary-price-value">{{ model().spotPrice ? (model().spotPrice | currency:model().spotPriceCurrency:'symbol') : '-' }}</span>
                                         </div>
                                     </div>
 
@@ -427,13 +418,10 @@
                                             <div class="flex items-center gap-2">
                                                 <span class="fee-tile-amount">{{ model().fee }}</span>
                                                 @if (feeAsset()) {
-                                                <span class="asset-badge asset-badge--compact"
-                                                    [attr.aria-label]="'Fee asset ' + feeAsset()?.symbol">
-                                                    @if (feeAsset()?.imageUrl) {
-                                                    <img [src]="feeAsset()?.imageUrl" alt="" class="asset-badge__icon">
-                                                    }
-                                                    <span class="asset-badge__symbol">{{ feeAsset()?.symbol }}</span>
-                                                </span>
+                                                <app-asset-chip size="sm"
+                                                    [symbol]="feeAsset()?.symbol || ''"
+                                                    [imageUrl]="feeAsset()?.imageUrl">
+                                                </app-asset-chip>
                                                 }
                                             </div>
                                         </div>
@@ -443,9 +431,7 @@
                                         <div>
                                             <span class="fee-tile-label">Fee Price per {{ feeAssetSymbol() }}</span>
                                             <div class="flex items-center gap-2">
-                                                <span class="fee-tile-amount">{{ effectiveFeeSpotPrice() }}</span>
-                                                <span class="fee-tile-badge">{{ effectiveFeeSpotPriceCurrency()
-                                                    }}</span>
+                                                <span class="fee-tile-amount">{{ effectiveFeeSpotPrice() | currency:effectiveFeeSpotPriceCurrency():'symbol' }}</span>
                                             </div>
                                         </div>
                                         }

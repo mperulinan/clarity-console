@@ -221,13 +221,10 @@
                                 <mat-icon class="event-type-icon">{{ getEventIcons(row.transaction.type.value).fromIcon }}</mat-icon>
                                 }
                                 <span class="cell-primary">{{ row.transaction.amountSpent | number:'1.2-8' }}</span>
-                                <div class="asset-badge">
-                                    @if (row.transaction.fromAsset.imageUrl) {
-                                    <img class="asset-icon-xs" [src]="row.transaction.fromAsset.imageUrl"
-                                        [alt]="row.transaction.fromAsset.symbol">
-                                    }
-                                    <span class="cell-secondary">{{ row.transaction.fromAsset.symbol }}</span>
-                                </div>
+                                <app-asset-chip size="sm" class="ml-0.5"
+                                    [symbol]="row.transaction.fromAsset.symbol"
+                                    [imageUrl]="row.transaction.fromAsset.imageUrl">
+                                </app-asset-chip>
                             </div>
                             }
 
@@ -241,13 +238,10 @@
                                 <mat-icon class="event-type-icon">{{ getEventIcons(row.transaction.type.value).toIcon }}</mat-icon>
                                 }
                                 <span class="cell-primary">{{ row.transaction.amountReceived | number:'1.2-8' }}</span>
-                                <div class="asset-badge">
-                                    @if (row.transaction.toAsset.imageUrl) {
-                                    <img class="asset-icon-xs" [src]="row.transaction.toAsset.imageUrl"
-                                        [alt]="row.transaction.toAsset.symbol">
-                                    }
-                                    <span class="cell-secondary">{{ row.transaction.toAsset.symbol }}</span>
-                                </div>
+                                <app-asset-chip size="sm" class="ml-0.5"
+                                    [symbol]="row.transaction.toAsset.symbol"
+                                    [imageUrl]="row.transaction.toAsset.imageUrl">
+                                </app-asset-chip>
                             </div>
                             }
                         </div>
