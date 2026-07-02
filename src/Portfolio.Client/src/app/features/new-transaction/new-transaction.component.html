@@ -48,10 +48,10 @@
 
     @if (!isLoadingTypes()) {
     <div class="hero-card glass">
-        <mat-card-title class="flex items-center gap-2">
-            <mat-icon class="text-primary">{{ transactionId() ? 'edit' : 'add_circle' }}</mat-icon>
+        <h2 class="card-title">
+            <mat-icon>{{ transactionId() ? 'edit' : 'add_circle' }}</mat-icon>
             {{ transactionId() ? 'Edit Transaction' : 'New Transaction' }}
-        </mat-card-title>
+        </h2>
 
         <form [formRoot]="transactionForm" class="flex flex-col">
             <mat-stepper [linear]="true" #stepper class="bg-transparent">
