@@ -1,0 +1,4 @@
+@if (imageUrl()) {
+    <img [src]="imageUrl()" [alt]="symbol() + ' icon'" class="chip-icon" />
+}
+<span class="chip-symbol">{{ symbol() }}</span>
