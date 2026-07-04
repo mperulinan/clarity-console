@@ -73,6 +73,20 @@ public class AssetControllerTests(CustomWebApplicationFactory<Program> factory) 
     }
 
     [Fact]
+    public async Task GetDefaultCurrency_ReturnsConfiguredDefaultCurrency()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/Asset/default-currency");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<AssetDto>(_factory.GetJsonOptions());
+        
+        Assert.NotNull(result);
+        Assert.Equal(FiatCurrency.DefaultDisplayCurrency.Value.ToUpperInvariant(), result.Symbol);
+    }
+
+    [Fact]
     public async Task GetSpotPrice_ExistingAsset_DoesNotReturn5xx()
     {
         // Arrange
