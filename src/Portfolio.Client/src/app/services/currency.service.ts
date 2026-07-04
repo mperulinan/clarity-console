@@ -14,22 +14,27 @@ export class CurrencyService {
     /** The supported fiat currencies loaded from the backend. */
     readonly supportedCurrencies = signal<AssetDto[]>([]);
 
-    /** The tax (default) currency loaded from the backend. */
+    /** The tax currency loaded from the backend. */
     readonly taxCurrency = signal<AssetDto | null>(null);
+
+    /** The default display currency loaded from the backend. */
+    readonly defaultCurrency = signal<AssetDto | null>(null);
 
     /**
      * Initializes the currency configuration by fetching the supported 
-     * currencies and the tax currency from the backend.
+     * currencies, tax currency, and default currency from the backend.
      * This is intended to be called by an APP_INITIALIZER.
      */
     initialize() {
         return forkJoin({
             supportedCurrencies: this.http.get<AssetDto[]>(`${this.apiUrl}/Asset/fiat-currencies`),
-            taxCurrency: this.http.get<AssetDto>(`${this.apiUrl}/Asset/tax-currency`)
+            taxCurrency: this.http.get<AssetDto>(`${this.apiUrl}/Asset/tax-currency`),
+            defaultCurrency: this.http.get<AssetDto>(`${this.apiUrl}/Asset/default-currency`)
         }).pipe(
-            tap(({ supportedCurrencies, taxCurrency }) => {
+            tap(({ supportedCurrencies, taxCurrency, defaultCurrency }) => {
                 this.supportedCurrencies.set(supportedCurrencies);
                 this.taxCurrency.set(taxCurrency);
+                this.defaultCurrency.set(defaultCurrency);
             })
         );
     }

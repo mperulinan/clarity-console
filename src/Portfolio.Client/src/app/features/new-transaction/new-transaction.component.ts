@@ -129,10 +129,10 @@ export class TransactionFormComponent implements OnInit {
         amountSpent: 0,
         amountReceived: 0,
         spotPrice: 0,
-        spotPriceCurrency: this.currencyService.taxCurrency()?.symbol ?? 'USD',
+        spotPriceCurrency: this.currencyService.defaultCurrency()?.symbol ?? 'USD',
         fee: 0,
         feeSpotPrice: 0,
-        feeSpotPriceCurrency: this.currencyService.taxCurrency()?.symbol ?? 'USD',
+        feeSpotPriceCurrency: this.currencyService.defaultCurrency()?.symbol ?? 'USD',
         notes: '',
         spotPriceDeviationConfirmed: false,
     });
@@ -458,10 +458,10 @@ export class TransactionFormComponent implements OnInit {
                 amountSpent: t.amountSpent,
                 amountReceived: t.amountReceived,
                 spotPrice: t.spotPriceInputCurrency?.toUpperCase() === 'USD' ? (t.spotPriceUSD ?? 0) : (t.spotPriceEUR ?? 0),
-                spotPriceCurrency: t.spotPriceInputCurrency?.toUpperCase() || (this.currencyService.taxCurrency()?.symbol ?? 'USD'),
+                spotPriceCurrency: t.spotPriceInputCurrency?.toUpperCase() || (this.currencyService.defaultCurrency()?.symbol ?? 'USD'),
                 fee: t.fee,
                 feeSpotPrice: t.feePriceInputCurrency?.toUpperCase() === 'USD' ? (t.feePriceUSD ?? 0) : (t.feePriceEUR ?? 0),
-                feeSpotPriceCurrency: t.feePriceInputCurrency?.toUpperCase() || (this.currencyService.taxCurrency()?.symbol ?? 'USD'),
+                feeSpotPriceCurrency: t.feePriceInputCurrency?.toUpperCase() || (this.currencyService.defaultCurrency()?.symbol ?? 'USD'),
                 notes: t.notes || '',
                 spotPriceDeviationConfirmed: true // Since it's an existing transaction
             });

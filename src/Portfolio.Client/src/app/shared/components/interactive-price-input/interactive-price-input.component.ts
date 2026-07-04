@@ -58,7 +58,7 @@ export class InteractivePriceInputComponent {
     internalControl = new FormControl<string | null>(null);
 
     currencyPrefix = computed(() => {
-        const code = this.fiatCurrency() || this.currencyService.taxCurrency()?.symbol || 'USD';
+        const code = this.fiatCurrency() || this.currencyService.defaultCurrency()?.symbol || 'USD';
         try {
             return Intl.NumberFormat('en-US', { style: 'currency', currency: code })
                 .formatToParts(0)

@@ -42,7 +42,7 @@ type SortDir = 'asc' | 'desc';
 })
 export class TransactionsComponent implements OnInit {
     private readonly currencyService = inject(CurrencyService);
-    readonly baseCurrency = this.currencyService.taxCurrency()?.symbol ?? 'USD';
+    readonly baseCurrency = this.currencyService.defaultCurrency()?.symbol ?? 'USD';
 
     private allTransactions = signal<ProcessedTransaction[]>([]);
     isLoading = signal(true);

@@ -29,7 +29,7 @@ import { CurrencyService } from '../../services/currency.service';
 export class DashboardComponent implements OnInit {
     private readonly currencyService = inject(CurrencyService);
     /** Base currency for all monetary displays — resolved from backend at startup. */
-    readonly baseCurrency = this.currencyService.taxCurrency()?.symbol ?? 'USD';
+    readonly baseCurrency = this.currencyService.defaultCurrency()?.symbol ?? 'USD';
 
     // Signals for state
     private metrics = signal<PortfolioMetrics | null>(null);

@@ -12,6 +12,11 @@ public class FiatCurrency : SmartEnum<FiatCurrency, string>
     /// </summary>
     public static FiatCurrency TaxCurrency => EUR;
 
+    /// <summary>
+    /// The default currency used for day-to-day display (e.g., Dashboard, Transactions).
+    /// </summary>
+    public static FiatCurrency DefaultDisplayCurrency => USD;
+
     public Guid Id { get; }
     public string Symbol { get; }
     public string? ImageUrl { get; }
