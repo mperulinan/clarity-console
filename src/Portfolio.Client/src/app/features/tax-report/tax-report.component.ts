@@ -12,7 +12,7 @@ import { finalize, timer } from 'rxjs';
 import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
 import { YearSummary } from '../../models/portfolio-report';
-import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
+import { CurrencyService } from '../../services/currency.service';
 import { getTransactionIcons } from '../../shared/constants/transaction-icons.constants';
 import { MatDialog } from '@angular/material/dialog';
 import { WashSaleDetailsDialogComponent } from '../../shared/components/wash-sale-details-dialog/wash-sale-details-dialog';
@@ -34,7 +34,9 @@ import { AssetChipComponent } from '../../shared/components/asset-chip/asset-chi
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaxReportComponent implements OnInit {
-    reportCurrency = signal<string>(DEFAULT_FIAT_CURRENCY); // Default fallback, overwritten by backend
+    private readonly currencyService = inject(CurrencyService);
+
+    reportCurrency = signal<string>(this.currencyService.taxCurrency()?.symbol ?? 'USD'); // Overwritten by backend report
 
     private allTransactions = signal<ProcessedTransaction[]>([]);
     isLoading = signal(true);
@@ -74,7 +76,6 @@ export class TaxReportComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly dialog = inject(MatDialog);
     private readonly document = inject(DOCUMENT);
-
     private readonly portfolioService = inject(PortfolioService);
 
     ngOnInit() {

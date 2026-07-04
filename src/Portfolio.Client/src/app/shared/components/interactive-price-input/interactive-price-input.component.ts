@@ -1,6 +1,6 @@
 import {
     Component, input, output, signal, computed, effect, untracked,
-    ViewEncapsulation, ChangeDetectionStrategy
+    ViewEncapsulation, ChangeDetectionStrategy, inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
@@ -11,7 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { FIAT_CURRENCY_SYMBOLS, DEFAULT_FIAT_CURRENCY } from '../../constants/currency.constants';
+import { CurrencyService } from '../../../services/currency.service';
 
 export enum PriceInputMode {
     Unit = 'UNIT',
@@ -39,7 +39,7 @@ export class InteractivePriceInputComponent {
     // ── Inputs ───────────────────────────────────────────────────────────
     readonly assetSymbol = input<string>('');
     readonly assetAmount = input<number | null>(0);
-    readonly fiatCurrency = input<string>(DEFAULT_FIAT_CURRENCY);
+    readonly fiatCurrency = input<string>('');
     /** Current unit price driven by the parent. */
     readonly value = input<number | null>(null);
     /** Whether the input should be non-interactive. */
@@ -49,6 +49,7 @@ export class InteractivePriceInputComponent {
     /** Emits the derived unit price whenever it changes. */
     readonly valueChange = output<number | null>();
 
+    private readonly currencyService = inject(CurrencyService);
     readonly PriceInputMode = PriceInputMode;
 
     mode = signal<PriceInputMode>(PriceInputMode.Unit);
@@ -56,9 +57,16 @@ export class InteractivePriceInputComponent {
     /** Text-based control — locale-safe, always parsed with dot as decimal separator. */
     internalControl = new FormControl<string | null>(null);
 
-    currencyPrefix = computed(() =>
-        FIAT_CURRENCY_SYMBOLS[this.fiatCurrency() as keyof typeof FIAT_CURRENCY_SYMBOLS] || this.fiatCurrency()
-    );
+    currencyPrefix = computed(() => {
+        const code = this.fiatCurrency() || this.currencyService.taxCurrency()?.symbol || 'USD';
+        try {
+            return Intl.NumberFormat('en-US', { style: 'currency', currency: code })
+                .formatToParts(0)
+                .find(p => p.type === 'currency')?.value || code;
+        } catch {
+            return code;
+        }
+    });
 
     safeAmount = computed(() => {
         const amt = this.assetAmount();

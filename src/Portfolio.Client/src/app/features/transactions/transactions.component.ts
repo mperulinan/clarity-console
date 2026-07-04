@@ -13,7 +13,7 @@ import { finalize, switchMap, timer, take, takeWhile } from 'rxjs';
 
 import { PortfolioService } from '../../services/portfolio.service';
 import { ProcessedTransaction } from '../../models/transaction';
-import { DEFAULT_FIAT_CURRENCY } from '../../shared/constants/currency.constants';
+import { CurrencyService } from '../../services/currency.service';
 import { MatDialog } from '@angular/material/dialog';
 import { WashSaleDetailsDialogComponent } from '../../shared/components/wash-sale-details-dialog/wash-sale-details-dialog';
 
@@ -41,7 +41,8 @@ type SortDir = 'asc' | 'desc';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TransactionsComponent implements OnInit {
-    readonly baseCurrency = DEFAULT_FIAT_CURRENCY;
+    private readonly currencyService = inject(CurrencyService);
+    readonly baseCurrency = this.currencyService.taxCurrency()?.symbol ?? 'USD';
 
     private allTransactions = signal<ProcessedTransaction[]>([]);
     isLoading = signal(true);

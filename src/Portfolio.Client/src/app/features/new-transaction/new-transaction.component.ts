@@ -36,7 +36,7 @@ import { PortfolioService } from '../../services/portfolio.service';
 import { AssetDto } from '../../models/asset';
 import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType, TransactionTypeCode, Transaction } from '../../models/transaction';
-import { DEFAULT_FIAT_CURRENCY, SupportedFiatCurrency } from '../../shared/constants/currency.constants';
+import { CurrencyService } from '../../services/currency.service';
 import { parseHttpError } from '../../shared/utils/http-error-message';
 
 const UI_CONFIG: Record<string, any> = {
@@ -84,6 +84,7 @@ export class TransactionFormComponent implements OnInit {
     private readonly portfolioService = inject(PortfolioService);
     private readonly router = inject(Router);
     private readonly route = inject(ActivatedRoute);
+    private readonly currencyService = inject(CurrencyService);
 
     transactionId = signal<number | null>(null);
     isLoadingData = signal<boolean>(false);
@@ -112,8 +113,8 @@ export class TransactionFormComponent implements OnInit {
         )
     );
 
-    fiatCurrencies = signal<AssetDto[]>([]);
-    taxCurrency = signal<AssetDto | null>(null);
+    fiatCurrencies = this.currencyService.supportedCurrencies;
+    taxCurrency = this.currencyService.taxCurrency;
 
     getTransactionIcons = getTransactionIcons;
     readonly TransactionTypeCode = TransactionTypeCode;
@@ -128,10 +129,10 @@ export class TransactionFormComponent implements OnInit {
         amountSpent: 0,
         amountReceived: 0,
         spotPrice: 0,
-        spotPriceCurrency: DEFAULT_FIAT_CURRENCY as SupportedFiatCurrency,
+        spotPriceCurrency: this.currencyService.taxCurrency()?.symbol ?? 'USD',
         fee: 0,
         feeSpotPrice: 0,
-        feeSpotPriceCurrency: DEFAULT_FIAT_CURRENCY as SupportedFiatCurrency,
+        feeSpotPriceCurrency: this.currencyService.taxCurrency()?.symbol ?? 'USD',
         notes: '',
         spotPriceDeviationConfirmed: false,
     });
@@ -414,20 +415,6 @@ export class TransactionFormComponent implements OnInit {
             }
         });
 
-        this.portfolioService.getFiatCurrencies().subscribe({
-            next: fiats => this.fiatCurrencies.set(fiats),
-            error: err => console.error('Failed to load fiat currencies', err)
-        });
-
-        this.portfolioService.getTaxCurrency().subscribe({
-            next: taxFiat => {
-                this.taxCurrency.set(taxFiat);
-                if (!this.transactionId()) {
-                    this.model.update(m => ({ ...m, spotPriceCurrency: taxFiat.symbol as SupportedFiatCurrency, feeSpotPriceCurrency: taxFiat.symbol as SupportedFiatCurrency }));
-                }
-            },
-            error: err => console.error('Failed to load tax currency', err)
-        });
     }
 
     private async checkEditMode() {
@@ -471,10 +458,10 @@ export class TransactionFormComponent implements OnInit {
                 amountSpent: t.amountSpent,
                 amountReceived: t.amountReceived,
                 spotPrice: t.spotPriceInputCurrency?.toUpperCase() === 'USD' ? (t.spotPriceUSD ?? 0) : (t.spotPriceEUR ?? 0),
-                spotPriceCurrency: (t.spotPriceInputCurrency?.toUpperCase() as SupportedFiatCurrency) || DEFAULT_FIAT_CURRENCY,
+                spotPriceCurrency: t.spotPriceInputCurrency?.toUpperCase() || (this.currencyService.taxCurrency()?.symbol ?? 'USD'),
                 fee: t.fee,
                 feeSpotPrice: t.feePriceInputCurrency?.toUpperCase() === 'USD' ? (t.feePriceUSD ?? 0) : (t.feePriceEUR ?? 0),
-                feeSpotPriceCurrency: (t.feePriceInputCurrency?.toUpperCase() as SupportedFiatCurrency) || DEFAULT_FIAT_CURRENCY,
+                feeSpotPriceCurrency: t.feePriceInputCurrency?.toUpperCase() || (this.currencyService.taxCurrency()?.symbol ?? 'USD'),
                 notes: t.notes || '',
                 spotPriceDeviationConfirmed: true // Since it's an existing transaction
             });
@@ -530,7 +517,7 @@ export class TransactionFormComponent implements OnInit {
     }
 
     onSpotCurrencyChange(value: string) {
-        this.model.update(m => ({ ...m, spotPriceCurrency: value as SupportedFiatCurrency, spotPriceDeviationConfirmed: false }));
+        this.model.update(m => ({ ...m, spotPriceCurrency: value, spotPriceDeviationConfirmed: false }));
         // Re-fetch since the currency change invalidates the cached suggestion
         this.fetchSpotPrice();
     }
@@ -551,7 +538,7 @@ export class TransactionFormComponent implements OnInit {
     }
 
     onFeeCurrencyChange(value: string) {
-        this.model.update(m => ({ ...m, feeSpotPriceCurrency: value as SupportedFiatCurrency }));
+        this.model.update(m => ({ ...m, feeSpotPriceCurrency: value }));
     }
 
     onFeeSpotPriceChange(value: number | null) {
