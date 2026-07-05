@@ -15,7 +15,7 @@ public class ExchangeRateSyncBackgroundService(
         {
             try
             {
-                using var scope = scopeFactory.CreateScope();
+                await using var scope = scopeFactory.CreateAsyncScope();
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
                 await mediator.Send(new CalculateExchangeRatesCommand(), stoppingToken);
