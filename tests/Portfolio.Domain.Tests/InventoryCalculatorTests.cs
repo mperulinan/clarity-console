@@ -248,6 +248,41 @@ public class InventoryCalculatorTests
     }
 
     [Fact]
+    public void CalculateInventory_WashSale_ShouldNotDisallowLoss_WhenTransactionIsLoss()
+    {
+        var btc = "BTC";
+        var transactions = new List<Transaction>
+        {
+            // Deposit EUR
+            CreateTx(date: new DateTime(2022, 12, 31), type: TransactionType.Deposit, toAsset: FiatCurrency.EUR.Symbol, received: 30000m, spotPriceUSD: 1m),
+
+            // Buy 1 BTC @ 30k
+            CreateTx(date: new DateTime(2023, 1, 1), fromAsset: FiatCurrency.EUR.Symbol, toAsset: btc, spent: 30000m, received: 1m, spotPriceUSD: 1m),
+            
+            // Lose 1 BTC (Total Loss of cost basis 30k)
+            CreateTx(date: new DateTime(2023, 1, 15), type: TransactionType.Loss, fromAsset: btc, spent: 1m, spotPriceUSD: 20000m),
+            
+            // Deposit more EUR and swap them for USD
+            CreateTx(date: new DateTime(2023, 1, 17), type: TransactionType.Deposit, toAsset: FiatCurrency.EUR.Symbol, received: 30000m, spotPriceUSD: 1m),
+            CreateTx(date: new DateTime(2023, 1, 18), type: TransactionType.Swap, fromAsset: FiatCurrency.EUR.Symbol, toAsset: FiatCurrency.USD.Symbol, spent: 30000m, received: 33000m, spotPriceUSD: 1.1m),
+            
+            // Buy 1 BTC @ 22k within 2 months
+            CreateTx(date: new DateTime(2023, 1, 20), fromAsset: FiatCurrency.USD.Symbol, toAsset: btc, spent: 22000m, received: 1m, spotPriceUSD: 1m)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.USD);
+        var reportTransactions = report.Transactions.ToList();
+
+        // Verify Loss is ALLOWED
+        var lossTx = reportTransactions[2];
+        Assert.False(lossTx.IsLossDisallowed);
+        Assert.Equal(-30000m, lossTx.ProfitLoss);
+
+        // Ensure no disallowance link
+        Assert.Empty(reportTransactions[5].DisallowsPreviousLosses);
+    }
+
+    [Fact]
     public void CalculateInventory_ShouldFlagError_WhenBuyingWithInsufficientFunds()
     {
         // Scenario: Attempt to Buy 1 BTC with USD, but we have 0 USD.

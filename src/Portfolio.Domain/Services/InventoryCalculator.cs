@@ -207,7 +207,7 @@ public class InventoryCalculator : IInventoryCalculator
 
         pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;
         
-        if (!isFee && pl < 0 && lossCandidates != null)
+        if (!isFee && pl < 0 && lossCandidates != null && tx.Type.TriggersWashSale)
         {
             RecordLossCandidate(lossCandidates, assetId, tx, pTransaction);
         }
