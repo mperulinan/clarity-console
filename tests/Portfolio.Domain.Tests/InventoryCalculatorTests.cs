@@ -457,7 +457,7 @@ public class InventoryCalculatorTests
     [Fact]
     public void CalculateInventory_Loss_ShouldRealizeNegativePL_EvenWithoutSpotPrice()
     {
-        // Spot price is NOT required for a Loss (RequiresExitPrice = false).
+        // Spot price is NOT required for a Loss (RequiresSpotPrice = false).
         // PL should equal the negative cost basis regardless.
         var eur = "EUR";
         var btc = "BTC";

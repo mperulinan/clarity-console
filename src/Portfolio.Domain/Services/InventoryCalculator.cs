@@ -188,8 +188,8 @@ public class InventoryCalculator : IInventoryCalculator
         var tx = pTransaction.Transaction;
         decimal? exitPrice = isFee ? tx.GetFeeAssetPrice(currency) : tx.GetFromAssetPrice(currency);
         
-        bool requiresExitPrice = !isFee && tx.Type.RequiresExitPrice;
-        if (requiresExitPrice && !exitPrice.HasValue) return 0;
+        bool requiresSpotPrice = !isFee && tx.Type.RequiresSpotPrice;
+        if (requiresSpotPrice && !exitPrice.HasValue) return 0;
 
         UpdateTracker(costBasisSoldTracker, assetId, totalCostBasis);
 
