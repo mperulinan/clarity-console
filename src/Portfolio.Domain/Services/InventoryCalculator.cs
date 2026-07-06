@@ -202,7 +202,7 @@ public class InventoryCalculator : IInventoryCalculator
             }
             else
             {
-                decimal proceeds = tx.Type.ProceedsAreZero ? 0 : amountToConsume * exitPrice.Value;
+                decimal proceeds = tx.Type.ProceedsAreZero ? 0 : amountToConsume * exitPrice.GetValueOrDefault();
                 pl = proceeds - totalCostBasis;
             }
         }
