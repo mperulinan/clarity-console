@@ -8,4 +8,5 @@ public class TransactionTypeDto
     public string Name { get; set; } = default!;
     public bool RequiresFromAsset { get; set; }
     public bool RequiresToAsset { get; set; }
+    public bool RequiresSpotPrice { get; set; }
 }

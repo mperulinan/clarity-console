@@ -71,7 +71,8 @@ public class TransactionController(ISender sender) : ControllerBase
             Value = t.Value,
             Name = t.Name,
             RequiresFromAsset = t.RequiresFromAsset,
-            RequiresToAsset = t.RequiresToAsset
+            RequiresToAsset = t.RequiresToAsset,
+            RequiresSpotPrice = t.RequiresSpotPrice
         });
         return Ok(types);
     }
