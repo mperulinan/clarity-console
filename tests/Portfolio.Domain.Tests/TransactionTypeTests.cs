@@ -15,6 +15,7 @@ public class TransactionTypeTests
         Assert.True(type.GeneratesTaxableIncome);
         Assert.False(type.IsTaxableDisposal);
         Assert.False(type.ProceedsAreZero);
+        Assert.False(type.RequiresExitPrice);
     }
 
     [Fact]
@@ -27,6 +28,7 @@ public class TransactionTypeTests
         Assert.False(type.GeneratesTaxableIncome);
         Assert.True(type.IsTaxableDisposal);
         Assert.False(type.ProceedsAreZero);
+        Assert.True(type.RequiresExitPrice);
     }
 
     [Fact]
@@ -39,6 +41,7 @@ public class TransactionTypeTests
         Assert.False(type.GeneratesTaxableIncome);
         Assert.False(type.IsTaxableDisposal);
         Assert.False(type.ProceedsAreZero);
+        Assert.False(type.RequiresExitPrice);
     }
 
     [Fact]
@@ -51,6 +54,7 @@ public class TransactionTypeTests
         Assert.False(type.GeneratesTaxableIncome);
         Assert.False(type.IsTaxableDisposal);
         Assert.False(type.ProceedsAreZero);
+        Assert.False(type.RequiresExitPrice);
     }
 
     [Fact]
@@ -63,5 +67,6 @@ public class TransactionTypeTests
         Assert.False(type.GeneratesTaxableIncome);
         Assert.True(type.IsTaxableDisposal);
         Assert.True(type.ProceedsAreZero);
+        Assert.False(type.RequiresExitPrice);
     }
 }

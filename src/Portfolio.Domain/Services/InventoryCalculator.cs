@@ -187,7 +187,9 @@ public class InventoryCalculator : IInventoryCalculator
 
         var tx = pTransaction.Transaction;
         decimal? exitPrice = isFee ? tx.GetFeeAssetPrice(currency) : tx.GetFromAssetPrice(currency);
-        if (!exitPrice.HasValue) return 0;
+        
+        bool requiresExitPrice = !isFee && tx.Type.RequiresExitPrice;
+        if (requiresExitPrice && !exitPrice.HasValue) return 0;
 
         UpdateTracker(costBasisSoldTracker, assetId, totalCostBasis);
 
@@ -207,7 +209,10 @@ public class InventoryCalculator : IInventoryCalculator
 
         pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;
         
-        if (!isFee && pl < 0 && lossCandidates != null && tx.Type.TriggersWashSale)
+        if (!isFee
+            && pl < 0
+            && lossCandidates != null
+            && tx.Type.TriggersWashSale)
         {
             RecordLossCandidate(lossCandidates, assetId, tx, pTransaction);
         }

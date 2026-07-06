@@ -16,6 +16,7 @@ public class TransactionType : SmartEnum<TransactionType, string>
     public bool GeneratesTaxableIncome { get; }
     public bool IsTaxableDisposal { get; }
     public bool ProceedsAreZero { get; }
+    public bool RequiresExitPrice => IsTaxableDisposal && !ProceedsAreZero;
 
     private TransactionType(string name, string value, bool requiresFrom, bool requiresTo, bool triggersWashSale, bool generatesTaxableIncome, bool isTaxableDisposal, bool proceedsAreZero) : base(name, value)
     {

@@ -433,7 +433,7 @@ public class InventoryCalculatorTests
         {
             CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 10000m, spotPriceEUR: 1m),
             CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Swap, fromAsset: eur, toAsset: btc, spent: 5000m, received: 1m, spotPriceEUR: 1m),
-            // Loss of 0.5 BTC. Spot price doesn't matter for proceeds, but let's say it's 6000 EUR
+            // Loss of 0.5 BTC. Spot price doesn't matter for proceeds (ProceedsAreZero = true), but let's say it's 6000 EUR
             CreateTx(date: new DateTime(2023, 1, 3), type: TransactionType.Loss, fromAsset: btc, spent: 0.5m, spotPriceEUR: 6000m)
         };
 
@@ -451,6 +451,31 @@ public class InventoryCalculatorTests
         Assert.Equal(-2500m, btcHolding.RealizedPL);
 
         var lossTx = report.Transactions.Single(t => t.Transaction.Type == TransactionType.Loss);
+        Assert.Equal(-2500m, lossTx.ProfitLoss);
+    }
+
+    [Fact]
+    public void CalculateInventory_Loss_ShouldRealizeNegativePL_EvenWithoutSpotPrice()
+    {
+        // Spot price is NOT required for a Loss (RequiresExitPrice = false).
+        // PL should equal the negative cost basis regardless.
+        var eur = "EUR";
+        var btc = "BTC";
+        var transactions = new List<Transaction>
+        {
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 10000m, spotPriceEUR: 1m),
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Swap, fromAsset: eur, toAsset: btc, spent: 5000m, received: 1m, spotPriceEUR: 1m),
+            // Loss of 0.5 BTC with NO spot price provided.
+            CreateTx(date: new DateTime(2023, 1, 3), type: TransactionType.Loss, fromAsset: btc, spent: 0.5m)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
+
+        Assert.DoesNotContain(report.Transactions, t => t.Error != null);
+
+        var lossTx = report.Transactions.Single(t => t.Transaction.Type == TransactionType.Loss);
+
+        // Cost basis of the 0.5 lost BTC is 2500 EUR. Proceeds are 0. PL is -2500.
         Assert.Equal(-2500m, lossTx.ProfitLoss);
     }
 
