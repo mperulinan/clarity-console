@@ -154,10 +154,19 @@ export class TransactionFormComponent implements OnInit {
         return UI_CONFIG[typeData.value.toUpperCase()] || UI_CONFIG['DEFAULT'];
     });
 
+    requiresSpotPrice = computed(() => {
+        const typeData = this.selectedTypeData();
+        return typeData ? typeData.requiresSpotPrice : false;
+    });
+
     hasFiatLeg = computed(() => {
         return this.fiatCurrencies().some(
             f => f.id === this.fromAsset()?.id || f.id === this.toAsset()?.id
         );
+    });
+
+    showFiatValuation = computed(() => {
+        return this.requiresSpotPrice() && !this.hasFiatLeg();
     });
 
     hasFiatFee = computed(() =>
@@ -277,7 +286,7 @@ export class TransactionFormComponent implements OnInit {
         });
 
         validate(s.spotPrice, ({ value }) => {
-            if (this.hasFiatLeg()) return undefined;
+            if (!this.showFiatValuation()) return undefined;
             if (!value() || value() <= 0) return { kind: 'required', message: 'Spot price is required' };
             return undefined;
         });
@@ -297,9 +306,9 @@ export class TransactionFormComponent implements OnInit {
             return undefined;
         });
 
-        // Disable spotPrice fields when there is a fiat leg
-        disabled(s.spotPrice, () => this.hasFiatLeg());
-        disabled(s.spotPriceCurrency, () => this.hasFiatLeg());
+        // Disable spotPrice fields when there is a fiat leg or when not required by transaction type
+        disabled(s.spotPrice, () => !this.showFiatValuation());
+        disabled(s.spotPriceCurrency, () => !this.showFiatValuation());
 
         // Disable feeSpotPrice fields when not applicable
         disabled(s.feeSpotPrice, () => !this.showFeeFiatValuation() || this.isFeeAssetSameAsSpotAsset());
@@ -326,7 +335,8 @@ export class TransactionFormComponent implements OnInit {
     isStep2Valid = computed(() => {
         if (!this.isStep1Valid()) return false;
         const f = this.transactionForm;
-        if (f.spotPrice().invalid() || f.fee().invalid()) return false;
+        if (this.requiresSpotPrice() && f.spotPrice().invalid()) return false;
+        if (f.fee().invalid()) return false;
         if (!f.feeSpotPrice().disabled() && f.feeSpotPrice().invalid()) return false;
 
         if (this.requiresSpotPriceConfirmation() && !this.model().spotPriceDeviationConfirmed) {
@@ -447,9 +457,9 @@ export class TransactionFormComponent implements OnInit {
         
         // Disable tracking effects temporarily
         untracked(() => {
-            if (t.fromAsset) this.fromAsset.set(t.fromAsset);
-            if (t.toAsset) this.toAsset.set(t.toAsset);
-            if (t.feeAsset) this.feeAsset.set(t.feeAsset);
+            this.fromAsset.set(t.fromAsset || null);
+            this.toAsset.set(t.toAsset || null);
+            this.feeAsset.set(t.feeAsset || null);
 
             this.model.set({
                 datePart: d,
@@ -481,7 +491,9 @@ export class TransactionFormComponent implements OnInit {
 
     onStep1Next() {
         this.stepper.next();
-        this.fetchSpotPrice();
+        if (this.requiresSpotPrice()) {
+            this.fetchSpotPrice();
+        }
     }
 
     private async fetchSpotPrice(): Promise<void> {
@@ -559,8 +571,8 @@ export class TransactionFormComponent implements OnInit {
         const request: NewTransactionRequest = {
             date: this.combinedDate().toISOString(),
             transactionTypeCode: m.type,
-            fromAssetId: this.fromAsset()?.id,
-            toAssetId: this.toAsset()?.id,
+            fromAssetId: this.selectedTypeData()?.requiresFromAsset ? this.fromAsset()?.id : undefined,
+            toAssetId: this.selectedTypeData()?.requiresToAsset ? this.toAsset()?.id : undefined,
             amountSpent: m.amountSpent,
             amountReceived: m.amountReceived,
             spotPriceUSD: m.spotPriceCurrency === 'USD' ? m.spotPrice : undefined,

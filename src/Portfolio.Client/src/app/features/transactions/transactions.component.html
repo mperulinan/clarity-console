@@ -242,9 +242,12 @@
 
                     <!-- Spot Price -->
                     <td class="col-num hide-on-mobile">
-                        @if (getSpotPrice(row); as spotPrice) {
-                        <span class="cell-primary">{{ spotPrice | currency:baseCurrency:'symbol':'1.2-6'
-                            }}</span>
+                        @if (spotPriceIsRelevant(row)) {
+                            @if (getSpotPrice(row); as spotPrice) {
+                            <span class="cell-primary">{{ spotPrice | currency:baseCurrency:'symbol':'1.2-6' }}</span>
+                            } @else {
+                            <span class="cell-muted">—</span>
+                            }
                         } @else {
                         <span class="cell-muted">—</span>
                         }

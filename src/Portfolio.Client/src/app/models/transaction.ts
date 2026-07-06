@@ -35,6 +35,7 @@ export interface TransactionType {
     name: string;
     requiresFromAsset: boolean;
     requiresToAsset: boolean;
+    requiresSpotPrice: boolean;
 }
 
 export enum TransactionTypeCode {

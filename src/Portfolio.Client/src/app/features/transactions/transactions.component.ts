@@ -197,6 +197,10 @@ export class TransactionsComponent implements OnInit {
         return this.baseCurrency === 'EUR' ? row.transaction.spotPriceEUR : row.transaction.spotPriceUSD;
     }
 
+    spotPriceIsRelevant(row: ProcessedTransaction): boolean {
+        return row.transaction.type.requiresSpotPrice;
+    }
+
     viewWashSaleDetails(row: ProcessedTransaction) {
         if (!row.disallowedByTransactionId) return;
 

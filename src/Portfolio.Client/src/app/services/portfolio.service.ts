@@ -159,7 +159,8 @@ export class PortfolioService {
             value: typeValue,
             name: typeValue,
             requiresFromAsset: false,
-            requiresToAsset: false
+            requiresToAsset: false,
+            requiresSpotPrice: false
         };
 
         return {
