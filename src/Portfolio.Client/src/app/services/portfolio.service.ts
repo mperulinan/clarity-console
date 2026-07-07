@@ -163,8 +163,13 @@ export class PortfolioService {
             requiresSpotPrice: false
         };
 
+        const normalizedDate = (t.date && !t.date.endsWith('Z') && !t.date.match(/([+-]\d{2}:\d{2})$/)) 
+            ? t.date + 'Z' 
+            : t.date;
+
         return {
             ...t,
+            date: normalizedDate,
             type: mappedType,
             amountSpent: Number(t.amountSpent),
             amountReceived: Number(t.amountReceived),
