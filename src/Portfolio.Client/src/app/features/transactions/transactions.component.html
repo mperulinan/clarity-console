@@ -188,7 +188,7 @@
 
                     <!-- Date -->
                     <td class="col-date">
-                        <span class="cell-primary">{{ row.transaction.date | date:'dd/MM/yyyy' }}</span>
+                        <span class="cell-primary">{{ row.transaction.date | intlDate }}</span>
                         <span class="cell-secondary time-hover">
                             <span class="time-base">{{ row.transaction.date | date:'HH:mm' }}</span><span
                                 class="time-secs">:<span class="secs-val">{{ row.transaction.date | date:'ss'

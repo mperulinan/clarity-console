@@ -38,6 +38,7 @@ import { NewTransactionRequest } from '../../models/new-transaction-request';
 import { TransactionType, TransactionTypeCode, Transaction } from '../../models/transaction';
 import { CurrencyService } from '../../services/currency.service';
 import { parseHttpError } from '../../shared/utils/http-error-message';
+import { IntlDatePipe } from "../../shared/pipes/intl-date.pipe";
 
 const UI_CONFIG: Record<string, any> = {
     [TransactionTypeCode.Deposit]: { toTitle: 'Asset Deposited', toIcon: 'south_east', toAmount: 'Amount Deposited' },
@@ -58,24 +59,25 @@ const UI_CONFIG: Record<string, any> = {
     selector: 'app-transaction-form',
     standalone: true,
     imports: [
-        CommonModule,
-        FormField,
-        FormRoot,
-        MatCardModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-        MatDatepickerModule,
-        MatButtonModule,
-        MatIconModule,
-        MatStepperModule,
-        AssetSelectorComponent,
-        InteractivePriceInputComponent,
-        ButtonComponent,
-        BadgeComponent,
-        SkeletonComponent,
-        AssetChipComponent
-    ],
+    CommonModule,
+    FormField,
+    FormRoot,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatButtonModule,
+    MatIconModule,
+    MatStepperModule,
+    AssetSelectorComponent,
+    InteractivePriceInputComponent,
+    ButtonComponent,
+    BadgeComponent,
+    SkeletonComponent,
+    AssetChipComponent,
+    IntlDatePipe
+],
     templateUrl: './new-transaction.component.html',
     styleUrl: './new-transaction.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

@@ -20,15 +20,17 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { AssetChipComponent } from '../../shared/components/asset-chip/asset-chip.component';
+import { IntlDatePipe } from "../../shared/pipes/intl-date.pipe";
 
 
 @Component({
     selector: 'app-tax-report',
     standalone: true,
     imports: [
-        CommonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DatePipe, DecimalPipe,
-        SkeletonComponent, BadgeComponent, EmptyStateComponent, AssetChipComponent
-    ],
+    CommonModule, MatIconModule, MatTooltipModule, CurrencyPipe, DatePipe, DecimalPipe,
+    SkeletonComponent, BadgeComponent, EmptyStateComponent, AssetChipComponent,
+    IntlDatePipe
+],
     templateUrl: './tax-report.component.html',
     styleUrl: './tax-report.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

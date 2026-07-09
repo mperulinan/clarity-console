@@ -3,8 +3,9 @@ import {
     ChangeDetectionStrategy, inject, DestroyRef
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DOCUMENT } from '@angular/common';
-import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { DOCUMENT, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { IntlDatePipe } from '../../shared/pipes/intl-date.pipe';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,8 +33,7 @@ type SortDir = 'asc' | 'desc';
     selector: 'app-transactions',
     standalone: true,
     imports: [
-        CommonModule, MatIconModule, MatTooltipModule, MatButtonModule, 
-        CurrencyPipe, DatePipe, DecimalPipe,
+        CommonModule, DatePipe, IntlDatePipe, MatIconModule, MatTooltipModule, MatButtonModule,
         SkeletonComponent, BadgeComponent, ButtonComponent, EmptyStateComponent, AssetChipComponent
     ],
     templateUrl: './transactions.component.html',
