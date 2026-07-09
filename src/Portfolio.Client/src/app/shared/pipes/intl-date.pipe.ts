@@ -6,9 +6,10 @@ import { Pipe, PipeTransform, inject, LOCALE_ID } from '@angular/core';
  * registration — the browser handles every valid BCP-47 locale natively.
  *
  * Usage:
- *   {{ value | intlDate }}                          → short date (e.g. 15/07/2024)
- *   {{ value | intlDate: { dateStyle: 'medium' } }} → e.g. 15 Jul 2024
- *   {{ value | intlDate: { dateStyle: 'long' } }}   → e.g. 15 July 2024
+ *   {{ value | intlDate }}                          → short date  (e.g. 09/07/2025)
+ *   {{ value | intlDate : true }}                   → date + time (e.g. 09/07/2025, 18:30)
+ *   {{ value | intlDate : 'seconds' }}              → date + time + seconds (e.g. 09/07/2025, 18:30:45)
+ *   {{ value | intlDate : false : { dateStyle: 'medium' } }} → custom Intl options
  */
 @Pipe({
   name: 'intlDate',
@@ -20,11 +21,19 @@ export class IntlDatePipe implements PipeTransform {
 
   transform(
     value: Date | string | number | null | undefined,
-    options: Intl.DateTimeFormatOptions = { dateStyle: 'short' }
+    includeTime: boolean | 'seconds' = false,
+    options?: Intl.DateTimeFormatOptions
   ): string {
     if (value == null) return '';
     const date = new Date(value as string | number | Date);
     if (isNaN(date.getTime())) return '';
-    return new Intl.DateTimeFormat(this.locale, options).format(date);
+
+    const resolvedOptions: Intl.DateTimeFormatOptions = options ?? {
+      dateStyle: 'short',
+      ...(includeTime === true    && { timeStyle: 'short' }),
+      ...(includeTime === 'seconds' && { timeStyle: 'medium' }),
+    };
+
+    return new Intl.DateTimeFormat(this.locale, resolvedOptions).format(date);
   }
 }
