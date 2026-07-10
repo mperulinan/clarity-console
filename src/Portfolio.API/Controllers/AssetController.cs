@@ -42,13 +42,7 @@ public class AssetController(
 
     [HttpPost("sync")]
     public async Task<ActionResult<AssetDto>> SyncAsset([FromBody] AssetDto request)
-    {
-        if (string.IsNullOrWhiteSpace(request?.ExternalId))
-            return BadRequest("ExternalId is required for synchronization.");
-
-        var result = await mediator.Send(new SyncAssetCommand(request));
-        return Ok(result);
-    }
+        => Ok(await mediator.Send(new SyncAssetCommand(request)));
 
     [HttpGet("{id:guid}/price")]
     public async Task<ActionResult<decimal>> GetSpotPrice(Guid id, [FromQuery] string fiatCurrency, [FromQuery] DateTime? date = null)
