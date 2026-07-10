@@ -234,4 +234,61 @@ public class SyncAssetCommandHandlerTests
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(command, CancellationToken.None));
     }
+
+    [Fact]
+    public async Task Handle_AssetNotRequiringMarketData_ExistsLocally_ReturnsAssetDto()
+    {
+        // Arrange
+        var uow = new FakeUnitOfWork();
+        var existingAsset = new Asset("CUST", "Custom Asset", null, null, AssetType.Other);
+        await uow.Assets.AddAsync(existingAsset);
+
+        var syncService = Substitute.For<IAssetSynchronizationService>();
+        var logoProviders = new List<IAssetLogoProvider>();
+        var handler = new SyncAssetCommandHandler(uow, syncService, logoProviders, NullLogger<SyncAssetCommandHandler>.Instance);
+
+        var request = new AssetDto
+        {
+            ExternalId = null,
+            Symbol = "CUST",
+            Name = "Custom Asset",
+            Type = "OTHER"
+        };
+        var command = new SyncAssetCommand(request);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(existingAsset.Id, result.Id);
+        Assert.Equal("CUST", result.Symbol);
+        
+        await syncService.DidNotReceive().SynchronizeCatalogAsync(Arg.Any<IEnumerable<Asset>>());
+    }
+
+    [Fact]
+    public async Task Handle_AssetNotRequiringMarketData_DoesNotExist_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var uow = new FakeUnitOfWork();
+        var syncService = Substitute.For<IAssetSynchronizationService>();
+        var logoProviders = new List<IAssetLogoProvider>();
+        var handler = new SyncAssetCommandHandler(uow, syncService, logoProviders, NullLogger<SyncAssetCommandHandler>.Instance);
+
+        var request = new AssetDto
+        {
+            ExternalId = null,
+            Symbol = "MISSING",
+            Name = "Missing Asset",
+            Type = "OTHER"
+        };
+        var command = new SyncAssetCommand(request);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(command, CancellationToken.None));
+        Assert.Equal("Asset MISSING not found.", exception.Message);
+        
+        await syncService.DidNotReceive().SynchronizeCatalogAsync(Arg.Any<IEnumerable<Asset>>());
+    }
 }
