@@ -19,12 +19,23 @@ public class SyncAssetCommandHandler(
 {
     public async Task<AssetDto> Handle(SyncAssetCommand command, CancellationToken cancellationToken)
     {
-        var request = command.Asset;
-        
-        if (string.IsNullOrWhiteSpace(request?.ExternalId))
-            throw new ArgumentException("ExternalId is required for synchronization.", nameof(command));
+        var request = command.Asset ?? throw new ArgumentException("Asset is required for synchronization.", nameof(command));
 
         var assetType = string.IsNullOrEmpty(request.Type) ? AssetType.Crypto : AssetType.FromValue(request.Type);
+
+        if (!assetType.RequiresMarketData)
+        {
+            // Local custom asset: bypass external sync, just ensure it exists locally by Symbol.
+            var allAssets = await unitOfWork.Assets.GetAllAsync();
+            var existingCustomAsset = allAssets.FirstOrDefault(a => a.Type == assetType && a.Symbol.Equals(request.Symbol, StringComparison.OrdinalIgnoreCase));
+            
+            return existingCustomAsset?.ToDto() ?? throw new InvalidOperationException($"Asset {request.Symbol} not found.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ExternalId))
+        {
+            throw new ArgumentException("ExternalId is required for synchronization of external assets.", nameof(command));
+        }
 
         var existingAssets = await unitOfWork.Assets.GetByExternalIdsAsync([request.ExternalId]);
         var existingAsset = existingAssets.FirstOrDefault(a => a.Type == assetType);
