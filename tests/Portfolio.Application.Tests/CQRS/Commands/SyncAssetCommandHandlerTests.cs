@@ -121,11 +121,11 @@ public class SyncAssetCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ExistingAssetWithoutLogo_NoSupportedProvider_KeepsLogoNullAndUpdatesAsset()
+    public async Task Handle_AssetRequiresMarketData_NoLogoProviderSupportsIt_KeepsLogoNullAndUpdatesMetadata()
     {
         // Arrange
         var uow = new FakeUnitOfWork();
-        var existingAsset = new Asset("USD", "US Dollar", "usd-ext", null, AssetType.Fiat);
+        var existingAsset = new Asset("TSLA", "Tesla Inc", "tsla-ext", null, AssetType.Stock);
         await uow.Assets.AddAsync(existingAsset);
 
         var syncService = Substitute.For<IAssetSynchronizationService>();
@@ -137,10 +137,10 @@ public class SyncAssetCommandHandlerTests
 
         var request = new AssetDto
         {
-            ExternalId = "usd-ext",
-            Symbol = "USD",
-            Name = "US Dollar",
-            Type = "FIAT"
+            ExternalId = "tsla-ext",
+            Symbol = "TSLA",
+            Name = "Tesla Inc",
+            Type = "STOCK"
         };
         var command = new SyncAssetCommand(request);
 
@@ -152,10 +152,10 @@ public class SyncAssetCommandHandlerTests
         Assert.Equal(existingAsset.Id, result.Id);
         Assert.Null(result.ImageUrl);
 
-        logoProvider.Received(1).Supports(AssetType.Fiat);
+        logoProvider.Received(1).Supports(AssetType.Stock);
         await logoProvider.DidNotReceive().GetLogoUrlAsync(Arg.Any<string>());
 
-        var savedAsset = (await uow.Assets.GetByExternalIdsAsync(["usd-ext"])).Single();
+        var savedAsset = (await uow.Assets.GetByExternalIdsAsync(["tsla-ext"])).Single();
         Assert.Null(savedAsset.ImageUrl);
         Assert.Equal(1, uow.SaveChangesCallCount);
     }
