@@ -194,8 +194,10 @@ public class InventoryCalculator : IInventoryCalculator
         UpdateTracker(costBasisSoldTracker, assetId, totalCostBasis);
 
         decimal pl = 0;
+        bool hasPL = false;
         if (isFee || tx.Type.IsTaxableDisposal)
         {
+            hasPL = true;
             if (isFee)
             {
                 pl = -totalCostBasis;
@@ -207,7 +209,10 @@ public class InventoryCalculator : IInventoryCalculator
             }
         }
 
-        pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;
+        if (hasPL)
+        {
+            pTransaction.ProfitLoss = (pTransaction.ProfitLoss ?? 0) + pl;
+        }
         
         if (!isFee
             && pl < 0
