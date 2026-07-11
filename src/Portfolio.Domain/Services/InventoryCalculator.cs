@@ -195,7 +195,10 @@ public class InventoryCalculator : IInventoryCalculator
 
         decimal pl = 0;
         bool hasPL = false;
-        if (isFee || tx.Type.IsTaxableDisposal)
+        
+        bool isTaxableFee = isFee && tx.Type.IsTaxableEvent;
+
+        if (isTaxableFee || (!isFee && tx.Type.IsTaxableDisposal))
         {
             hasPL = true;
             if (isFee)
