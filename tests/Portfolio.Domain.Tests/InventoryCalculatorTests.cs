@@ -425,6 +425,76 @@ public class InventoryCalculatorTests
     }
 
     [Fact]
+    public void CalculateInventory_Withdrawal_WithFee_ShouldNotAffectPL()
+    {
+        var transactions = new List<Transaction>
+        {
+            // Deposit 10k EUR
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: FiatCurrency.EUR.Symbol, received: 10000m, spotPriceEUR: 1m),
+            
+            // Withdraw 5k EUR with 10 EUR fee (withdraw less than total so inventory remains)
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Withdrawal, fromAsset: FiatCurrency.EUR.Symbol, spent: 5000m, spotPriceEUR: 1m, fee: 10m, feeAsset: FiatCurrency.EUR.Symbol, feeEurPrice: 1m)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
+        var withdrawalTx = report.Transactions.Single(t => t.Transaction.Type == TransactionType.Withdrawal);
+
+        // Withdrawal is not a taxable event, so the fee should NOT generate a realized loss/PL.
+        Assert.Null(withdrawalTx.ProfitLoss);
+
+        // But inventory should still be reduced by both the withdrawal and the fee.
+        var holding = report.Holdings.Single(h => h.Id == FiatCurrency.EUR.Id);
+        Assert.Equal(4990m, holding.Quantity); // 10000 - 5000 - 10
+    }
+
+    [Fact]
+    public void CalculateInventory_Deposit_WithFee_ShouldNotAffectPL()
+    {
+        var eur = "EUR";
+        var transactions = new List<Transaction>
+        {
+            // Deposit 10k EUR, paying 10 EUR fee (e.g. wire fee)
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 10000m, spotPriceEUR: 1m, fee: 10m, feeAsset: eur, feeEurPrice: 1m)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
+        var depositTx = report.Transactions.Single(t => t.Transaction.Type == TransactionType.Deposit);
+
+        // Deposit is not a taxable event, so the fee should NOT generate a realized loss/PL.
+        Assert.Null(depositTx.ProfitLoss);
+
+        // Inventory should still be reduced by the fee!
+        var eurId = transactions.First(t => t.ToAsset?.Symbol == eur).ToAssetId!.Value;
+        var holding = report.Holdings.Single(h => h.Id == eurId);
+        Assert.Equal(9990m, holding.Quantity); // 10000 - 10
+    }
+
+    [Fact]
+    public void CalculateInventory_Swap_WithFee_ShouldAffectPL()
+    {
+        var btc = "BTC";
+        var eur = "EUR";
+        var transactions = new List<Transaction>
+        {
+            // Deposit 10000 EUR
+            CreateTx(date: new DateTime(2023, 1, 1), type: TransactionType.Deposit, toAsset: eur, received: 10000m, spotPriceEUR: 1m),
+            // Buy 1 BTC for 10000 EUR. Cost basis is 10k
+            CreateTx(date: new DateTime(2023, 1, 2), type: TransactionType.Swap, fromAsset: eur, toAsset: btc, spent: 10000m, received: 1m, spotPriceEUR: 1m),
+            // Swap 0.5 BTC to 10000 EUR. Pay 0.01 BTC fee.
+            CreateTx(date: new DateTime(2023, 1, 3), type: TransactionType.Swap, fromAsset: btc, toAsset: eur, spent: 0.5m, received: 10000m, spotPriceEUR: 20000m, fee: 0.01m, feeAsset: btc, feeEurPrice: 20000m)
+        };
+
+        var report = _calculator.CalculateInventory(transactions, FiatCurrency.EUR);
+        var swapTx = report.Transactions.Last();
+
+        // Swap IS a taxable event.
+        // Proceeds from swap = 10000 EUR. Cost basis of 0.5 BTC = 5000 EUR. Swap PL = +5000 EUR.
+        // Fee = 0.01 BTC. Cost basis of 0.01 BTC = 100 EUR. Fee PL = -100 EUR.
+        // Total PL should be 5000 - 100 = 4900 EUR.
+        Assert.Equal(4900m, swapTx.ProfitLoss);
+    }
+
+    [Fact]
     public void CalculateInventory_Loss_ShouldRealizeNegativePL_Equal_To_CostBasis()
     {
         var eur = "EUR";
