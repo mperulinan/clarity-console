@@ -112,6 +112,23 @@ export class TransactionsComponent implements OnInit {
                 next: transactions => {
                     this.allTransactions.set(transactions);
                     if (!silent) this.pollMissingSpotPrices();
+                    
+                    const updatedTxId = history.state.updatedTransactionId;
+                    if (updatedTxId) {
+                        // Clear the state so it doesn't run again on refresh
+                        history.replaceState({ ...history.state, updatedTransactionId: null }, '');
+                        
+                        setTimeout(() => {
+                            const element = this.document.getElementById(`tx-${updatedTxId}`);
+                            if (element) {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                element.classList.add('highlight-glow');
+                                timer(2500).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+                                    element.classList.remove('highlight-glow');
+                                });
+                            }
+                        }, 100);
+                    }
                 },
                 error: err => console.error('Failed to load transactions', err)
             });
