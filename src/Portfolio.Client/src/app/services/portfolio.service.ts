@@ -67,8 +67,8 @@ export class PortfolioService {
         return this.http.get<PortfolioMetrics>(`${this.apiUrl}/Portfolio/metrics`);
     }
 
-    addTransaction(request: NewTransactionRequest): Observable<void> {
-        return this.http.post<void>(`${this.apiUrl}/Transaction`, request);
+    addTransaction(request: NewTransactionRequest): Observable<Transaction> {
+        return this.http.post<Transaction>(`${this.apiUrl}/Transaction`, request);
     }
 
     updateTransaction(id: number, request: NewTransactionRequest): Observable<void> {

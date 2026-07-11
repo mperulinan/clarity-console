@@ -596,8 +596,8 @@ export class TransactionFormComponent implements OnInit {
                 await firstValueFrom(this.portfolioService.updateTransaction(this.transactionId()!, request));
                 this.router.navigate(['/transactions'], { state: { updatedTransactionId: this.transactionId() } });
             } else {
-                await firstValueFrom(this.portfolioService.addTransaction(request));
-                this.router.navigate(['/transactions']);
+                const newTx = await firstValueFrom(this.portfolioService.addTransaction(request));
+                this.router.navigate(['/transactions'], { state: { updatedTransactionId: newTx.id } });
             }
         } catch (err) {
             console.error('Failed to save transaction', err);
