@@ -1,87 +1,98 @@
-# Project Architecture: Portfolio
+# Architecture & System Design: Clarity Console
 
-This document outlines the architectural design and structural organization of the Portfolio project. 
-
-## Overview
-The Portfolio project is a comprehensive portfolio management system designed to track assets, transactions, and performance metrics. It consists of a modern Angular frontend and a robust ASP.NET Core backend following Clean Architecture principles.
+This document details the architectural principles, domain concepts, and structural patterns used in **Clarity Console**.
 
 ---
 
-## Backend Architecture (ASP.NET Core)
-The backend is structured using **Clean Architecture** and **Domain-Driven Design (DDD)** principles to ensure separation of concerns, maintainability, and testability.
+## 🎯 Overview
 
-### Layers
-Dependencies flow inward:
-└── API
-    ├── Application    ── Domain        
-    └── Infrastructure ── Domain
+Clarity Console is an enterprise-grade financial asset and portfolio management system designed to track multi-currency assets across **stocks, ETFs, cryptocurrencies, and fiat currencies**. 
 
-1.  **Domain**: 
-    - The core of the application. 
-    - Contains **Entities** (`Asset`, `Transaction`), **Value Objects**, **Enums**, and core **Interfaces** (`IUnitOfWork`, `IAssetRepository`, `ITransactionRepository`).
-    - Defines domain logic and business rules independent of external frameworks.
-2.  **Application**: 
-    - Orchestrates the flow of data and application logic.
-    - Contains **Application Services** (`PortfolioService`, `AssetSearchService`) and **DTOs** (Data Transfer Objects).
-    - Depends only on the Domain layer.
-3.  **Infrastructure**: 
-    - Implements interfaces defined in the Domain and Application layers.
-    - **Persistence**: Uses EF Core with SQL Server (`PortfolioContext`). Implements `IUnitOfWork` as `UnitOfWork`, which instantiates repositories internally to guarantee they share the same `DbContext` instance.
-    - **External Services**: Integrates with external APIs like CoinGecko and Frankfurter for market data and exchange rates.
-4.  **Portfolio.API**: 
-    - The entry point for the backend.
-    - Contains **Controllers** providing RESTful endpoints, **Background Services** for background tasks (e.g., `AssetCatalogSyncBackgroundService`), and configuration (`Program.cs`, `appsettings.json`).
-
-### Key Technologies
-- **Framework**: .NET 10.0
-- **ORM**: Entity Framework Core
-- **Database**: SQL Server
-- **Integration**: HttpClient for external API calls, Memory Cache for performance.
+It is engineered following **Clean Architecture** and **Domain-Driven Design (DDD)** in the backend (.NET 10), coupled with a modern, highly reactive **Angular 21** frontend powered by **Angular Signals**.
 
 ---
 
-### Domain Core Concepts
-- **Transaction vs. Inventory**: The system handles transactions (deposits, withdrawals, swaps, rewards) and dynamically processes them via components like `InventoryCalculator` to maintain accurate `AssetHolding` balances and correctly calculate cost basis and P/L (Profit/Loss).
-- **Portfolio Metrics**: The `PortfolioMetricsCalculator` is responsible for aggregating individual enriched asset holdings into global user-level metrics. 
+## 🏗️ Backend Architecture (.NET 10)
 
-### Design Principles & Conventions
-- **Thin Controllers**: API Controllers act purely as HTTP adapters. Orchestration logic belongs in Application layer services.
-- **DDD Adherence**: Business logic is restricted to Domain entities and services. Infrastructure dependencies never leak into the Domain layer.
-- **Unit of Work Pattern**: All Application Services and Controllers depend on `IUnitOfWork` (defined in the Domain layer) rather than individual repository interfaces directly. The concrete `UnitOfWork` (in Infrastructure) instantiates its own repositories, guaranteeing that all operations within a business transaction share the same `DbContext` and are committed atomically in a single `SaveChangesAsync` call. Repositories are pure staging layers — they never call `SaveChangesAsync` themselves.
+The backend follows the principles of Clean Architecture and DDD, enforcing strict separation of concerns where dependencies flow inward toward the Domain core.
 
----
+### Layer Dependency Diagram
 
-## Frontend Architecture (Angular)
-The frontend is a modern **Angular** application utilizing standalone components and a feature-based structure.
-
-### Project Structure (`src/app`)
-- **features/**: Contains feature-specific modules and components.
-    - **dashboard/**: Portfolio overview and metrics visualization.
-    - **new-transaction/**: Multi-step wizard for adding transactions.
-- **models/**: Defines TypeScript interfaces and classes reflecting the backend DTOs and domain objects.
-- **services/**: Contains Angular services for API communication, typically wrapping backend endpoints provided by the API layer.
-- **app.config.ts / app.routes.ts**: Standard Angular configuration using the standalone component pattern.
-
-### Key Technologies
-- **Framework**: Angular 21
-- **Styling**: Tailwind
-- **State Management**: Service-based reactive state management.
-
----
-
-## Workspace Layout
+```text
+               ┌───────────────────────┐
+               │     Portfolio.API     │
+               └───────────┬───────────┘
+                           │
+             ┌─────────────┴─────────────┐
+             ▼                           ▼
+┌─────────────────────────┐ ┌───────────────────────────┐
+│  Portfolio.Application  │ │ Portfolio.Infrastructure  │
+└────────────┬────────────┘ └─────────────┬─────────────┘
+             │                            │
+             └─────────────┬──────────────┘
+                           ▼
+             ┌───────────────────────────┐
+             │     Portfolio.Domain      │
+             └───────────────────────────┘
 ```
-Portfolio/
-├── src/
-│   ├── Portfolio.API/            # Entry point & REST API
-│   ├── Portfolio.Application/    # Business Logic & DTOs
-│   ├── Portfolio.Client/         # Angular Frontend
-│   ├── Portfolio.Domain/         # Core Entities & Interfaces
-│   └── Portfolio.Infrastructure/ # Data Persistence & External Integrations
-├── tests/
-│   ├── Portfolio.API.Tests/
-│   ├── Portfolio.Application.Tests/
-│   ├── Portfolio.Domain.Tests/
-│   └── Portfolio.Infrastructure.Tests/
-└── Portfolio.slnx              # Solution file
-```
+
+### Layer Responsibilities
+
+1. **Domain Layer (`Portfolio.Domain`)**:
+   - The heart of the application containing core business rules, enterprise logic, and domain contracts.
+   - **Entities & Value Objects**: `Asset`, `Transaction`, `Holdings`, `AssetMarketData`, `TransactionType`.
+   - **Domain Services**: `InventoryCalculator` (FIFO/Cost-Basis P&L calculation), `PortfolioMetricsCalculator`, `AssetMarketDataService`.
+   - **Abstractions**: Core interfaces like `IUnitOfWork`, `IAssetRepository`, `ITransactionRepository`, `IExchangeRateProvider`.
+   - Has zero external dependencies.
+
+2. **Application Layer (`Portfolio.Application`)**:
+   - Orchestrates use cases, command/query execution, and DTO mappings.
+   - **Handlers & Services**: `SyncAssetCommandHandler`, `PortfolioService`, `AssetSearchService`.
+   - **DTOs**: Application-specific data structures for request/response payloads.
+   - Depends exclusively on the Domain layer.
+
+3. **Infrastructure Layer (`Portfolio.Infrastructure`)**:
+   - Handles data persistence, framework integration, and external service communication.
+   - **Persistence**: Entity Framework Core with SQL Server (`PortfolioContext`). Implements the Unit of Work and Repository patterns.
+   - **External Market Data Integration**:
+     - **Twelve Data Provider**: Real-time stock tickers, market data, and ETFs.
+     - **CoinGecko Provider**: Cryptocurrency pricing, search, and historical market data.
+     - **Frankfurter Provider**: Foreign exchange (FX) rates for fiat currency normalization.
+   - **Background Jobs**: Scheduled sync and background data maintenance services.
+
+4. **API Layer (`Portfolio.API`)**:
+   - The HTTP entry point exposing RESTful endpoints.
+   - **Controllers**: Thin controllers acting purely as HTTP adapters delegating work to Application handlers.
+   - **Configuration & Middleware**: `Program.cs`, CORS, logging, and dependency injection setup.
+
+---
+
+## 🧠 Core Domain Concepts
+
+### 1. Inventory & Tax-Aware P&L Calculation (`InventoryCalculator`)
+The system dynamically processes historical transactions (deposits, withdrawals, swaps, rewards) to compute real-time holdings and Profit/Loss (P&L):
+- **Taxable Events**: Swaps and asset disposals trigger tax-aware realized P&L tracking.
+- **Non-Taxable Events**: Deposits and withdrawals update asset inventory and cost bases without generating premature taxable events.
+- **Fee Handling**: Fees incurred during transactions are factored into cost bases or realized P&L depending on the transaction type.
+
+### 2. Multi-Currency Normalization
+All asset prices and transaction values are dynamically normalized to a user-defined base currency (e.g., EUR/USD) using real-time and historical exchange rates from external providers.
+
+---
+
+## 🎨 Frontend Architecture (Angular 21)
+
+The frontend is a standalone-component Angular 21 application built for performance and granular reactivity.
+
+### Key Architectural Highlights
+- **State Management**: Uses **Angular Signals** for Fine-Grained Reactivity and state updates, alongside **RxJS** for asynchronous event streams (`forkJoin`, `switchMap`).
+- **Date & Currency Normalization**: Custom `IntlDatePipe` ensuring dynamic locale formatting and UTC date synchronization across timezones.
+- **UX Components**: Multi-step transaction wizard, dynamic spot price calculator, and interactive portfolio dashboard.
+
+---
+
+## 🛠️ Design Patterns & Best Practices
+
+- **Repository & Unit of Work Patterns**: All database operations are staged via repositories and committed atomically via `IUnitOfWork.SaveChangesAsync()`, guaranteeing ACID compliance across complex domain operations.
+- **Thin Controllers**: API endpoints do not contain business logic; they delegate execution directly to Application services.
+- **Systematic Unit Testing**: Complex domain rules (P&L calculations, tax rules, fee adjustments) are exhaustively tested using **xUnit** and **NSubstitute** to ensure zero regressions in financial logic.
