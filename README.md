@@ -1,91 +1,101 @@
 # Clarity Console - Financial Asset & Portfolio Management System
 
-A comprehensive portfolio management system designed to track assets, transactions, and performance metrics. Built with a modern Angular frontend and a robust ASP.NET Core backend following Clean Architecture and Domain-Driven Design (DDD) principles.
+A comprehensive, enterprise-grade financial asset and portfolio management system. Built to track multi-currency assets across stocks, ETFs, cryptocurrencies, and fiat, calculate tax-aware profit/loss (P&L), and provide real-time market integrations.
 
-## Features
+This project serves as a showcase of modern software engineering practices, featuring a **Clean Architecture** backend with **Domain-Driven Design (DDD)** and a highly reactive **Angular 21** frontend utilizing **Signals**.
 
-- **Dashboard**: Real-time portfolio overview and metrics visualization.
-- **Asset Tracking**: Monitor asset allocations, Open P/L, and overall performance.
-- **Transaction Management**: Add, update, and categorize transactions (deposits, withdrawals, swaps, rewards) using a user-friendly multi-step wizard.
-- **Automated Pricing**: Integrates with external APIs (like CoinGecko and Frankfurter) to fetch real-time market data and exchange rates.
+---
 
-## Architecture
+## ✨ Key Features
 
-The backend follows **Clean Architecture** and **Domain-Driven Design (DDD)**, built on .NET 10.0. The frontend is a modern **Angular 21** application using standalone components and reactive state management.
+- **Advanced Dashboard**: Real-time portfolio overview, asset allocation charts, and performance metrics.
+- **Tax-Aware Inventory & P&L**: Sophisticated calculation of realized/unrealized profit and loss, handling fees and taxable events accurately.
+- **Transaction Wizard**: Streamlined multi-step wizard to manage deposits, withdrawals, swaps, and rewards across fiat, cryptocurrencies, stocks, and ETFs.
+- **Real-Time Market Data**: Automated pricing integration with external providers (**Twelve Data** for stocks & ETFs, **CoinGecko** for crypto, and **Frankfurter** for fiat exchange rates).
+- **Multi-Currency Support**: Seamless normalization of transactions into a base currency (e.g., EUR/USD) for accurate reporting.
+
+## 🛠️ Technology Stack
+
+### Backend (.NET 10 & C#)
+- **Architecture**: Clean Architecture & Domain-Driven Design (DDD)
+- **Framework**: ASP.NET Core Web API
+- **Data Access**: Entity Framework Core & SQL Server (T-SQL)
+- **Testing**: xUnit & NSubstitute (Systematic unit testing of financial logic)
+
+### Frontend (Angular 21 & TypeScript)
+- **Framework**: Angular 21 (Standalone Components)
+- **State Management**: Angular Signals & RxJS for granular reactivity
+- **Styling**: Tailwind CSS & Modern UI elements
+- **Formatting**: Dynamic localization and IntlDatePipe for UTC normalization
+
+### Infrastructure & DevOps
+- **Containerization**: Docker & Docker Compose
+- **Version Control**: Git & GitHub
+
+---
+
+## 🏗️ Architecture Overview
+
+The application strictly adheres to the principles of separation of concerns and dependency inversion. 
 
 > [!NOTE]
-> For a deep dive into the project structure, dependency flow, core entities (like `Transaction` and `Inventory`), and layer responsibilities, please read **[`ARCHITECTURE.md`](ARCHITECTURE.md)**.
+> For a deep dive into the project structure, dependency flow, core entities (like `Transaction` and `Inventory`), and layer responsibilities, please read the **[`ARCHITECTURE.md`](ARCHITECTURE.md)** document.
 
-## Prerequisites
+```text
+Portfolio/
+├── src/
+│   ├── Portfolio.API/            # Entry point, Controllers & REST API
+│   ├── Portfolio.Application/    # Use Cases, CQRS Handlers & DTOs
+│   ├── Portfolio.Client/         # Angular 21 SPA
+│   ├── Portfolio.Domain/         # Enterprise Logic, Core Entities & Value Objects
+│   └── Portfolio.Infrastructure/ # EF Core DbContext & External API Integrations
+├── tests/
+│   ├── Portfolio.API.Tests/
+│   ├── Portfolio.Application.Tests/
+│   ├── Portfolio.Domain.Tests/   # Core financial logic tests (Inventory, P&L)
+│   └── Portfolio.Infrastructure.Tests/
+```
 
-Before setting up the project, ensure you have the following installed:
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
 - [.NET 10.0 SDK](https://dotnet.microsoft.com/download)
-- [Node.js](https://nodejs.org/) (Recommended LTS version) & npm
-- [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
+- [Node.js](https://nodejs.org/) (LTS recommended)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (Optional, for running SQL Server easily) or local SQL Server instance.
 
-## Getting Started
+### Quick Setup
 
-### 1. Clone the Repository
+**1. Clone the repository:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/mperulinan/clarity-console.git
 cd Portfolio
 ```
 
-### 2. Backend Setup
-Navigate to the API directory and run the application:
+**2. Backend Setup:**
+Configure your SQL Server connection string in `src/Portfolio.API/appsettings.Development.json`.
 ```bash
 cd src/Portfolio.API
-# Ensure your connection strings in appsettings.json are configured correctly targeting your SQL Server instance
 dotnet restore
 dotnet build
-# To run the development server:
 dotnet run
 ```
 
-### 3. Frontend Setup
-Navigate to the Angular client application to install dependencies and start the local development server:
+**3. Frontend Setup:**
 ```bash
 cd ../Portfolio.Client
 npm install
 npm start
 ```
+The application will be available at `http://localhost:4200`.
 
-The frontend should now be running at `http://localhost:4200` and interacting with the backend API.
+---
 
-## Project Structure
+## 🧪 Testing
 
-```text
-Portfolio/
-├── src/
-│   ├── Portfolio.API/            # Entry point & REST API
-│   ├── Portfolio.Application/    # Business Logic & DTOs
-│   ├── Portfolio.Client/         # Angular Frontend
-│   ├── Portfolio.Domain/         # Core Entities & Interfaces
-│   └── Portfolio.Infrastructure/ # Data Persistence & External Integrations
-├── tests/
-│   ├── Portfolio.API.Tests/
-│   ├── Portfolio.Application.Tests/
-│   ├── Portfolio.Domain.Tests/
-│   └── Portfolio.Infrastructure.Tests/
-└── Portfolio.slnx                # Solution file
-```
+The system includes a robust test suite, particularly focused on validating complex financial calculations in the Domain layer to ensure absolute accuracy in P&L and inventory tracking.
 
-## Testing
-
-The project contains a comprehensive test suite across multiple layers.
-
-**Backend Tests:**
-Located in the `/tests` folder. You can run them via the .NET CLI:
-```bash
-dotnet test
-```
-
-**Frontend Tests:**
-Inside the `Portfolio.Client` directory:
-```bash
-npm run test
-```
-
-## License
-
-Please refer to the repository owner or license file for licensing terms and usage rights.
+- **Run Backend Tests:** `dotnet test`
+- **Run Frontend Tests:** `cd src/Portfolio.Client && npm run test`
