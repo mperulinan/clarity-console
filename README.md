@@ -1,4 +1,4 @@
-# Portfolio Management System
+# Clarity Console - Financial Asset & Portfolio Management System
 
 A comprehensive portfolio management system designed to track assets, transactions, and performance metrics. Built with a modern Angular frontend and a robust ASP.NET Core backend following Clean Architecture and Domain-Driven Design (DDD) principles.
 
