@@ -75,10 +75,18 @@ cd Portfolio
 ```
 
 **2. Backend Setup:**
-Configure your SQL Server connection string in `src/Portfolio.API/appsettings.Development.json`.
+Configure your local environment using .NET User Secrets to set your SQL Server connection string and external API keys safely:
 ```bash
 cd src/Portfolio.API
 dotnet restore
+
+# Set the Database Connection String (adjust as needed for your local SQL Server)
+dotnet user-secrets set "ConnectionStrings:Portfolio" "Server=localhost; Database=PortfolioPRE; User Id=Portfolio; Password=Portfolio; TrustServerCertificate=True"
+
+# Set API Keys for external services
+dotnet user-secrets set "CoinGecko:ApiKey" "your_coingecko_api_key_here"
+dotnet user-secrets set "TwelveData:ApiKey" "your_twelvedata_api_key_here"
+
 dotnet build
 dotnet run
 ```
