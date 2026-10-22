@@ -21,10 +21,6 @@
     ]
   },
   "private": true,
-  "overrides": {
-    "@emnapi/core": "^1.11.3",
-    "@emnapi/runtime": "^1.11.3"
-  },
   "packageManager": "npm@11.6.2",
   "dependencies": {
     "@angular/animations": "^21.2.25",
@@ -40,6 +36,8 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@emnapi/core": "^1.11.3",
+    "@emnapi/runtime": "^1.11.3",
     "@angular/build": "^21.2.25",
     "@angular/cli": "^21.2.25",
     "@angular/compiler-cli": "^21.2.25",
