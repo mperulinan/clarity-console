@@ -59,5 +59,11 @@ internal sealed class TransactionConfiguration : IEntityTypeConfiguration<Transa
             .HasConversion(
                 v => v == null ? null : v.Value,
                 v => v == null ? null : FiatCurrency.FromValue(v));
+
+        entity.Property(e => e.BrokerTransactionId)
+            .HasMaxLength(100)
+            .IsRequired(false);
+
+        entity.HasIndex(e => e.BrokerTransactionId);
     }
 }

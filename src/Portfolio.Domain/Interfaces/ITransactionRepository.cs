@@ -9,4 +9,6 @@ public interface ITransactionRepository
     Task AddAsync(Transaction transaction);
     Task UpdateAsync(Transaction transaction);
     Task DeleteAsync(int id);
+    Task<bool> ExistsByBrokerTransactionIdAsync(string brokerTransactionId, CancellationToken cancellationToken = default);
+    Task<IReadOnlySet<string>> GetExistingBrokerTransactionIdsAsync(IEnumerable<string> brokerTransactionIds, CancellationToken cancellationToken = default);
 }

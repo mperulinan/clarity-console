@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Domain.Entities;
+using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 
 namespace Portfolio.Infrastructure.Persistence.Repositories;
@@ -19,6 +20,13 @@ public class AssetRepository(PortfolioContext context) : IAssetRepository
     public async Task<IEnumerable<Asset>> GetByExternalIdsAsync(IEnumerable<string> externalIds)
     {
         return await context.Assets.Where(a => a.ExternalId != null && externalIds.Contains(a.ExternalId)).ToListAsync();
+    }
+
+    public async Task<Asset?> GetBySymbolAsync(string symbol, AssetType type, CancellationToken cancellationToken = default)
+    {
+        var upperSymbol = symbol.ToUpper();
+        return await context.Assets
+            .FirstOrDefaultAsync(a => a.Symbol == upperSymbol && a.Type == type, cancellationToken);
     }
 
     public async Task<IEnumerable<Asset>> GetAllAsync()

@@ -1,4 +1,5 @@
 using Portfolio.Domain.Entities;
+using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 
 namespace Portfolio.Application.Tests.Fakes;
@@ -31,6 +32,19 @@ public class FakeTransactionRepository : ITransactionRepository
         _transactions.RemoveAll(t => t.Id == id);
         return Task.CompletedTask;
     }
+
+    public Task<bool> ExistsByBrokerTransactionIdAsync(string brokerTransactionId, CancellationToken cancellationToken = default) =>
+        Task.FromResult(_transactions.Any(t => t.BrokerTransactionId == brokerTransactionId));
+
+    public Task<IReadOnlySet<string>> GetExistingBrokerTransactionIdsAsync(IEnumerable<string> brokerTransactionIds, CancellationToken cancellationToken = default)
+    {
+        var idSet = brokerTransactionIds.ToHashSet();
+        var existing = _transactions
+            .Where(t => t.BrokerTransactionId != null && idSet.Contains(t.BrokerTransactionId))
+            .Select(t => t.BrokerTransactionId!)
+            .ToHashSet();
+        return Task.FromResult<IReadOnlySet<string>>(existing);
+    }
 }
 
 public class FakeAssetRepository : IAssetRepository
@@ -51,6 +65,9 @@ public class FakeAssetRepository : IAssetRepository
         var idSet = externalIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
         return Task.FromResult<IEnumerable<Asset>>(_assets.Where(a => a.ExternalId != null && idSet.Contains(a.ExternalId)).ToList());
     }
+
+    public Task<Asset?> GetBySymbolAsync(string symbol, AssetType type, CancellationToken cancellationToken = default) =>
+        Task.FromResult(_assets.FirstOrDefault(a => a.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase) && a.Type == type));
 
     public Task<IEnumerable<Asset>> GetAllAsync() =>
         Task.FromResult<IEnumerable<Asset>>([.. _assets]);

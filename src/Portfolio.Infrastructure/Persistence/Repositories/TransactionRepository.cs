@@ -43,4 +43,25 @@ public class TransactionRepository(PortfolioContext context) : ITransactionRepos
             context.Transactions.Remove(transaction);
         }
     }
+
+    public async Task<bool> ExistsByBrokerTransactionIdAsync(string brokerTransactionId, CancellationToken cancellationToken = default)
+    {
+        return await context.Transactions.AnyAsync(t => t.BrokerTransactionId == brokerTransactionId, cancellationToken);
+    }
+
+    public async Task<IReadOnlySet<string>> GetExistingBrokerTransactionIdsAsync(IEnumerable<string> brokerTransactionIds, CancellationToken cancellationToken = default)
+    {
+        var idsList = brokerTransactionIds.ToList();
+        if (idsList.Count == 0)
+        {
+            return new HashSet<string>();
+        }
+
+        var existing = await context.Transactions
+            .Where(t => t.BrokerTransactionId != null && idsList.Contains(t.BrokerTransactionId))
+            .Select(t => t.BrokerTransactionId!)
+            .ToListAsync(cancellationToken);
+
+        return existing.ToHashSet();
+    }
 }

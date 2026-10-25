@@ -24,6 +24,7 @@ public class Transaction
     public FiatCurrency SpotPriceInputCurrency { get; private set; } = null!;
     public FiatCurrency? FeePriceInputCurrency { get; private set; }
     public string? Notes { get; private set; }
+    public string? BrokerTransactionId { get; private set; }
 
     public bool HasIncompleteExchangeRates =>
         !SpotPriceEUR.HasValue || !SpotPriceUSD.HasValue ||
@@ -49,7 +50,8 @@ public class Transaction
         decimal? usdEurExchangeRate,
         FiatCurrency? spotPriceInputCurrency,
         FiatCurrency? feePriceInputCurrency,
-        string? notes)
+        string? notes,
+        string? brokerTransactionId = null)
     {
         Date = date;
         if (Date > DateTime.UtcNow)
@@ -97,6 +99,7 @@ public class Transaction
         SpotPriceInputCurrency = spotPriceInputCurrency;
         FeePriceInputCurrency = feePriceInputCurrency;
         Notes = notes;
+        BrokerTransactionId = brokerTransactionId;
     }
 
     private void ProcessFiatDerivations(ref decimal? spotPriceUSD, ref decimal? spotPriceEUR, ref FiatCurrency? spotPriceInputCurrency)

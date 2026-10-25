@@ -90,6 +90,10 @@ namespace Portfolio.Infrastructure.Migrations
                     b.Property<decimal>("AmountSpent")
                         .HasColumnType("decimal(36, 18)");
 
+                    b.Property<string>("BrokerTransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime");
 
@@ -140,6 +144,8 @@ namespace Portfolio.Infrastructure.Migrations
                         .HasColumnType("decimal(18, 8)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BrokerTransactionId");
 
                     b.HasIndex("FeeAssetId");
 
