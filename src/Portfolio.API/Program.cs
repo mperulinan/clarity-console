@@ -11,6 +11,7 @@ using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
 using Portfolio.Domain.Services;
 using Portfolio.Infrastructure.ExternalServices;
+using Portfolio.Infrastructure.ImportParsers;
 using Portfolio.Infrastructure.Persistence;
 using Portfolio.Infrastructure.Persistence.Repositories;
 
@@ -42,6 +43,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAssetSearchService, AssetSearchService>();
 builder.Services.AddScoped<IInventoryCalculator, InventoryCalculator>();
 builder.Services.AddScoped<IExchangeRateProvider, FrankfurterExchangeRateProvider>();
+builder.Services.AddScoped<ITransactionImportParser, DegiroTransactionParser>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetPortfolioMetricsQuery).Assembly));
 
 builder.Services.AddMemoryCache();
