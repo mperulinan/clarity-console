@@ -72,10 +72,9 @@ jobs:
         working-directory: ./src/Portfolio.Client
         run: npm run build
 
-      # Uncomment when tests are ready (requires ChromeHeadless configuration in Karma/Vitest)
-      # - name: Test
-      #   working-directory: ./src/Portfolio.Client
-      #   run: npm run test
+      - name: Unit tests
+        working-directory: ./src/Portfolio.Client
+        run: npm run test -- --watch=false --coverage
 
   # ─────────────────────────────────────────────
   # 3. Deploy to IIS — Self-hosted Windows runner
