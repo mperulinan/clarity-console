@@ -40,6 +40,8 @@ Scopes must be strictly lowercase. Prefer deriving the scope from the primary ar
 | Dependency / lockfile changes only | `deps` |
 | `.github/workflows` | `ci` |
 
+Do not invent scopes (e.g. `workflow`, `ui`). For `.agents/` and other repo tooling, omit the scope.
+
 Omit the scope only when the change is truly cross-cutting or applies to repository-level tooling/docs where no specific layer applies (e.g. `docs: ...` or `chore: ...`).
 
 ## Subject rules
@@ -75,7 +77,7 @@ feat(infrastructure): implement degiro transaction csv parser
 - Add unit tests for DegiroTransactionParser
 
 ci(client): enable angular unit tests in ci pipeline
-- Run ng test with ChromeHeadless in GitHub Actions workflow
+- Run ng test with Vitest using '--watch=false' in CI pipeline
 
 docs: add commit message convention
 - Add docs/COMMIT_CONVENTION.md as canonical format for types, scopes, and structure
