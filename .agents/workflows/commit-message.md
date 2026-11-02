@@ -24,6 +24,7 @@ description: Generate a professional commit message from staged git changes
    ```
 
 3. Analyse the diff and historical context:
+   - Read `docs/COMMIT_CONVENTION.md` in full before composing any message.
    - Derive type, scope, subject, body, and footers strictly according to `docs/COMMIT_CONVENTION.md`.
    - Use recent commit history solely to calibrate tone and project vocabulary.
 

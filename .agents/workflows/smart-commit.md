@@ -21,6 +21,7 @@ description: Automatically analyze, group, stage, and commit all Git changes.
    ```
 
 2. Analyse the diffs and historical style context:
+   - Read `docs/COMMIT_CONVENTION.md` in full before composing any message.
    - Determine if the changes represent a single logical unit of work or if they should be split into multiple commits.
    - For each logical commit group:
      - Identify the files that belong to this group.
