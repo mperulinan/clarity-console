@@ -3,7 +3,7 @@ import { TaxReportComponent } from './tax-report.component';
 import { PortfolioService } from '../../services/portfolio.service';
 import { MatDialog } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ProcessedTransaction, TransactionType } from '../../models/transaction';
 import { PortfolioReport, YearSummary } from '../../models/portfolio-report';
 
@@ -13,7 +13,7 @@ describe('TaxReportComponent', () => {
   let portfolioServiceSpy: any;
   let dialogSpy: any;
 
-  const mockTxType: TransactionType = { value: 'BUY', name: 'Buy', requiresFromAsset: false, requiresToAsset: true };
+  const mockTxType: TransactionType = { value: 'BUY', name: 'Buy', requiresFromAsset: false, requiresToAsset: true, requiresSpotPrice: true };
 
   const makeTx = (id: number, date: string, profitLoss?: number): ProcessedTransaction => ({
     transaction: { id, date, type: mockTxType, amountSpent: 0, amountReceived: 1, fee: 0 },
@@ -39,7 +39,7 @@ describe('TaxReportComponent', () => {
 
   beforeEach(async () => {
     portfolioServiceSpy = {
-      getPortfolioReport: () => of(mockReport)
+      getPortfolioReport: vi.fn().mockReturnValue(of(mockReport))
     };
     dialogSpy = { open: vi.fn() };
 
@@ -66,6 +66,12 @@ describe('TaxReportComponent', () => {
     expect(component.reportCurrency()).toBe('EUR');
     expect(component.selectedYear()).toBe(2024); // most recent first
     expect(component.yearSummaries()).toEqual(mockYearSummaries);
+  });
+
+  it('should handle service error gracefully', () => {
+    portfolioServiceSpy.getPortfolioReport.mockReturnValue(throwError(() => new Error('API failure')));
+    component.ngOnInit();
+    expect(component.isLoading()).toBe(false);
   });
 
   // ── Year selection ────────────────────────────────────────────────────
@@ -126,6 +132,14 @@ describe('TaxReportComponent', () => {
     expect(component.getSpotPrice(tx)).toBe(40000);
   });
 
+  it('getSpotPrice() should return USD price when reportCurrency is USD', async () => {
+    component.reportCurrency.set('USD');
+    const tx = makeTx(99, '2024-01-01T00:00:00Z');
+    tx.transaction.spotPriceEUR = 40000;
+    tx.transaction.spotPriceUSD = 45000;
+    expect(component.getSpotPrice(tx)).toBe(45000);
+  });
+
   it('getEventIcons() should return correct icons for known types', () => {
     expect(component.getEventIcons('SWAP')).toEqual({ typeIcon: 'swap_horiz', fromIcon: 'sell', toIcon: 'shopping_cart' });
     expect(component.getEventIcons('DEPOSIT')).toEqual({ typeIcon: 'south_east', fromIcon: '', toIcon: '' });
@@ -133,5 +147,42 @@ describe('TaxReportComponent', () => {
 
   it('getEventIcons() should return fallback icons for unknown types', () => {
     expect(component.getEventIcons('UNKNOWN')).toEqual({ typeIcon: 'swap_horiz', fromIcon: 'swap_horiz', toIcon: 'swap_horiz' });
+  });
+
+  // ── Wash sale details ─────────────────────────────────────────────────
+
+  it('viewWashSaleDetails() should return early if disallowedByTransactionId is missing', () => {
+    const tx = makeTx(1, '2024-01-01T00:00:00Z');
+    component.viewWashSaleDetails(tx);
+    expect(dialogSpy.open).not.toHaveBeenCalled();
+  });
+
+  it('viewWashSaleDetails() should scroll when element is in DOM', () => {
+    const el = document.createElement('div');
+    el.id = 'tx-999';
+    el.scrollIntoView = vi.fn();
+    document.body.appendChild(el);
+
+    const lossTx = makeTx(1, '2024-01-01T00:00:00Z');
+    lossTx.disallowedByTransactionId = 999;
+
+    component.viewWashSaleDetails(lossTx);
+
+    expect(el.scrollIntoView).toHaveBeenCalled();
+    expect(dialogSpy.open).not.toHaveBeenCalled();
+
+    document.body.removeChild(el);
+  });
+
+  it('viewWashSaleDetails() should open dialog when element is not in DOM and repurchaseTx exists', () => {
+    const repurchaseTx = makeTx(99, '2024-01-01T00:00:00Z');
+    component['allTransactions'].set([...mockReport.transactions, repurchaseTx]);
+
+    const lossTx = makeTx(1, '2024-01-01T00:00:00Z');
+    lossTx.disallowedByTransactionId = 99; // Not in DOM
+
+    component.viewWashSaleDetails(lossTx);
+
+    expect(dialogSpy.open).toHaveBeenCalled();
   });
 });

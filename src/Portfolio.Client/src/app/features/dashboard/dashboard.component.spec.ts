@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { vi } from 'vitest';
 import { DashboardComponent } from './dashboard.component';
 import { PortfolioService } from '../../services/portfolio.service';
 import { PortfolioMetrics } from '../../models/portfolio-metrics';

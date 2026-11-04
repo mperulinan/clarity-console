@@ -35,7 +35,7 @@ describe('InteractivePriceInputComponent', () => {
 
     await fixture.whenStable();
     
-    component.internalControl.setValue(150);
+    component.internalControl.setValue('150');
     expect(emittedValue).toBe(150);
   });
 
@@ -47,7 +47,7 @@ describe('InteractivePriceInputComponent', () => {
     await fixture.whenStable();
     
     component.toggleMode(); // switch to total mode
-    component.internalControl.setValue(300); // User types 300 total
+    component.internalControl.setValue('300'); // User types 300 total
     
     expect(emittedValue).toBe(150); // Unit price is 150
   });

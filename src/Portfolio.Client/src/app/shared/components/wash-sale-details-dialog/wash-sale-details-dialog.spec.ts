@@ -10,7 +10,7 @@ describe('WashSaleDetailsDialogComponent', () => {
 
   const mockLossTx: ProcessedTransaction = {
     transaction: {
-      id: 1, type: { value: 'SELL', name: 'Sell', requiresFromAsset: true, requiresToAsset: false },
+      id: 1, type: { value: 'SELL', name: 'Sell', requiresFromAsset: true, requiresToAsset: false, requiresSpotPrice: true },
       amountSpent: 1, amountReceived: 0, fee: 0, date: new Date().toISOString(),
       spotPriceEUR: 10, spotPriceUSD: 11
     },
@@ -21,7 +21,7 @@ describe('WashSaleDetailsDialogComponent', () => {
 
   const mockData: WashSaleDialogData = {
     lossTx: mockLossTx,
-    repurchaseTx: { ...mockLossTx, transaction: { ...mockLossTx.transaction, type: { value: 'BUY', name: 'Buy', requiresFromAsset: false, requiresToAsset: true }, id: 2 } },
+    repurchaseTx: { ...mockLossTx, transaction: { ...mockLossTx.transaction, type: { value: 'BUY', name: 'Buy', requiresFromAsset: false, requiresToAsset: true, requiresSpotPrice: true }, id: 2 } },
     currency: 'USD'
   };
 
