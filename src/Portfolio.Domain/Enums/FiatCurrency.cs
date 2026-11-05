@@ -13,7 +13,11 @@ public class FiatCurrency : SmartEnum<FiatCurrency, string>
     public static FiatCurrency TaxCurrency => EUR;
 
     /// <summary>
-    /// The default currency used for day-to-day display (e.g., Dashboard, Transactions).
+    /// Default currency for day-to-day display labels (e.g. dashboard).
+    /// Portfolio metrics are computed in USD (market prices and *Usd totals).
+    /// Do not change this to a non-USD currency unless PortfolioMetricsCalculator
+    /// and the metrics pipeline convert amounts to that currency; otherwise the UI
+    /// would show the wrong currency symbol on USD values.
     /// </summary>
     public static FiatCurrency DefaultDisplayCurrency => USD;
 
