@@ -9,6 +9,7 @@ namespace Portfolio.Infrastructure.ImportParsers;
 public class DegiroTransactionParser : ITransactionImportParser
 {
     public string BrokerKey => "degiro";
+    public string DisplayName => "DEGIRO";
 
     public async Task<IReadOnlyList<ImportedTransactionRow>> ParseAsync(
         Stream csvStream, 
