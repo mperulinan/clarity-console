@@ -20,7 +20,8 @@ public class CommitImportTransactionsCommandHandler(
     IMediator mediator,
     IBackgroundTaskQueue backgroundQueue,
     IMemoryCache cache,
-    ILogger<CommitImportTransactionsCommandHandler> logger)
+    ILogger<CommitImportTransactionsCommandHandler> logger,
+    IEnumerable<ITransactionImportParser>? parsers = null)
     : IRequestHandler<CommitImportTransactionsCommand, ImportTransactionsResultDto>
 {
     public async Task<ImportTransactionsResultDto> Handle(
@@ -32,10 +33,17 @@ public class CommitImportTransactionsCommandHandler(
             throw new InvalidOperationException("The import preview session has expired or does not exist. Please upload the CSV again.");
         }
 
+        var brokerParser = parsers?.FirstOrDefault(p => string.Equals(p.BrokerKey, session.BrokerKey, StringComparison.OrdinalIgnoreCase));
+        var brokerName = brokerParser?.DisplayName ?? session.BrokerKey.ToUpperInvariant();
+
         var excludedSet = command.ExcludedBrokerTransactionIds?.ToHashSet() ?? [];
+        var overrides = command.OverriddenSymbols ?? new Dictionary<string, string>();
         var warnings = new List<string>();
 
         var actionableRows = session.Rows
+            .Select(r => overrides.TryGetValue(r.Raw.BrokerTransactionId, out var sym) && !string.IsNullOrWhiteSpace(sym)
+                ? r with { ResolvedSymbol = sym.Trim().ToUpperInvariant(), IsUnresolvable = false, ResolvedAssetId = null }
+                : r)
             .Where(r => !r.IsDuplicate && !r.IsUnresolvable && !excludedSet.Contains(r.Raw.BrokerTransactionId))
             .ToList();
 
@@ -135,7 +143,7 @@ public class CommitImportTransactionsCommandHandler(
                 usdEurExchangeRate: null,
                 spotPriceInputCurrency: null,
                 feePriceInputCurrency: null,
-                notes: $"Imported from DEGIRO ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
+                notes: $"Imported from {brokerName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
                 brokerTransactionId: row.BrokerTransactionId
             );
 

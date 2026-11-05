@@ -2,5 +2,6 @@ namespace Portfolio.Application.DTOs;
 
 public record CommitImportTransactionsRequest(
     string PreviewToken,
-    IReadOnlyList<string>? ExcludedBrokerTransactionIds = null
+    IReadOnlyList<string>? ExcludedBrokerTransactionIds = null,
+    IReadOnlyDictionary<string, string>? OverriddenSymbols = null
 );

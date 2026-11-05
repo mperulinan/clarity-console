@@ -162,6 +162,45 @@ public class CommitImportTransactionsCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_OverriddenSymbols_ResolvesPreviouslyUnresolvableRowAndImportsIt()
+    {
+        // Arrange
+        var token = "preview-token-override";
+        var stockAssetId = Guid.NewGuid();
+        var stockAsset = new Asset("MSFT", "Microsoft Corp", "MSFT", null, AssetType.Stock);
+        typeof(Asset).GetProperty("Id")!.SetValue(stockAsset, stockAssetId);
+        await _uow.Assets.AddAsync(stockAsset);
+
+        var previewRows = new List<ImportedTransactionRowPreview>
+        {
+            new(
+                Raw: new ImportedTransactionRow(DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 5m, 100m, "EUR", null, 1m, -501m, "uuid-unresolved"),
+                ResolvedSymbol: null,
+                ResolvedAssetId: null,
+                WillAutoCreate: false,
+                IsDuplicate: false,
+                IsUnresolvable: true,
+                WarningMessage: "Could not resolve ticker"
+            )
+        };
+
+        _cache.Set(token, new ImportPreviewSession("degiro", previewRows, DateTimeOffset.UtcNow));
+
+        var overrides = new Dictionary<string, string> { ["uuid-unresolved"] = "MSFT" };
+        var command = new CommitImportTransactionsCommand("degiro", token, null, overrides);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(1, result.ImportedCount);
+        Assert.Equal(0, result.SkippedCount);
+
+        var savedTxs = (await _uow.Transactions.GetAllAsync()).ToList();
+        Assert.Contains(savedTxs, t => t.BrokerTransactionId == "uuid-unresolved" && t.ToAssetId == stockAssetId);
+    }
+
+    [Fact]
     public async Task Handle_ExpiredOrMissingToken_ThrowsInvalidOperationException()
     {
         // Arrange

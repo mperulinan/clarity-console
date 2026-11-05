@@ -54,17 +54,45 @@ public class PreviewImportTransactionsCommandHandler(
         var brokerIds = rawRows.Select(r => r.BrokerTransactionId).Distinct().ToList();
         var existingBrokerIds = await uow.Transactions.GetExistingBrokerTransactionIdsAsync(brokerIds, cancellationToken);
 
-        // Cache resolution for distinct ISINs to minimize external searches
-        var distinctIsins = rawRows.Select(r => r.Isin).Where(i => !string.IsNullOrWhiteSpace(i)).Distinct();
+        // Group rows by distinct ISIN to minimize external searches and preserve context (exchange, product name)
+        var distinctIsins = rawRows
+            .Where(r => !string.IsNullOrWhiteSpace(r.Isin))
+            .GroupBy(r => r.Isin, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
         var isinMap = new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var isin in distinctIsins)
+        foreach (var (isin, sampleRow) in distinctIsins)
         {
             try
             {
-                var searchResults = await searchService.SearchAsync(isin, AssetType.Stock.Value);
-                var match = searchResults.FirstOrDefault();
-                isinMap[isin] = match;
+                // Search without type filter to ensure ETFs and Stocks are both resolved
+                var searchResults = (await searchService.SearchAsync(isin)).ToList();
+
+                // Fallback: If ISIN lookup returned 0 results, attempt search with the product name
+                if (searchResults.Count == 0 && !string.IsNullOrWhiteSpace(sampleRow.ProductName))
+                {
+                    searchResults = (await searchService.SearchAsync(sampleRow.ProductName)).ToList();
+                }
+
+                if (searchResults.Count > 0)
+                {
+                    // Prioritization heuristic:
+                    // 1. Prefer candidate already existing locally with transactions
+                    // 2. Prefer candidate matching reference exchange if available
+                    // 3. Fall back to highest relevance result
+                    var match = searchResults
+                        .OrderByDescending(c => c.TransactionCount > 0)
+                        .ThenByDescending(c => !string.IsNullOrWhiteSpace(sampleRow.Exchange) &&
+                                               c.Name.Contains(sampleRow.Exchange, StringComparison.OrdinalIgnoreCase))
+                        .FirstOrDefault();
+
+                    isinMap[isin] = match;
+                }
+                else
+                {
+                    isinMap[isin] = null;
+                }
             }
             catch (Exception ex)
             {
@@ -94,7 +122,9 @@ public class PreviewImportTransactionsCommandHandler(
             if (resolvedSearchAsset != null)
             {
                 resolvedSymbol = resolvedSearchAsset.Symbol;
-                var localAsset = await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, AssetType.Stock, cancellationToken);
+                var localAsset = await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, AssetType.Stock, cancellationToken)
+                    ?? await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, AssetType.Etf, cancellationToken);
+
                 if (localAsset != null)
                 {
                     resolvedAssetId = localAsset.Id;
@@ -123,7 +153,12 @@ public class PreviewImportTransactionsCommandHandler(
 
         var previewToken = Guid.NewGuid().ToString();
         var session = new ImportPreviewSession(command.BrokerKey, previewRows, DateTimeOffset.UtcNow);
-        cache.Set(previewToken, session, TimeSpan.FromMinutes(10));
+
+        var cacheOptions = new MemoryCacheEntryOptions()
+            .SetSlidingExpiration(TimeSpan.FromMinutes(20))
+            .SetAbsoluteExpiration(TimeSpan.FromHours(1));
+
+        cache.Set(previewToken, session, cacheOptions);
 
         return new ImportTransactionsPreviewDto(
             PreviewToken: previewToken,
