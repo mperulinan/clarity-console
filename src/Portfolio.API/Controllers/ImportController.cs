@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Portfolio.Application.CQRS.Commands;
+using Portfolio.Application.CQRS.Queries;
 using Portfolio.Application.DTOs;
 
 namespace Portfolio.API.Controllers;
@@ -9,6 +10,13 @@ namespace Portfolio.API.Controllers;
 [ApiController]
 public class ImportController(ISender sender) : ControllerBase
 {
+    [HttpGet("brokers")]
+    public async Task<ActionResult<IReadOnlyList<BrokerDto>>> GetBrokers(CancellationToken cancellationToken)
+    {
+        var brokers = await sender.Send(new GetAvailableBrokersQuery(), cancellationToken);
+        return Ok(brokers);
+    }
+
     [HttpPost("{brokerKey}/preview")]
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<ImportTransactionsPreviewDto>> Preview(
@@ -39,7 +47,7 @@ public class ImportController(ISender sender) : ControllerBase
         }
 
         var result = await sender.Send(
-            new CommitImportTransactionsCommand(brokerKey, request.PreviewToken, request.ExcludedBrokerTransactionIds),
+            new CommitImportTransactionsCommand(brokerKey, request.PreviewToken, request.ExcludedBrokerTransactionIds, request.OverriddenSymbols),
             cancellationToken);
 
         return Ok(result);
