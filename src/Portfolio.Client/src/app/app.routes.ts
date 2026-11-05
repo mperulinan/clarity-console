@@ -26,5 +26,10 @@ export const routes: Routes = [
         title: 'Edit Transaction • Clarity Console',
         loadComponent: () => import('./features/new-transaction/new-transaction.component').then(m => m.TransactionFormComponent)
     },
+    {
+        path: 'import',
+        title: 'Import CSV • Clarity Console',
+        loadComponent: () => import('./features/import/import.component').then(m => m.ImportComponent)
+    },
     { path: '**', redirectTo: '' }
 ];

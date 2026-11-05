@@ -236,4 +236,16 @@ describe('TransactionsComponent', () => {
     component.toggleSort('profitLoss');
     expect(component.getAriaSort('profitLoss')).toBe('ascending');
   });
+
+  it('openImport() should navigate to /import', () => {
+    component.openImport();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/import']);
+  });
+
+  it('renders an Import CSV button in the page header', () => {
+    fixture.detectChanges();
+    const buttons: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('app-button');
+    const hasImportBtn = Array.from(buttons).some(b => b.textContent?.includes('Import CSV'));
+    expect(hasImportBtn).toBe(true);
+  });
 });

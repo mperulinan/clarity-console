@@ -1,0 +1,400 @@
+<div class="import-page">
+
+  <!-- ── STEP INDICATOR ───────────────────────────────── -->
+  <div class="step-bar">
+    <div class="step" [class.active]="currentStep() === 'upload'" [class.done]="currentStep() === 'review' || currentStep() === 'result'">
+      <div class="step-circle">
+        @if (currentStep() === 'review' || currentStep() === 'result') {
+          <mat-icon class="step-check">check</mat-icon>
+        } @else {
+          <span>1</span>
+        }
+      </div>
+      <span class="step-label">Broker &amp; File</span>
+    </div>
+
+    <div class="step-line" [class.done]="currentStep() === 'review' || currentStep() === 'result'"></div>
+
+    <div class="step" [class.active]="currentStep() === 'review'" [class.done]="currentStep() === 'result'">
+      <div class="step-circle">
+        @if (currentStep() === 'result') {
+          <mat-icon class="step-check">check</mat-icon>
+        } @else {
+          <span>2</span>
+        }
+      </div>
+      <span class="step-label">Review</span>
+    </div>
+
+    <div class="step-line" [class.done]="currentStep() === 'result'"></div>
+
+    <div class="step" [class.active]="currentStep() === 'result'">
+      <div class="step-circle"><span>3</span></div>
+      <span class="step-label">Result</span>
+    </div>
+  </div>
+
+  <!-- ── STEP 1: BROKER & FILE ─────────────────────────── -->
+  @if (currentStep() === 'upload') {
+  <div class="wizard-card">
+    <h1 class="page-title">Import Transactions</h1>
+    <p class="page-subtitle">Import your broker CSV file to add transactions to Clarity Console.</p>
+
+    <!-- Error banner -->
+    @if (errorMessage()) {
+    <div class="error-banner" role="alert">
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+    }
+
+    <!-- Broker selection -->
+    <section class="wizard-section">
+      <h2 class="section-title">Select broker</h2>
+
+      @if (isLoadingBrokers()) {
+        <div class="broker-cards">
+          <div class="broker-card-skeleton">
+            <app-skeleton type="line" width="90px" height="20px"></app-skeleton>
+          </div>
+        </div>
+      } @else {
+        <div class="broker-cards">
+          @for (broker of brokers(); track broker.key) {
+          <button
+            type="button"
+            class="broker-card"
+            [class.selected]="selectedBrokerKey() === broker.key"
+            (click)="selectBroker(broker.key)">
+            <mat-icon class="broker-icon">account_balance</mat-icon>
+            <span class="broker-name">{{ broker.displayName }}</span>
+            @if (selectedBrokerKey() === broker.key) {
+            <mat-icon class="broker-check">check_circle</mat-icon>
+            }
+          </button>
+          }
+        </div>
+      }
+
+      <!-- DEGIRO format hint -->
+      @if (isDegiro()) {
+      <div class="format-hint" role="note">
+        <mat-icon class="hint-icon">info_outline</mat-icon>
+        <div>
+          <p class="hint-title">Expected file format — DEGIRO (Spanish export)</p>
+          <p class="hint-body">
+            DEGIRO exports transactions with <strong>Spanish column headers</strong>.
+            Required columns: <code>Fecha</code>, <code>Producto</code>, <code>ISIN</code>,
+            <code>Número</code>, <code>Precio</code>, <code>Total EUR</code>, <code>ID Orden</code>.
+          </p>
+          <p class="hint-body">
+            To export: Log in to DEGIRO &rarr; Activity &rarr; Transactions &rarr; Export (CSV).
+          </p>
+        </div>
+      </div>
+      }
+    </section>
+
+    <!-- File upload -->
+    <section class="wizard-section">
+      <h2 class="section-title">Upload CSV file</h2>
+
+      @if (!selectedFile()) {
+      <div
+        class="dropzone"
+        [class.drag-over]="isDragOver()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        (click)="fileInput.click()"
+        (keydown.enter)="fileInput.click()"
+        (keydown.space)="fileInput.click()"
+        role="button"
+        tabindex="0"
+        aria-label="Upload CSV file">
+        <mat-icon class="dropzone-icon">upload_file</mat-icon>
+        <p class="dropzone-primary">Drop your CSV here, or click to browse</p>
+        <p class="dropzone-secondary">Maximum file size: 10 MB</p>
+        <input
+          #fileInput
+          type="file"
+          accept=".csv"
+          class="file-input-hidden"
+          (change)="onFileSelected($event)"
+          aria-hidden="true" />
+      </div>
+      } @else {
+      <div class="file-selected">
+        <mat-icon class="file-icon">description</mat-icon>
+        <div class="file-info">
+          <span class="file-name">{{ selectedFile()!.name }}</span>
+          <span class="file-size">{{ (selectedFile()!.size / 1024).toFixed(1) }} KB</span>
+        </div>
+        <button type="button" class="file-remove" (click)="removeFile()" aria-label="Remove file">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      }
+    </section>
+
+    <!-- Actions -->
+    <div class="wizard-actions">
+      <app-button
+        variant="filled"
+        color="primary"
+        [disabled]="!selectedFile() || isLoadingPreview()"
+        (click)="submitPreview()">
+        @if (isLoadingPreview()) {
+          <mat-icon class="spin">sync</mat-icon>
+          Analysing…
+        } @else {
+          <mat-icon>preview</mat-icon>
+          Preview Import
+        }
+      </app-button>
+    </div>
+  </div>
+  }
+
+  <!-- ── STEP 2: REVIEW ─────────────────────────────────── -->
+  @if (currentStep() === 'review') {
+  <div class="wizard-card">
+    <h1 class="page-title">Review transactions</h1>
+    <p class="page-subtitle">
+      Confirm which transactions to import. Deselect any rows you want to skip.
+    </p>
+
+    <!-- Error banner (commit error / expiry) -->
+    @if (errorMessage()) {
+    <div class="error-banner" role="alert">
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <span>{{ errorMessage() }}</span>
+      @if (isSessionExpired()) {
+        <app-button variant="text" color="primary" size="sm" (click)="reAnalyzeFile()">
+          Refresh preview
+        </app-button>
+      }
+    </div>
+    }
+
+    <!-- Summary chips -->
+    <div class="summary-chips">
+      <div class="chip chip-neutral">
+        <span class="chip-value">{{ totalRowCount() }}</span>
+        <span class="chip-label">Total</span>
+      </div>
+      <div class="chip chip-ready">
+        <span class="chip-value">{{ readyCount() }}</span>
+        <span class="chip-label">Ready</span>
+      </div>
+      @if (newAssetCount() > 0) {
+      <div class="chip chip-new-asset">
+        <span class="chip-value">{{ newAssetCount() }}</span>
+        <span class="chip-label">New Asset</span>
+      </div>
+      }
+      @if (duplicateCount() > 0) {
+      <div class="chip chip-neutral">
+        <span class="chip-value">{{ duplicateCount() }}</span>
+        <span class="chip-label">Duplicate</span>
+      </div>
+      }
+      @if (unresolvableCount() > 0) {
+      <div class="chip chip-error">
+        <span class="chip-value">{{ unresolvableCount() }}</span>
+        <span class="chip-label">Unresolvable</span>
+      </div>
+      }
+    </div>
+
+    <!-- Review table -->
+    <div class="table-wrap">
+      <table class="import-table">
+        <thead>
+          <tr>
+            <th class="col-check">
+              <input
+                type="checkbox"
+                [checked]="allSelectableChecked()"
+                [indeterminate]="someSelectableChecked()"
+                (change)="toggleSelectAll($any($event.target).checked)"
+                aria-label="Select all ready rows" />
+            </th>
+            <th class="col-date">Date</th>
+            <th class="col-product">Product</th>
+            <th class="col-qty">Type / Units</th>
+            <th class="col-price">Price / Total</th>
+            <th class="col-symbol">Resolved As</th>
+            <th class="col-status">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of reviewRows(); track row.raw.brokerTransactionId; let i = $index) {
+          <tr class="import-row" [class.row-excluded]="!row.selected && !row.isDuplicate && !row.isUnresolvable">
+            <!-- Checkbox -->
+            <td class="col-check">
+              <input
+                type="checkbox"
+                [checked]="row.selected"
+                [disabled]="row.isDuplicate || row.isUnresolvable"
+                (change)="toggleRow(i)"
+                [attr.aria-label]="'Include row ' + row.raw.brokerTransactionId" />
+            </td>
+
+            <!-- Date -->
+            <td class="col-date">
+              <span class="cell-primary">{{ row.raw.date | intlDate }}</span>
+            </td>
+
+            <!-- Product -->
+            <td class="col-product">
+              <span class="cell-primary">{{ row.raw.productName }}</span>
+              <span class="cell-secondary">{{ row.raw.isin }}</span>
+            </td>
+
+            <!-- Qty -->
+            <td class="col-qty">
+              <span class="cell-primary" [class.qty-buy]="row.raw.quantity > 0" [class.qty-sell]="row.raw.quantity < 0">
+                {{ row.raw.quantity > 0 ? 'BUY' : 'SELL' }}
+              </span>
+              <span class="cell-secondary">{{ row.raw.quantity | number:'1.2-6' }} units</span>
+            </td>
+
+            <!-- Price / Total -->
+            <td class="col-price">
+              <span class="cell-primary">{{ row.raw.pricePerUnit | number:'1.2-4' }} {{ row.raw.priceCurrency }}</span>
+              <span class="cell-secondary">{{ row.raw.totalEur | number:'1.2-2' }} EUR</span>
+            </td>
+
+            <!-- Resolved symbol -->
+            <td class="col-symbol">
+              @if (row.resolvedSymbol) {
+                <span class="cell-primary symbol-resolved">{{ row.resolvedSymbol }}</span>
+                @if (row.willAutoCreate) {
+                  <span class="cell-secondary">Will be created</span>
+                }
+              } @else if (!row.isDuplicate) {
+                <button
+                  type="button"
+                  class="link-btn"
+                  (click)="openAssetSearch(i)"
+                  [matTooltip]="'Manually link a ticker for this ISIN'">
+                  <mat-icon class="link-icon">search</mat-icon>
+                  Select asset
+                </button>
+              } @else {
+                <span class="cell-secondary">—</span>
+              }
+            </td>
+
+            <!-- Status badge -->
+            <td class="col-status">
+              @if (row.isDuplicate) {
+                <app-badge semantic="neutral" size="sm"
+                  [matTooltip]="row.warningMessage || 'Transaction ID already exists in your portfolio'">
+                  Duplicate
+                </app-badge>
+              } @else if (row.isUnresolvable) {
+                <app-badge semantic="error" size="sm"
+                  [matTooltip]="row.warningMessage || 'Could not resolve ticker symbol'">
+                  Unresolvable
+                </app-badge>
+              } @else if (row.willAutoCreate) {
+                <app-badge semantic="gain" size="sm"
+                  [matTooltip]="'Asset will be automatically added to your catalog'">
+                  Ready · New Asset
+                </app-badge>
+              } @else {
+                <app-badge semantic="gain" size="sm">Ready</app-badge>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Actions -->
+    <div class="wizard-actions">
+      <app-button variant="text" color="muted" (click)="backToUpload()">
+        <mat-icon>arrow_back</mat-icon>
+        Back
+      </app-button>
+
+      <app-button
+        variant="filled"
+        color="primary"
+        [disabled]="selectedCount() === 0 || isCommitting()"
+        (click)="submitCommit()">
+        @if (isCommitting()) {
+          <mat-icon class="spin">sync</mat-icon>
+          Importing…
+        } @else {
+          <mat-icon>check_circle</mat-icon>
+          Confirm Import ({{ selectedCount() }})
+        }
+      </app-button>
+    </div>
+  </div>
+  }
+
+  <!-- ── STEP 3: RESULT ─────────────────────────────────── -->
+  @if (currentStep() === 'result' && commitResult()) {
+  <div class="wizard-card result-card">
+
+    <div class="result-icon-wrap">
+      <mat-icon class="result-icon">check_circle</mat-icon>
+    </div>
+
+    <h1 class="page-title">Import complete</h1>
+    <p class="page-subtitle">Your DEGIRO transactions have been imported.</p>
+
+    <!-- Result counters -->
+    <div class="result-counters">
+      <div class="counter counter-imported">
+        <span class="counter-value">{{ commitResult()!.importedCount }}</span>
+        <span class="counter-label">Imported</span>
+      </div>
+      <div class="counter counter-skipped">
+        <span class="counter-value">{{ commitResult()!.skippedCount }}</span>
+        <span class="counter-label">Skipped</span>
+      </div>
+    </div>
+
+    <!-- Warnings (if any) -->
+    @if (commitResult()!.warnings.length > 0) {
+    <div class="warnings-section">
+      <p class="warnings-title">
+        <mat-icon>warning_amber</mat-icon>
+        {{ commitResult()!.warnings.length }} warning{{ commitResult()!.warnings.length > 1 ? 's' : '' }}
+      </p>
+      <ul class="warnings-list">
+        @for (w of commitResult()!.warnings; track $index) {
+        <li>{{ w }}</li>
+        }
+      </ul>
+    </div>
+    }
+
+    <!-- CTAs -->
+    <div class="result-actions">
+      <app-button variant="filled" color="primary" (click)="goToTransactions()">
+        <mat-icon>receipt_long</mat-icon>
+        View Transactions
+      </app-button>
+
+      <app-button variant="outlined" color="primary" (click)="resetWizard()">
+        <mat-icon>upload_file</mat-icon>
+        Import Another File
+      </app-button>
+
+      <app-button variant="text" color="muted" (click)="goToDashboard()">
+        <mat-icon>dashboard</mat-icon>
+        Go to Dashboard
+      </app-button>
+    </div>
+  </div>
+  }
+
+</div>
+

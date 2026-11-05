@@ -89,10 +89,16 @@
             <h1 class="page-title">Transactions</h1>
             <p class="page-subtitle">{{ totalCount() }} transactions processed</p>
         </div>
-        <app-button variant="outlined" color="primary" (click)="openNewTransaction()">
-            <mat-icon>add</mat-icon>
-            New Transaction
-        </app-button>
+        <div class="header-actions">
+            <app-button variant="outlined" color="muted" (click)="openImport()">
+                <mat-icon>upload_file</mat-icon>
+                Import CSV
+            </app-button>
+            <app-button variant="outlined" color="primary" (click)="openNewTransaction()">
+                <mat-icon>add</mat-icon>
+                New Transaction
+            </app-button>
+        </div>
     </div>
 
     <!-- ── TABLE ──────────────────────────────────────────────── -->

@@ -184,6 +184,10 @@ export class TransactionsComponent implements OnInit {
         this.router.navigate(['/new-transaction']);
     }
 
+    openImport() {
+        this.router.navigate(['/import']);
+    }
+
     editTransaction(id: number) {
         this.router.navigate(['/edit-transaction', id]);
     }

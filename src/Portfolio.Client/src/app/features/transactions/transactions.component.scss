@@ -50,6 +50,12 @@ $text-muted: var(--color-text-muted);
     margin-bottom: 24px;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .page-title {
     font-size: var(--text-2xl);
     font-weight: 500;
