@@ -1,4 +1,5 @@
 ---
+name: commit-message
 description: Generate a professional commit message from staged git changes
 ---
 
@@ -29,3 +30,4 @@ description: Generate a professional commit message from staged git changes
    - Use recent commit history solely to calibrate tone and project vocabulary.
 
 4. Compose the commit message strictly following `docs/COMMIT_CONVENTION.md` and present it in a single fenced code block.
+

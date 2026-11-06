@@ -1,4 +1,5 @@
 ---
+name: smart-commit
 description: Automatically analyze, group, stage, and commit all Git changes.
 ---
 
@@ -32,3 +33,4 @@ description: Automatically analyze, group, stage, and commit all Git changes.
    git add <file1> <file2> ...
    git commit -m "<type>(<scope>): <subject>" -m "- <bullet 1>" -m "- <bullet 2>"
    ```
+
