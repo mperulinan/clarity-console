@@ -206,6 +206,26 @@ describe('ImportComponent', () => {
     expect(component.currentStep()).toBe('upload');
   });
 
+  it('submitPreview() shows error banner and stays on upload step when preview returns 0 rows', async () => {
+    const emptyPreview: ImportTransactionsPreviewDto = {
+      previewToken: '',
+      rows: [],
+      totalRows: 0,
+      duplicateRows: 0,
+      unresolvableRows: 0,
+      readyToImportRows: 0
+    };
+    importServiceSpy.preview.mockReturnValue(of(emptyPreview));
+
+    const file = new File(['headers\n'], 'empty.csv', { type: 'text/csv' });
+    component.handleFile(file);
+    component.submitPreview();
+    await fixture.whenStable();
+
+    expect(component.currentStep()).toBe('upload');
+    expect(component.errorMessage()).toContain('No transactions were found');
+  });
+
   // ── Step 2: Review table row controls ──────────────────────────────────
 
   it('reviewRows computed counts: readyCount, duplicateCount, unresolvableCount', async () => {

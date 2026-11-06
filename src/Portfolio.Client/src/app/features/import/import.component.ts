@@ -221,9 +221,17 @@ export class ImportComponent implements OnInit {
       .subscribe({
         next: previewDto => {
           this.isLoadingPreview.set(false);
+
+          if (!previewDto.rows || previewDto.rows.length === 0) {
+            this.errorMessage.set(
+              'No transactions were found in the uploaded CSV file. Please verify that the file contains trade records.'
+            );
+            return;
+          }
+
           this.previewData.set(previewDto);
 
-          const items: ReviewRowItem[] = (previewDto.rows || []).map(r => ({
+          const items: ReviewRowItem[] = previewDto.rows.map(r => ({
             ...r,
             selected: !r.isDuplicate && !r.isUnresolvable
           }));
