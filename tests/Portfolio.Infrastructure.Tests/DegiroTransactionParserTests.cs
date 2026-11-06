@@ -88,6 +88,79 @@ public class DegiroTransactionParserTests
     }
 
     [Fact]
+    public async Task ParseAsync_OldFormatWithShiftedOrderColumnAndSpanishDecimals_ParsesCorrectly()
+    {
+        // Arrange
+        // Older DEGIRO exports had a trailing ",," after "Total EUR" in the header,
+        // which pushed the Order ID value one column to the right of the "ID Orden" header.
+        // The parser's ResolveBrokerTransactionId() falls back to the adjacent column in that case.
+        var csv = """
+            Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,
+            15-03-2022,10:30,ACME CORP,XX0000000001,TST,XTST,5,"100,0000",USD,"-500,00",USD,"-460,20","1,0864","-1,15","-1,00","-462,35",,aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+
+        // Act
+        var result = await _sut.ParseAsync(stream);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+        var row = result[0];
+        Assert.Equal(new DateTime(2022, 3, 15, 10, 30, 0, DateTimeKind.Utc), row.Date);
+        Assert.Equal("ACME CORP", row.ProductName);
+        Assert.Equal("XX0000000001", row.Isin);
+        Assert.Equal("TST", row.Exchange);
+        Assert.Equal(5m, row.Quantity);
+        Assert.Equal(100.0000m, row.PricePerUnit);
+        Assert.Equal("USD", row.PriceCurrency);
+        Assert.Equal(1.0864m, row.FxRate);
+        Assert.Equal(1.00m, row.FeeEur);
+        Assert.Equal(-462.35m, row.TotalEur);
+        Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", row.BrokerTransactionId);
+    }
+
+    [Fact]
+    public async Task ParseAsync_NewFormatWithoutTrailingShift_ParsesCorrectly()
+    {
+        // Arrange
+        // Current DEGIRO exports no longer have the trailing ",," after "Total EUR";
+        // the Order ID sits directly under its "ID Orden" header column.
+        var csv = """
+            Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden
+            15-03-2022,10:30,ACME CORP,XX0000000001,TST,XTST,5,"100,0000",USD,"-500,00",USD,"-460,20","1,0864","-1,15","-1,00","-462,35",aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+            20-07-2020,16:00,GLOBEX HOLDINGS ADR,XX9999999002,NSY,XNYS,8,"55,2500",USD,"-442,00",USD,"-390,15","1,1328","-0,98","-0,50","-391,63",bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+
+        // Act
+        var result = await _sut.ParseAsync(stream);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count);
+
+        var first = result[0];
+        Assert.Equal("ACME CORP", first.ProductName);
+        Assert.Equal("XX0000000001", first.Isin);
+        Assert.Equal(5m, first.Quantity);
+        Assert.Equal(100.0000m, first.PricePerUnit);
+        Assert.Equal("USD", first.PriceCurrency);
+        Assert.Equal(-462.35m, first.TotalEur);
+        Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", first.BrokerTransactionId);
+
+        var second = result[1];
+        Assert.Equal("GLOBEX HOLDINGS ADR", second.ProductName);
+        Assert.Equal("XX9999999002", second.Isin);
+        Assert.Equal(8m, second.Quantity);
+        Assert.Equal(55.2500m, second.PricePerUnit);
+        Assert.Equal("USD", second.PriceCurrency);
+        Assert.Equal(-391.63m, second.TotalEur);
+        Assert.Equal(0.50m, second.FeeEur);
+        Assert.Equal("bbbbbbbb-cccc-dddd-eeee-ffffffffffff", second.BrokerTransactionId);
+    }
+
+    [Fact]
     public async Task ParseAsync_EmptyCsv_ReturnsEmptyList()
     {
         // Arrange

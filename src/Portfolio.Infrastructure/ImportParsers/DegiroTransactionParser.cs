@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Portfolio.Domain.Interfaces;
@@ -15,7 +16,7 @@ public class DegiroTransactionParser : ITransactionImportParser
         Stream csvStream, 
         CancellationToken cancellationToken = default)
     {
-        using var reader = new StreamReader(csvStream, leaveOpen: true);
+        using var reader = new StreamReader(csvStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             HasHeaderRecord = true,
@@ -44,9 +45,8 @@ public class DegiroTransactionParser : ITransactionImportParser
         {
             var fecha = csv.GetField("Fecha");
             var hora = csv.GetField("Hora");
-            var idOrden = csv.GetField("ID Orden");
 
-            if (string.IsNullOrWhiteSpace(fecha) || string.IsNullOrWhiteSpace(idOrden))
+            if (string.IsNullOrWhiteSpace(fecha))
             {
                 continue;
             }
@@ -73,8 +73,9 @@ public class DegiroTransactionParser : ITransactionImportParser
             var quantity = ParseDecimal(csv.GetField("Número")) ?? 0m;
             var pricePerUnit = ParseDecimal(csv.GetField("Precio")) ?? 0m;
 
-            // Currency column immediately after "Precio" (index 8)
-            var priceCurrency = GetFieldByIndexSafe(csv, 8);
+            // In DEGIRO, price/monetary columns are paired with an unheadered currency column immediately after
+            var precioIndex = Array.FindIndex(headers, h => string.Equals(h?.Trim(), "Precio", StringComparison.OrdinalIgnoreCase));
+            var priceCurrency = precioIndex >= 0 ? GetFieldByIndexSafe(csv, precioIndex + 1) : null;
             if (string.IsNullOrWhiteSpace(priceCurrency))
             {
                 priceCurrency = "EUR";
@@ -88,6 +89,18 @@ public class DegiroTransactionParser : ITransactionImportParser
 
             var totalEur = ParseDecimal(csv.GetField("Total EUR")) ?? 0m;
 
+            // Align quantity sign with domain expectations (quantity > 0 for Buy, quantity < 0 for Sell)
+            if (totalEur < 0 && quantity < 0)
+            {
+                quantity = Math.Abs(quantity);
+            }
+            else if (totalEur > 0 && quantity > 0)
+            {
+                quantity = -Math.Abs(quantity);
+            }
+
+            var idOrden = ResolveBrokerTransactionId(csv, dateTime, isin, quantity, totalEur);
+
             rows.Add(new ImportedTransactionRow(
                 Date: dateTime,
                 ProductName: productName,
@@ -99,7 +112,7 @@ public class DegiroTransactionParser : ITransactionImportParser
                 FxRate: fxRate,
                 FeeEur: feeEur,
                 TotalEur: totalEur,
-                BrokerTransactionId: idOrden.Trim()
+                BrokerTransactionId: idOrden
             ));
         }
 
@@ -112,17 +125,63 @@ public class DegiroTransactionParser : ITransactionImportParser
         return requiredHeaders.All(req => headers.Any(h => string.Equals(h?.Trim(), req, StringComparison.OrdinalIgnoreCase)));
     }
 
+    private static string ResolveBrokerTransactionId(CsvReader csv, DateTime dateTime, string isin, decimal quantity, decimal totalEur)
+    {
+        // 1. Direct header lookup
+        var id = csv.GetField("ID Orden")?.Trim();
+        if (!string.IsNullOrWhiteSpace(id))
+            return id;
+
+        // 2. In real DEGIRO exports, "Total EUR" often has an unheadered column right after it,
+        // which pushes the data row values one index to the right of "ID Orden".
+        var headers = csv.HeaderRecord;
+        if (headers != null)
+        {
+            var idIndex = Array.FindIndex(headers, h => string.Equals(h?.Trim(), "ID Orden", StringComparison.OrdinalIgnoreCase));
+            if (idIndex >= 0)
+            {
+                var adjacent = GetFieldByIndexSafe(csv, idIndex + 1)?.Trim();
+                if (!string.IsNullOrWhiteSpace(adjacent))
+                    return adjacent;
+            }
+        }
+
+        // 3. Scan the row from the right for a GUID or order-like token
+        for (int col = csv.ColumnCount - 1; col >= 0; col--)
+        {
+            var val = GetFieldByIndexSafe(csv, col)?.Trim();
+            if (!string.IsNullOrWhiteSpace(val))
+            {
+                if (Guid.TryParse(val, out _) || (val.Length > 8 && val.Contains('-')))
+                    return val;
+            }
+        }
+
+        // 4. Deterministic fallback if broker didn't provide an order ID
+        return $"DEGIRO_{dateTime:yyyyMMddHHmm}_{isin}_{quantity}_{totalEur}".Replace(' ', '_');
+    }
+
     private static decimal? ParseDecimal(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
             return null;
 
-        if (decimal.TryParse(value.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+        var trimmed = value.Trim().Trim('"', '\'');
+
+        // If the value contains a comma, it represents a decimal separator in Spanish DEGIRO exports
+        // (e.g. "168,5600" or "-1105,33"). We must parse with Spanish culture first, because
+        // InvariantCulture with NumberStyles.Any treats comma as a thousands separator.
+        if (trimmed.Contains(','))
+        {
+            if (decimal.TryParse(trimmed, NumberStyles.Any, new CultureInfo("es-ES"), out var parsedEs))
+                return parsedEs;
+        }
+
+        if (decimal.TryParse(trimmed, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
             return parsed;
 
-        // Try Spanish number format (comma as decimal separator) if invariant parse fails
-        if (decimal.TryParse(value.Trim(), NumberStyles.Any, new CultureInfo("es-ES"), out var parsedEs))
-            return parsedEs;
+        if (decimal.TryParse(trimmed, NumberStyles.Any, new CultureInfo("es-ES"), out var fallbackEs))
+            return fallbackEs;
 
         return null;
     }
