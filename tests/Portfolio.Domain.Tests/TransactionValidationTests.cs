@@ -211,4 +211,53 @@ public class TransactionValidationTests
         ));
         Assert.Contains("Transaction date cannot be in the future", ex.Message);
     }
+
+    [Fact]
+    public void Update_Swap_ShouldFail_WhenFromAssetIsNull()
+    {
+        // Arrange
+        var tx = new Transaction(
+            DateTime.UtcNow,
+            TransactionType.Deposit,
+            null,
+            FiatCurrency.TaxCurrency.Id,
+            0, 100, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
+        );
+
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentException>(() => tx.Update(
+            DateTime.UtcNow,
+            TransactionType.Swap,
+            null,
+            _assetId,
+            100, 1, 1, null, 0, null, null, null, FiatCurrency.USD, null, null
+        ));
+        Assert.Contains("FromAssetId is required", ex.Message);
+    }
+
+    [Fact]
+    public void Update_ShouldDeriveFiatPrices_WhenAssetIsFiat()
+    {
+        // Arrange
+        var tx = new Transaction(
+            DateTime.UtcNow,
+            TransactionType.Deposit,
+            null,
+            FiatCurrency.TaxCurrency.Id,
+            0, 100, 1, null, 0, null, null, null, null, FiatCurrency.USD, null, null
+        );
+
+        // Act - Update to Swap from USD fiat to crypto
+        tx.Update(
+            DateTime.UtcNow,
+            TransactionType.Swap,
+            FiatCurrency.USD.Id,
+            _assetId,
+            100, 2, null, null, 0, null, null, null, null, null, null
+        );
+
+        // Assert
+        Assert.Equal(FiatCurrency.USD, tx.SpotPriceInputCurrency);
+        Assert.Equal(1m, tx.SpotPriceUSD);
+    }
 }
