@@ -18,6 +18,20 @@ The backend follows the principles of Clean Architecture and DDD, enforcing stri
 
 ### Layer Dependency Diagram
 
+```mermaid
+flowchart TD
+    API["Portfolio.API"]
+    INFRA["Portfolio.Infrastructure"]
+    APP["Portfolio.Application"]
+    DOMAIN["Portfolio.Domain"]
+
+    API --> INFRA
+    API --> APP
+    INFRA --> APP
+    APP --> DOMAIN
+    INFRA -.->|transitive| DOMAIN
+```
+
 ```text
                ┌───────────────────────┐
                │     Portfolio.API     │
@@ -25,15 +39,15 @@ The backend follows the principles of Clean Architecture and DDD, enforcing stri
                            │
              ┌─────────────┴─────────────┐
              ▼                           ▼
-┌───────────────────────────┐ ┌─────────────────────────┐
-│ Portfolio.Infrastructure  │─┼─► Portfolio.Application │
-└─────────────┬─────────────┘ │ └────────────┬────────────┘
-              │               │              │
-              └───────────────┼──────────────┘
-                              ▼ (transitive)
-                ┌───────────────────────────┐
-                │     Portfolio.Domain      │
-                └───────────────────────────┘
+┌───────────────────────────┐   ┌─────────────────────────┐
+│ Portfolio.Infrastructure  ├──►│  Portfolio.Application  │
+└─────────────┬─────────────┘   └────────────┬────────────┘
+              │                              │
+              │ (transitive)                 │
+              ▼                              ▼
+┌─────────────────────────────────────────────────────────┐
+│                    Portfolio.Domain                     │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### Layer Responsibilities
