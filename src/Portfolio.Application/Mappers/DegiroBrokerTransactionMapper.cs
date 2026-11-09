@@ -1,3 +1,4 @@
+using Portfolio.Application.Interfaces;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.ValueObjects;
@@ -5,14 +6,17 @@ using Portfolio.Domain.ValueObjects;
 namespace Portfolio.Application.Mappers;
 
 /// <summary>
-/// Pure mapper converting parsed external broker rows into domain Transaction entities.
+/// DEGIRO-specific transaction mapping strategy.
+/// Maps DEGIRO's EUR base currency legs, quantity sign conventions, and fees into domain Transaction entities.
 /// </summary>
-public static class ImportedTransactionMapper
+public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
 {
-    public static Transaction ToTransaction(
+    public string BrokerKey => "degiro";
+
+    public Transaction MapToTransaction(
         ImportedTransactionRow row, 
         Guid targetAssetId, 
-        string brokerName)
+        string brokerDisplayName)
     {
         Guid fromAssetId;
         Guid toAssetId;
@@ -52,9 +56,8 @@ public static class ImportedTransactionMapper
             usdEurExchangeRate: null,
             spotPriceInputCurrency: null,
             feePriceInputCurrency: null,
-            notes: $"Imported from {brokerName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
+            notes: $"Imported from {brokerDisplayName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
             brokerTransactionId: row.BrokerTransactionId
         );
     }
 }
-

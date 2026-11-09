@@ -5,10 +5,18 @@ using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Application.Tests.Mappers;
 
-public class ImportedTransactionMapperTests
+public class DegiroBrokerTransactionMapperTests
 {
+    private readonly DegiroBrokerTransactionMapper _sut = new();
+
     [Fact]
-    public void ToTransaction_BuyOrder_MapsEurToStockSwapWithPositiveAmounts()
+    public void BrokerKey_ShouldBeDegiro()
+    {
+        Assert.Equal("degiro", _sut.BrokerKey);
+    }
+
+    [Fact]
+    public void MapToTransaction_BuyOrder_MapsEurToStockSwapWithPositiveAmounts()
     {
         // Arrange
         var targetAssetId = Guid.NewGuid();
@@ -27,7 +35,7 @@ public class ImportedTransactionMapperTests
         );
 
         // Act
-        var transaction = ImportedTransactionMapper.ToTransaction(row, targetAssetId, "DEGIRO");
+        var transaction = _sut.MapToTransaction(row, targetAssetId, "DEGIRO");
 
         // Assert
         Assert.NotNull(transaction);
@@ -44,7 +52,7 @@ public class ImportedTransactionMapperTests
     }
 
     [Fact]
-    public void ToTransaction_SellOrder_MapsStockToEurSwapWithPositiveAmounts()
+    public void MapToTransaction_SellOrder_MapsStockToEurSwapWithPositiveAmounts()
     {
         // Arrange
         var targetAssetId = Guid.NewGuid();
@@ -63,7 +71,7 @@ public class ImportedTransactionMapperTests
         );
 
         // Act
-        var transaction = ImportedTransactionMapper.ToTransaction(row, targetAssetId, "DEGIRO");
+        var transaction = _sut.MapToTransaction(row, targetAssetId, "DEGIRO");
 
         // Assert
         Assert.NotNull(transaction);
@@ -79,7 +87,7 @@ public class ImportedTransactionMapperTests
     }
 
     [Fact]
-    public void ToTransaction_NullFee_DefaultsFeeToZeroEur()
+    public void MapToTransaction_NullFee_DefaultsFeeToZeroEur()
     {
         // Arrange
         var targetAssetId = Guid.NewGuid();
@@ -98,11 +106,10 @@ public class ImportedTransactionMapperTests
         );
 
         // Act
-        var transaction = ImportedTransactionMapper.ToTransaction(row, targetAssetId, "DEGIRO");
+        var transaction = _sut.MapToTransaction(row, targetAssetId, "DEGIRO");
 
         // Assert
         Assert.Equal(0m, transaction.Fee);
         Assert.Equal(FiatCurrency.EUR.Id, transaction.FeeAssetId);
     }
 }
-

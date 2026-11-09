@@ -1,7 +1,6 @@
 using MediatR;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
-using Portfolio.Application.Mappers;
 using Portfolio.Application.Models;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Interfaces;
@@ -10,7 +9,7 @@ namespace Portfolio.Application.CQRS.Commands;
 
 /// <summary>
 /// Orchestrates the two-phase commit of imported broker transactions:
-/// resolves missing assets via IImportAssetResolver, maps rows to domain Transaction entities via ImportedTransactionMapper,
+/// resolves missing assets via IImportAssetResolver, maps rows to domain Transaction entities via IBrokerTransactionMapper,
 /// persists the batch atomically, enqueues exchange rate background syncs, and invalidates the preview session.
 /// </summary>
 public class CommitImportTransactionsCommandHandler(
@@ -18,6 +17,7 @@ public class CommitImportTransactionsCommandHandler(
     IImportAssetResolver assetResolver,
     IBackgroundTaskQueue backgroundQueue,
     IImportPreviewStore previewStore,
+    IEnumerable<IBrokerTransactionMapper> brokerMappers,
     IEnumerable<ITransactionImportParser>? parsers = null)
     : IRequestHandler<CommitImportTransactionsCommand, ImportTransactionsResultDto>
 {
@@ -27,6 +27,9 @@ public class CommitImportTransactionsCommandHandler(
     {
         var session = previewStore.Get(command.PreviewToken)
             ?? throw new InvalidOperationException("The import preview session has expired or does not exist. Please upload the CSV again.");
+
+        var brokerMapper = brokerMappers.FirstOrDefault(m => string.Equals(m.BrokerKey, session.BrokerKey, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException($"No transaction mapper registered for broker '{session.BrokerKey}'.");
 
         var brokerParser = parsers?.FirstOrDefault(p => string.Equals(p.BrokerKey, session.BrokerKey, StringComparison.OrdinalIgnoreCase));
         var brokerName = brokerParser?.DisplayName ?? session.BrokerKey.ToUpperInvariant();
@@ -73,7 +76,7 @@ public class CommitImportTransactionsCommandHandler(
                 continue;
             }
 
-            var transaction = ImportedTransactionMapper.ToTransaction(previewRow.Raw, targetAssetId.Value, brokerName);
+            var transaction = brokerMapper.MapToTransaction(previewRow.Raw, targetAssetId.Value, brokerName);
             await uow.Transactions.AddAsync(transaction);
             createdTransactions.Add(transaction);
         }

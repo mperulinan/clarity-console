@@ -4,6 +4,7 @@ using NSubstitute;
 using Portfolio.Application.CQRS.Commands;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
+using Portfolio.Application.Mappers;
 using Portfolio.Application.Models;
 using Portfolio.Application.Services;
 using Portfolio.Application.Tests.Fakes;
@@ -20,6 +21,7 @@ public class CommitImportTransactionsCommandHandlerTests
     private readonly IBackgroundTaskQueue _backgroundQueue;
     private readonly FakeImportPreviewStore _previewStore;
     private readonly IImportAssetResolver _assetResolver;
+    private readonly DegiroBrokerTransactionMapper _degiroMapper;
     private readonly CommitImportTransactionsCommandHandler _sut;
 
     public CommitImportTransactionsCommandHandlerTests()
@@ -29,12 +31,14 @@ public class CommitImportTransactionsCommandHandlerTests
         _backgroundQueue = Substitute.For<IBackgroundTaskQueue>();
         _previewStore = new FakeImportPreviewStore();
         _assetResolver = new ImportAssetResolver(_uow, _mediator, NullLogger<ImportAssetResolver>.Instance);
+        _degiroMapper = new DegiroBrokerTransactionMapper();
 
         _sut = new CommitImportTransactionsCommandHandler(
             _uow,
             _assetResolver,
             _backgroundQueue,
-            _previewStore
+            _previewStore,
+            [_degiroMapper]
         );
     }
 
@@ -205,5 +209,18 @@ public class CommitImportTransactionsCommandHandlerTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.Handle(command, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_UnsupportedBrokerKey_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var token = "unsupported-broker-token";
+        _previewStore.Set(token, new ImportPreviewSession("unknown_broker", [], DateTimeOffset.UtcNow));
+        var command = new CommitImportTransactionsCommand("unknown_broker", token);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.Handle(command, CancellationToken.None));
+        Assert.Contains("No transaction mapper registered", ex.Message);
     }
 }

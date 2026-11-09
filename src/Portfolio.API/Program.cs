@@ -6,6 +6,7 @@ using Portfolio.API.BackgroundServices;
 using Portfolio.API.Middleware;
 using Portfolio.Application.CQRS.Queries;
 using Portfolio.Application.Interfaces;
+using Portfolio.Application.Mappers;
 using Portfolio.Application.Services;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
@@ -47,6 +48,7 @@ builder.Services.AddScoped<IExchangeRateProvider, FrankfurterExchangeRateProvide
 builder.Services.AddScoped<ITransactionImportParser, DegiroTransactionParser>();
 builder.Services.AddSingleton<IImportPreviewStore, MemoryCacheImportPreviewStore>();
 builder.Services.AddScoped<IImportAssetResolver, ImportAssetResolver>();
+builder.Services.AddScoped<IBrokerTransactionMapper, DegiroBrokerTransactionMapper>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetPortfolioMetricsQuery).Assembly));
 
 builder.Services.AddMemoryCache();
