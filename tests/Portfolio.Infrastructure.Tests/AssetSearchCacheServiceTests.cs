@@ -2,6 +2,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using Portfolio.Application.Interfaces;
+using Portfolio.Application.Models;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;

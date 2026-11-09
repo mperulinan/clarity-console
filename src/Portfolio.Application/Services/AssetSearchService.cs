@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Mappers;
+using Portfolio.Application.Models;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;

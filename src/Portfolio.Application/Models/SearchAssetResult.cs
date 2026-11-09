@@ -1,6 +1,6 @@
 using Portfolio.Domain.Entities;
 
-namespace Portfolio.Domain.Interfaces;
+namespace Portfolio.Application.Models;
 
 /// <summary>
 /// Wraps a search result asset with transient metadata (e.g. market cap rank)

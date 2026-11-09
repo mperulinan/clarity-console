@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Portfolio.Application.Interfaces;
+using Portfolio.Application.Models;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Interfaces;
 

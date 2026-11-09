@@ -1,4 +1,4 @@
-namespace Portfolio.Domain.ValueObjects;
+namespace Portfolio.Application.Models;
 
 public record ImportedTransactionRow(
     DateTime Date,

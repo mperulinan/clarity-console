@@ -1,6 +1,6 @@
 using MediatR;
 using Portfolio.Application.DTOs;
-using Portfolio.Domain.Interfaces;
+using Portfolio.Application.Interfaces;
 
 namespace Portfolio.Application.CQRS.Queries;
 

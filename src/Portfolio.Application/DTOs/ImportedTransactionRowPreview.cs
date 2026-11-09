@@ -1,4 +1,4 @@
-using Portfolio.Domain.ValueObjects;
+using Portfolio.Application.Models;
 
 namespace Portfolio.Application.DTOs;
 

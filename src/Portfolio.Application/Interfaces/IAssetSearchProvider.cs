@@ -1,4 +1,6 @@
-namespace Portfolio.Domain.Interfaces;
+using Portfolio.Application.Models;
+
+namespace Portfolio.Application.Interfaces;
 
 public interface IAssetSearchProvider
 {

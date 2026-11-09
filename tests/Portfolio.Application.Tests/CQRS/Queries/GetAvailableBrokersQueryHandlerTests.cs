@@ -1,6 +1,6 @@
 using NSubstitute;
 using Portfolio.Application.CQRS.Queries;
-using Portfolio.Domain.Interfaces;
+using Portfolio.Application.Interfaces;
 
 namespace Portfolio.Application.Tests.CQRS.Queries;
 

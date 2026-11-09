@@ -2,8 +2,8 @@ using System.Globalization;
 using System.Text;
 using CsvHelper;
 using CsvHelper.Configuration;
-using Portfolio.Domain.Interfaces;
-using Portfolio.Domain.ValueObjects;
+using Portfolio.Application.Interfaces;
+using Portfolio.Application.Models;
 
 namespace Portfolio.Infrastructure.ImportParsers;
 

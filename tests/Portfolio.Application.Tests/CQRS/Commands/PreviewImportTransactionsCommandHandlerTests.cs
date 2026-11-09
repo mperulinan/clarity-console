@@ -8,7 +8,6 @@ using Portfolio.Application.Tests.Fakes;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
-using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Application.Tests.CQRS.Commands;
 

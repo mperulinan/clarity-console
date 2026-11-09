@@ -1,6 +1,6 @@
-using Portfolio.Domain.ValueObjects;
+using Portfolio.Application.Models;
 
-namespace Portfolio.Domain.Interfaces;
+namespace Portfolio.Application.Interfaces;
 
 public interface ITransactionImportParser
 {

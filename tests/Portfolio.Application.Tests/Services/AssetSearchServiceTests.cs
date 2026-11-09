@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Portfolio.Application.DTOs;
+using Portfolio.Application.Interfaces;
+using Portfolio.Application.Models;
 using Portfolio.Application.Services;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;

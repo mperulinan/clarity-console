@@ -1,7 +1,7 @@
 using Portfolio.Application.Interfaces;
+using Portfolio.Application.Models;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
-using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Application.Mappers;
 

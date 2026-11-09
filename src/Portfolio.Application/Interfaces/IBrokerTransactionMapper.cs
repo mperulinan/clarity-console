@@ -1,5 +1,5 @@
+using Portfolio.Application.Models;
 using Portfolio.Domain.Entities;
-using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Application.Interfaces;
 
