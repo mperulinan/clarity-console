@@ -5,6 +5,7 @@ using Portfolio.Application.CQRS.Commands;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Models;
+using Portfolio.Application.Services;
 using Portfolio.Application.Tests.Fakes;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
@@ -18,6 +19,7 @@ public class CommitImportTransactionsCommandHandlerTests
     private readonly IMediator _mediator;
     private readonly IBackgroundTaskQueue _backgroundQueue;
     private readonly FakeImportPreviewStore _previewStore;
+    private readonly IImportAssetResolver _assetResolver;
     private readonly CommitImportTransactionsCommandHandler _sut;
 
     public CommitImportTransactionsCommandHandlerTests()
@@ -26,13 +28,13 @@ public class CommitImportTransactionsCommandHandlerTests
         _mediator = Substitute.For<IMediator>();
         _backgroundQueue = Substitute.For<IBackgroundTaskQueue>();
         _previewStore = new FakeImportPreviewStore();
+        _assetResolver = new ImportAssetResolver(_uow, _mediator, NullLogger<ImportAssetResolver>.Instance);
 
         _sut = new CommitImportTransactionsCommandHandler(
             _uow,
-            _mediator,
+            _assetResolver,
             _backgroundQueue,
-            _previewStore,
-            NullLogger<CommitImportTransactionsCommandHandler>.Instance
+            _previewStore
         );
     }
 
