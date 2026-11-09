@@ -49,9 +49,9 @@ public class PreviewImportTransactionsCommandHandlerTests
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
 
-        _searchService.SearchAsync("US0378331005", Arg.Any<string>())
+        _searchService.SearchAsync("US0378331005")
             .Returns([new AssetDto { Symbol = "AAPL", Name = "Apple Inc", ExternalId = "AAPL", Type = AssetType.Stock.Value }]);
-        _searchService.SearchAsync("US5949181045", Arg.Any<string>())
+        _searchService.SearchAsync("US5949181045")
             .Returns([new AssetDto { Symbol = "MSFT", Name = "Microsoft Corp", ExternalId = "MSFT", Type = AssetType.Stock.Value }]);
 
         using var stream = new MemoryStream();
@@ -130,7 +130,7 @@ public class PreviewImportTransactionsCommandHandlerTests
             new(DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 10m, 10m, "EUR", null, 1m, -101m, "uuid-unknown")
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
-        _searchService.SearchAsync("ES0100000000", Arg.Any<string>()).Returns([]);
+        _searchService.SearchAsync("ES0100000000").Returns([]);
 
         using var stream = new MemoryStream();
         var command = new PreviewImportTransactionsCommand("degiro", stream);
