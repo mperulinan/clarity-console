@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 using Portfolio.Application.CQRS.Commands;
 using Portfolio.Application.DTOs;
@@ -19,7 +17,7 @@ public class PreviewImportTransactionsCommandHandlerTests
     private readonly ITransactionImportParser _parser;
     private readonly FakeUnitOfWork _uow;
     private readonly IAssetSearchService _searchService;
-    private readonly IMemoryCache _cache;
+    private readonly FakeImportPreviewStore _previewStore;
     private readonly PreviewImportTransactionsCommandHandler _sut;
 
     public PreviewImportTransactionsCommandHandlerTests()
@@ -29,16 +27,13 @@ public class PreviewImportTransactionsCommandHandlerTests
 
         _uow = new FakeUnitOfWork();
         _searchService = Substitute.For<IAssetSearchService>();
-
-        var options = Substitute.For<IOptions<MemoryCacheOptions>>();
-        options.Value.Returns(new MemoryCacheOptions());
-        _cache = new MemoryCache(options);
+        _previewStore = new FakeImportPreviewStore();
 
         _sut = new PreviewImportTransactionsCommandHandler(
             [_parser],
             _uow,
             _searchService,
-            _cache,
+            _previewStore,
             NullLogger<PreviewImportTransactionsCommandHandler>.Instance
         );
     }
@@ -74,7 +69,7 @@ public class PreviewImportTransactionsCommandHandlerTests
         Assert.Equal(2, result.ReadyToImportRows);
 
         // Verify session stored in cache
-        var cached = _cache.Get<ImportPreviewSession>(result.PreviewToken);
+        var cached = _previewStore.Get(result.PreviewToken);
         Assert.NotNull(cached);
         Assert.Equal("degiro", cached.BrokerKey);
         Assert.Equal(2, cached.Rows.Count);

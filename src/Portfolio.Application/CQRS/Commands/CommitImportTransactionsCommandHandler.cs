@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
@@ -7,6 +6,7 @@ using Portfolio.Application.Models;
 using Portfolio.Domain.Entities;
 using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
+using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Application.CQRS.Commands;
 
@@ -19,7 +19,7 @@ public class CommitImportTransactionsCommandHandler(
     IUnitOfWork uow,
     IMediator mediator,
     IBackgroundTaskQueue backgroundQueue,
-    IMemoryCache cache,
+    IImportPreviewStore previewStore,
     ILogger<CommitImportTransactionsCommandHandler> logger,
     IEnumerable<ITransactionImportParser>? parsers = null)
     : IRequestHandler<CommitImportTransactionsCommand, ImportTransactionsResultDto>
@@ -28,7 +28,8 @@ public class CommitImportTransactionsCommandHandler(
         CommitImportTransactionsCommand command, 
         CancellationToken cancellationToken)
     {
-        if (!cache.TryGetValue<ImportPreviewSession>(command.PreviewToken, out var session) || session == null)
+        var session = previewStore.Get(command.PreviewToken);
+        if (session == null)
         {
             throw new InvalidOperationException("The import preview session has expired or does not exist. Please upload the CSV again.");
         }
@@ -161,7 +162,7 @@ public class CommitImportTransactionsCommandHandler(
             }
         }
 
-        cache.Remove(command.PreviewToken);
+        previewStore.Remove(command.PreviewToken);
 
         return new ImportTransactionsResultDto(
             ImportedCount: createdTransactions.Count,

@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
@@ -25,7 +24,7 @@ public class PreviewImportTransactionsCommandHandler(
     IEnumerable<ITransactionImportParser> parsers,
     IUnitOfWork uow,
     IAssetSearchService searchService,
-    IMemoryCache cache,
+    IImportPreviewStore previewStore,
     ILogger<PreviewImportTransactionsCommandHandler> logger)
     : IRequestHandler<PreviewImportTransactionsCommand, ImportTransactionsPreviewDto>
 {
@@ -154,11 +153,7 @@ public class PreviewImportTransactionsCommandHandler(
         var previewToken = Guid.NewGuid().ToString();
         var session = new ImportPreviewSession(command.BrokerKey, previewRows, DateTimeOffset.UtcNow);
 
-        var cacheOptions = new MemoryCacheEntryOptions()
-            .SetSlidingExpiration(TimeSpan.FromMinutes(20))
-            .SetAbsoluteExpiration(TimeSpan.FromHours(1));
-
-        cache.Set(previewToken, session, cacheOptions);
+        previewStore.Set(previewToken, session);
 
         return new ImportTransactionsPreviewDto(
             PreviewToken: previewToken,

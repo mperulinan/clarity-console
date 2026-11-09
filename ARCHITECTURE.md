@@ -25,15 +25,15 @@ The backend follows the principles of Clean Architecture and DDD, enforcing stri
                            │
              ┌─────────────┴─────────────┐
              ▼                           ▼
-┌─────────────────────────┐ ┌───────────────────────────┐
-│  Portfolio.Application  │ │ Portfolio.Infrastructure  │
-└────────────┬────────────┘ └─────────────┬─────────────┘
-             │                            │
-             └─────────────┬──────────────┘
-                           ▼
-             ┌───────────────────────────┐
-             │     Portfolio.Domain      │
-             └───────────────────────────┘
+┌───────────────────────────┐ ┌─────────────────────────┐
+│ Portfolio.Infrastructure  │─┼─► Portfolio.Application │
+└─────────────┬─────────────┘ │ └────────────┬────────────┘
+              │               │              │
+              └───────────────┼──────────────┘
+                              ▼ (transitive)
+                ┌───────────────────────────┐
+                │     Portfolio.Domain      │
+                └───────────────────────────┘
 ```
 
 ### Layer Responsibilities
@@ -48,12 +48,15 @@ The backend follows the principles of Clean Architecture and DDD, enforcing stri
 2. **Application Layer (`Portfolio.Application`)**:
    - Orchestrates use cases, command/query execution, and DTO mappings.
    - **Handlers & Services**: `SyncAssetCommandHandler`, `PortfolioService`, `AssetSearchService`.
-   - **DTOs**: Application-specific data structures for request/response payloads.
+   - **Ports & Interfaces**: Defines abstractions for infrastructure adapters (`IImportPreviewStore`, `IBackgroundTaskQueue`).
+   - **DTOs & Models**: Application-specific data structures (`ImportTransactionsPreviewDto`, `ImportPreviewSession`).
    - Depends exclusively on the Domain layer.
 
 3. **Infrastructure Layer (`Portfolio.Infrastructure`)**:
    - Handles data persistence, framework integration, and external service communication.
+   - Depends on **Application** (and transitively **Domain**) to implement domain repositories and application-level ports without polluting Domain with workflow state.
    - **Persistence**: Entity Framework Core with SQL Server (`PortfolioContext`). Implements the Unit of Work and Repository patterns.
+   - **Caching & Session Storage**: In-memory caching adapters (e.g. `MemoryCacheImportPreviewStore` implementing `IImportPreviewStore`).
    - **External Market Data Integration**:
      - **Twelve Data Provider**: Real-time stock tickers, market data, and ETFs.
      - **CoinGecko Provider**: Cryptocurrency pricing, search, and historical market data.

@@ -1,7 +1,5 @@
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 using Portfolio.Application.CQRS.Commands;
 using Portfolio.Application.DTOs;
@@ -19,7 +17,7 @@ public class CommitImportTransactionsCommandHandlerTests
     private readonly FakeUnitOfWork _uow;
     private readonly IMediator _mediator;
     private readonly IBackgroundTaskQueue _backgroundQueue;
-    private readonly IMemoryCache _cache;
+    private readonly FakeImportPreviewStore _previewStore;
     private readonly CommitImportTransactionsCommandHandler _sut;
 
     public CommitImportTransactionsCommandHandlerTests()
@@ -27,16 +25,13 @@ public class CommitImportTransactionsCommandHandlerTests
         _uow = new FakeUnitOfWork();
         _mediator = Substitute.For<IMediator>();
         _backgroundQueue = Substitute.For<IBackgroundTaskQueue>();
-
-        var options = Substitute.For<IOptions<MemoryCacheOptions>>();
-        options.Value.Returns(new MemoryCacheOptions());
-        _cache = new MemoryCache(options);
+        _previewStore = new FakeImportPreviewStore();
 
         _sut = new CommitImportTransactionsCommandHandler(
             _uow,
             _mediator,
             _backgroundQueue,
-            _cache,
+            _previewStore,
             NullLogger<CommitImportTransactionsCommandHandler>.Instance
         );
     }
@@ -73,7 +68,7 @@ public class CommitImportTransactionsCommandHandlerTests
             )
         };
 
-        _cache.Set(token, new ImportPreviewSession("degiro", previewRows, DateTimeOffset.UtcNow));
+        _previewStore.Set(token, new ImportPreviewSession("degiro", previewRows, DateTimeOffset.UtcNow));
 
         var command = new CommitImportTransactionsCommand("degiro", token);
 
@@ -110,7 +105,7 @@ public class CommitImportTransactionsCommandHandlerTests
         await _backgroundQueue.Received(2).QueueBackgroundWorkItemAsync(Arg.Any<SyncTransactionExchangeRateCommand>());
 
         // Verify cache evicted
-        Assert.Null(_cache.Get<ImportPreviewSession>(token));
+        Assert.Null(_previewStore.Get(token));
     }
 
     [Fact]
@@ -145,7 +140,7 @@ public class CommitImportTransactionsCommandHandlerTests
             )
         };
 
-        _cache.Set(token, new ImportPreviewSession("degiro", previewRows, DateTimeOffset.UtcNow));
+        _previewStore.Set(token, new ImportPreviewSession("degiro", previewRows, DateTimeOffset.UtcNow));
 
         var command = new CommitImportTransactionsCommand("degiro", token, ["uuid-skip"]);
 
@@ -184,7 +179,7 @@ public class CommitImportTransactionsCommandHandlerTests
             )
         };
 
-        _cache.Set(token, new ImportPreviewSession("degiro", previewRows, DateTimeOffset.UtcNow));
+        _previewStore.Set(token, new ImportPreviewSession("degiro", previewRows, DateTimeOffset.UtcNow));
 
         var overrides = new Dictionary<string, string> { ["uuid-unresolved"] = "MSFT" };
         var command = new CommitImportTransactionsCommand("degiro", token, null, overrides);
