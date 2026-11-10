@@ -109,6 +109,7 @@ public class PreviewImportTransactionsCommandHandler(
 
             string? resolvedSymbol = null;
             Guid? resolvedAssetId = null;
+            string? resolvedAssetType = null;
             var willAutoCreate = false;
             var isUnresolvable = false;
             string? warningMessage = null;
@@ -121,12 +122,14 @@ public class PreviewImportTransactionsCommandHandler(
             if (resolvedSearchAsset != null)
             {
                 resolvedSymbol = resolvedSearchAsset.Symbol;
+                resolvedAssetType = resolvedSearchAsset.Type;
                 var localAsset = await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, AssetType.Stock, cancellationToken)
                     ?? await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, AssetType.Etf, cancellationToken);
 
                 if (localAsset != null)
                 {
                     resolvedAssetId = localAsset.Id;
+                    resolvedAssetType = localAsset.Type.Value;
                 }
                 else
                 {
@@ -146,7 +149,8 @@ public class PreviewImportTransactionsCommandHandler(
                 WillAutoCreate: willAutoCreate,
                 IsDuplicate: isDuplicate,
                 IsUnresolvable: isUnresolvable,
-                WarningMessage: warningMessage
+                WarningMessage: warningMessage,
+                ResolvedAssetType: resolvedAssetType
             ));
         }
 

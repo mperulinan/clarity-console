@@ -49,9 +49,7 @@ public class CommitImportTransactionsCommandHandler(
         // Phase A: Resolve/auto-create any missing assets
         var assetsToSync = actionableRows
             .Where(r => r.ResolvedAssetId == null && !string.IsNullOrWhiteSpace(r.ResolvedSymbol))
-            .Select(r => r.ResolvedSymbol!)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+            .Select(r => new ImportAssetToResolve(r.ResolvedSymbol!, r.ResolvedAssetType));
 
         var symbolToAssetId = await assetResolver.ResolveMissingAssetsAsync(assetsToSync, cancellationToken);
 

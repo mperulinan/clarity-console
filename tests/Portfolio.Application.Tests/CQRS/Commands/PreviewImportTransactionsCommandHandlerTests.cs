@@ -73,7 +73,38 @@ public class PreviewImportTransactionsCommandHandlerTests
         Assert.Equal("degiro", cached.BrokerKey);
         Assert.Equal(2, cached.Rows.Count);
         Assert.Equal("AAPL", cached.Rows[0].ResolvedSymbol);
+        Assert.Equal(AssetType.Stock.Value, cached.Rows[0].ResolvedAssetType);
         Assert.True(cached.Rows[0].WillAutoCreate);
+    }
+
+    [Fact]
+    public async Task Handle_ValidTransactionResolvingEtf_PopulatesResolvedAssetTypeAsEtf()
+    {
+        // Arrange
+        var rows = new List<ImportedTransactionRow>
+        {
+            new(DateTime.UtcNow, "Vanguard FTSE All-World", "IE00BK5BQT80", "EAM", 10m, 100m, "EUR", null, 1m, -1001m, "uuid-etf-1")
+        };
+        _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
+
+        _searchService.SearchAsync("IE00BK5BQT80")
+            .Returns([new AssetDto { Symbol = "VWCE", Name = "Vanguard FTSE All-World", ExternalId = "VWCE", Type = AssetType.Etf.Value }]);
+
+        using var stream = new MemoryStream();
+        var command = new PreviewImportTransactionsCommand("degiro", stream);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result.Rows);
+        Assert.Equal("VWCE", result.Rows[0].ResolvedSymbol);
+        Assert.Equal(AssetType.Etf.Value, result.Rows[0].ResolvedAssetType);
+
+        var cached = _previewStore.Get(result.PreviewToken);
+        Assert.NotNull(cached);
+        Assert.Equal(AssetType.Etf.Value, cached.Rows[0].ResolvedAssetType);
     }
 
     [Fact]

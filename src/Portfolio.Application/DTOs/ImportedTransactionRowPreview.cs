@@ -9,5 +9,6 @@ public record ImportedTransactionRowPreview(
     bool WillAutoCreate,
     bool IsDuplicate,
     bool IsUnresolvable,
-    string? WarningMessage
+    string? WarningMessage,
+    string? ResolvedAssetType = null
 );

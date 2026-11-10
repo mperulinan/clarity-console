@@ -201,6 +201,47 @@ public class CommitImportTransactionsCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ValidCachedPreviewWithEtfAsset_ResolvesEtfAndPersistsTransaction()
+    {
+        // Arrange
+        var token = "preview-token-etf";
+        var etfAssetId = Guid.NewGuid();
+        var etfAsset = new Asset("VWCE", "Vanguard FTSE All-World", "VWCE", null, AssetType.Etf);
+        typeof(Asset).GetProperty("Id")!.SetValue(etfAsset, etfAssetId);
+        await _uow.Assets.AddAsync(etfAsset);
+
+        var previewRows = new List<ImportedTransactionRowPreview>
+        {
+            new(
+                Raw: new ImportedTransactionRow(DateTime.UtcNow, "Vanguard FTSE All-World", "IE00BK5BQT80", "EAM", 10m, 100m, "EUR", null, 1m, -1001m, "uuid-etf-buy"),
+                ResolvedSymbol: "VWCE",
+                ResolvedAssetId: null, // Needs resolution via assetResolver
+                WillAutoCreate: false,
+                IsDuplicate: false,
+                IsUnresolvable: false,
+                WarningMessage: null,
+                ResolvedAssetType: AssetType.Etf.Value
+            )
+        };
+
+        _previewStore.Set(token, new ImportPreviewSession("degiro", previewRows, DateTimeOffset.UtcNow));
+
+        var command = new CommitImportTransactionsCommand("degiro", token);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(1, result.ImportedCount);
+        Assert.Equal(0, result.SkippedCount);
+
+        var savedTxs = (await _uow.Transactions.GetAllAsync()).ToList();
+        Assert.Single(savedTxs);
+        Assert.Equal(etfAssetId, savedTxs[0].ToAssetId);
+    }
+
+    [Fact]
     public async Task Handle_ExpiredOrMissingToken_ThrowsInvalidOperationException()
     {
         // Arrange

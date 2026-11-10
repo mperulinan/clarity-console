@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Portfolio.Application.CQRS.Commands;
 using Portfolio.Application.DTOs;
+using Portfolio.Application.Models;
 using Portfolio.Application.Services;
 using Portfolio.Application.Tests.Fakes;
 using Portfolio.Domain.Entities;
@@ -37,6 +38,59 @@ public class ImportAssetResolverTests
         Assert.Single(result);
         Assert.Equal(existingAsset.Id, result["AAPL"]);
         await _mediator.DidNotReceive().Send(Arg.Any<SyncAssetCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ResolveMissingAssetsAsync_ExistingEtf_ReturnsIdWithoutSendingSyncCommand()
+    {
+        // Arrange
+        var existingEtf = new Asset("VWCE", "Vanguard FTSE All-World", "VWCE", null, AssetType.Etf);
+        await _uow.Assets.AddAsync(existingEtf);
+
+        // Act
+        var result = await _sut.ResolveMissingAssetsAsync([new ImportAssetToResolve("VWCE", AssetType.Etf.Value)]);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(existingEtf.Id, result["VWCE"]);
+        await _mediator.DidNotReceive().Send(Arg.Any<SyncAssetCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ResolveMissingAssetsAsync_ExistingEtfWhenTypeMissing_FindsEtfViaFallbackOrder()
+    {
+        // Arrange
+        var existingEtf = new Asset("IWDA", "iShares Core MSCI World", "IWDA", null, AssetType.Etf);
+        await _uow.Assets.AddAsync(existingEtf);
+
+        // Act
+        var result = await _sut.ResolveMissingAssetsAsync(["IWDA"]);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(existingEtf.Id, result["IWDA"]);
+        await _mediator.DidNotReceive().Send(Arg.Any<SyncAssetCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ResolveMissingAssetsAsync_NonExistingEtfWithPreviewType_SendsSyncCommandWithEtfType()
+    {
+        // Arrange
+        var newlyCreatedEtf = new Asset("CSPX", "iShares Core S&P 500", "CSPX", null, AssetType.Etf);
+        _mediator.Send(Arg.Any<SyncAssetCommand>(), Arg.Any<CancellationToken>())
+            .Returns(async _ =>
+            {
+                await _uow.Assets.AddAsync(newlyCreatedEtf);
+                return new AssetDto { Id = newlyCreatedEtf.Id, Symbol = "CSPX", Type = AssetType.Etf.Value };
+            });
+
+        // Act
+        var result = await _sut.ResolveMissingAssetsAsync([new ImportAssetToResolve("CSPX", AssetType.Etf.Value)]);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(newlyCreatedEtf.Id, result["CSPX"]);
+        await _mediator.Received(1).Send(Arg.Is<SyncAssetCommand>(cmd => cmd.Asset.Symbol == "CSPX" && cmd.Asset.Type == AssetType.Etf.Value), Arg.Any<CancellationToken>());
     }
 
     [Fact]
