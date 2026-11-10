@@ -34,7 +34,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<PortfolioContext>(options =>
 {
     var connection = builder.Configuration.GetConnectionString("Portfolio");
-    options.UseSqlServer(connection);
     options.UseSqlServer(connection, b => b.MigrationsAssembly("Portfolio.Infrastructure"));
 });
 
