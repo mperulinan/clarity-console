@@ -12,11 +12,11 @@ namespace Portfolio.Application.Mappers;
 public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
 {
     public string BrokerKey => "degiro";
+    public string DisplayName => "DEGIRO";
 
     public Transaction MapToTransaction(
         ImportedTransactionRow row, 
-        Guid targetAssetId, 
-        string brokerDisplayName)
+        Guid targetAssetId)
     {
         Guid fromAssetId;
         Guid toAssetId;
@@ -56,7 +56,7 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
             usdEurExchangeRate: null,
             spotPriceInputCurrency: null,
             feePriceInputCurrency: null,
-            notes: $"Imported from {brokerDisplayName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
+            notes: $"Imported from {DisplayName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
             brokerTransactionId: row.BrokerTransactionId
         );
     }

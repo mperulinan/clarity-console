@@ -17,8 +17,7 @@ public class CommitImportTransactionsCommandHandler(
     IImportAssetResolver assetResolver,
     IBackgroundTaskQueue backgroundQueue,
     IImportPreviewStore previewStore,
-    IEnumerable<IBrokerTransactionMapper> brokerMappers,
-    IEnumerable<ITransactionImportParser>? parsers = null)
+    IEnumerable<IBrokerTransactionMapper> brokerMappers)
     : IRequestHandler<CommitImportTransactionsCommand, ImportTransactionsResultDto>
 {
     public async Task<ImportTransactionsResultDto> Handle(
@@ -30,9 +29,6 @@ public class CommitImportTransactionsCommandHandler(
 
         var brokerMapper = brokerMappers.FirstOrDefault(m => string.Equals(m.BrokerKey, session.BrokerKey, StringComparison.OrdinalIgnoreCase))
             ?? throw new InvalidOperationException($"No transaction mapper registered for broker '{session.BrokerKey}'.");
-
-        var brokerParser = parsers?.FirstOrDefault(p => string.Equals(p.BrokerKey, session.BrokerKey, StringComparison.OrdinalIgnoreCase));
-        var brokerName = brokerParser?.DisplayName ?? session.BrokerKey.ToUpperInvariant();
 
         var excludedSet = command.ExcludedBrokerTransactionIds?.ToHashSet() ?? [];
         var overrides = command.OverriddenSymbols ?? new Dictionary<string, string>();
@@ -74,7 +70,7 @@ public class CommitImportTransactionsCommandHandler(
                 continue;
             }
 
-            var transaction = brokerMapper.MapToTransaction(previewRow.Raw, targetAssetId.Value, brokerName);
+            var transaction = brokerMapper.MapToTransaction(previewRow.Raw, targetAssetId.Value);
             await uow.Transactions.AddAsync(transaction);
             createdTransactions.Add(transaction);
         }

@@ -16,6 +16,12 @@ public class DegiroBrokerTransactionMapperTests
     }
 
     [Fact]
+    public void DisplayName_ShouldBeDegiro()
+    {
+        Assert.Equal("DEGIRO", _sut.DisplayName);
+    }
+
+    [Fact]
     public void MapToTransaction_BuyOrder_MapsEurToStockSwapWithPositiveAmounts()
     {
         // Arrange
@@ -35,7 +41,7 @@ public class DegiroBrokerTransactionMapperTests
         );
 
         // Act
-        var transaction = _sut.MapToTransaction(row, targetAssetId, "DEGIRO");
+        var transaction = _sut.MapToTransaction(row, targetAssetId);
 
         // Assert
         Assert.NotNull(transaction);
@@ -71,7 +77,7 @@ public class DegiroBrokerTransactionMapperTests
         );
 
         // Act
-        var transaction = _sut.MapToTransaction(row, targetAssetId, "DEGIRO");
+        var transaction = _sut.MapToTransaction(row, targetAssetId);
 
         // Assert
         Assert.NotNull(transaction);
@@ -106,7 +112,7 @@ public class DegiroBrokerTransactionMapperTests
         );
 
         // Act
-        var transaction = _sut.MapToTransaction(row, targetAssetId, "DEGIRO");
+        var transaction = _sut.MapToTransaction(row, targetAssetId);
 
         // Assert
         Assert.Equal(0m, transaction.Fee);
