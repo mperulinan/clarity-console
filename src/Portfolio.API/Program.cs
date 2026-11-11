@@ -47,6 +47,8 @@ builder.Services.AddScoped<IExchangeRateProvider, FrankfurterExchangeRateProvide
 builder.Services.AddScoped<ITransactionImportParser, DegiroTransactionParser>();
 builder.Services.AddSingleton<IImportPreviewStore, MemoryCacheImportPreviewStore>();
 builder.Services.AddScoped<IImportAssetResolver, ImportAssetResolver>();
+builder.Services.AddScoped<IImportTickerResolver, ImportTickerResolver>();
+builder.Services.AddScoped<IImportPreviewClassifier, ImportPreviewClassifier>();
 builder.Services.AddScoped<IBrokerTransactionMapper, DegiroBrokerTransactionMapper>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetPortfolioMetricsQuery).Assembly));
 

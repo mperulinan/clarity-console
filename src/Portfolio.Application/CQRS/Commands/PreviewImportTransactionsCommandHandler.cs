@@ -3,16 +3,13 @@ using Microsoft.Extensions.Logging;
 using Portfolio.Application.DTOs;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Models;
-using Portfolio.Domain.Entities;
-using Portfolio.Domain.Enums;
 using Portfolio.Domain.Interfaces;
-using Portfolio.Domain.ValueObjects;
 
 namespace Portfolio.Application.CQRS.Commands;
 
 /// <summary>
 /// Handles CSV import preview for external broker transactions.
-/// 
+///
 /// Note on Exchange Ticker Resolution:
 /// TwelveData symbol search matches on ISIN and may return multiple listings across global exchanges
 /// (e.g. SAP on XETRA vs SAP ADR on NYSE).
@@ -23,13 +20,14 @@ namespace Portfolio.Application.CQRS.Commands;
 public class PreviewImportTransactionsCommandHandler(
     IEnumerable<ITransactionImportParser> parsers,
     IUnitOfWork uow,
-    IAssetSearchService searchService,
+    IImportTickerResolver tickerResolver,
+    IImportPreviewClassifier previewClassifier,
     IImportPreviewStore previewStore,
     ILogger<PreviewImportTransactionsCommandHandler> logger)
     : IRequestHandler<PreviewImportTransactionsCommand, ImportTransactionsPreviewDto>
 {
     public async Task<ImportTransactionsPreviewDto> Handle(
-        PreviewImportTransactionsCommand command, 
+        PreviewImportTransactionsCommand command,
         CancellationToken cancellationToken)
     {
         var parser = parsers.FirstOrDefault(p => string.Equals(p.BrokerKey, command.BrokerKey, StringComparison.OrdinalIgnoreCase))
@@ -53,106 +51,13 @@ public class PreviewImportTransactionsCommandHandler(
         var brokerIds = rawRows.Select(r => r.BrokerTransactionId).Distinct().ToList();
         var existingBrokerIds = await uow.Transactions.GetExistingBrokerTransactionIdsAsync(brokerIds, cancellationToken);
 
-        // Group rows by distinct ISIN to minimize external searches and preserve context (exchange, product name)
-        var distinctIsins = rawRows
-            .Where(r => !string.IsNullOrWhiteSpace(r.Isin))
-            .GroupBy(r => r.Isin, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        var isinMap = await tickerResolver.ResolveIsinsAsync(rawRows, cancellationToken);
 
-        var isinMap = new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var (isin, sampleRow) in distinctIsins)
-        {
-            try
-            {
-                // Search without type filter to ensure ETFs and Stocks are both resolved
-                var searchResults = (await searchService.SearchAsync(isin)).ToList();
-
-                // Fallback: If ISIN lookup returned 0 results, attempt search with the product name
-                if (searchResults.Count == 0 && !string.IsNullOrWhiteSpace(sampleRow.ProductName))
-                {
-                    searchResults = (await searchService.SearchAsync(sampleRow.ProductName)).ToList();
-                }
-
-                if (searchResults.Count > 0)
-                {
-                    // Prioritization heuristic:
-                    // 1. Prefer candidate already existing locally with transactions
-                    // 2. Prefer candidate matching reference exchange if available
-                    // 3. Fall back to highest relevance result
-                    var match = searchResults
-                        .OrderByDescending(c => c.TransactionCount > 0)
-                        .ThenByDescending(c => !string.IsNullOrWhiteSpace(sampleRow.Exchange) &&
-                                               c.Name.Contains(sampleRow.Exchange, StringComparison.OrdinalIgnoreCase))
-                        .FirstOrDefault();
-
-                    isinMap[isin] = match;
-                }
-                else
-                {
-                    isinMap[isin] = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to search for asset with ISIN '{Isin}'", isin);
-                isinMap[isin] = null;
-            }
-        }
-
-        var previewRows = new List<ImportedTransactionRowPreview>();
-
-        foreach (var row in rawRows)
-        {
-            var isDuplicate = existingBrokerIds.Contains(row.BrokerTransactionId);
-            isinMap.TryGetValue(row.Isin, out var resolvedSearchAsset);
-
-            string? resolvedSymbol = null;
-            Guid? resolvedAssetId = null;
-            string? resolvedAssetType = null;
-            var willAutoCreate = false;
-            var isUnresolvable = false;
-            string? warningMessage = null;
-
-            if (isDuplicate)
-            {
-                warningMessage = "Transaction already imported.";
-            }
-
-            if (resolvedSearchAsset != null)
-            {
-                resolvedSymbol = resolvedSearchAsset.Symbol;
-                resolvedAssetType = resolvedSearchAsset.Type;
-                var localAsset = await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, AssetType.Stock, cancellationToken)
-                    ?? await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, AssetType.Etf, cancellationToken);
-
-                if (localAsset != null)
-                {
-                    resolvedAssetId = localAsset.Id;
-                    resolvedAssetType = localAsset.Type.Value;
-                }
-                else
-                {
-                    willAutoCreate = true;
-                }
-            }
-            else
-            {
-                isUnresolvable = true;
-                warningMessage ??= $"Could not resolve ticker symbol for ISIN '{row.Isin}'.";
-            }
-
-            previewRows.Add(new ImportedTransactionRowPreview(
-                Raw: row,
-                ResolvedSymbol: resolvedSymbol,
-                ResolvedAssetId: resolvedAssetId,
-                WillAutoCreate: willAutoCreate,
-                IsDuplicate: isDuplicate,
-                IsUnresolvable: isUnresolvable,
-                WarningMessage: warningMessage,
-                ResolvedAssetType: resolvedAssetType
-            ));
-        }
+        var previewRows = await previewClassifier.ClassifyRowsAsync(
+            rawRows,
+            isinMap,
+            existingBrokerIds,
+            cancellationToken);
 
         var previewToken = Guid.NewGuid().ToString();
         var session = new ImportPreviewSession(command.BrokerKey, previewRows, DateTimeOffset.UtcNow);

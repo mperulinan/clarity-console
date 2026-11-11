@@ -15,7 +15,8 @@ public class PreviewImportTransactionsCommandHandlerTests
 {
     private readonly ITransactionImportParser _parser;
     private readonly FakeUnitOfWork _uow;
-    private readonly IAssetSearchService _searchService;
+    private readonly IImportTickerResolver _tickerResolver;
+    private readonly IImportPreviewClassifier _previewClassifier;
     private readonly FakeImportPreviewStore _previewStore;
     private readonly PreviewImportTransactionsCommandHandler _sut;
 
@@ -25,13 +26,15 @@ public class PreviewImportTransactionsCommandHandlerTests
         _parser.BrokerKey.Returns("degiro");
 
         _uow = new FakeUnitOfWork();
-        _searchService = Substitute.For<IAssetSearchService>();
+        _tickerResolver = Substitute.For<IImportTickerResolver>();
+        _previewClassifier = Substitute.For<IImportPreviewClassifier>();
         _previewStore = new FakeImportPreviewStore();
 
         _sut = new PreviewImportTransactionsCommandHandler(
             [_parser],
             _uow,
-            _searchService,
+            _tickerResolver,
+            _previewClassifier,
             _previewStore,
             NullLogger<PreviewImportTransactionsCommandHandler>.Instance
         );
@@ -48,10 +51,26 @@ public class PreviewImportTransactionsCommandHandlerTests
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
 
-        _searchService.SearchAsync("US0378331005")
-            .Returns([new AssetDto { Symbol = "AAPL", Name = "Apple Inc", ExternalId = "AAPL", Type = AssetType.Stock.Value }]);
-        _searchService.SearchAsync("US5949181045")
-            .Returns([new AssetDto { Symbol = "MSFT", Name = "Microsoft Corp", ExternalId = "MSFT", Type = AssetType.Stock.Value }]);
+        var isinMap = new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["US0378331005"] = new AssetDto { Symbol = "AAPL", Name = "Apple Inc", ExternalId = "AAPL", Type = AssetType.Stock.Value },
+            ["US5949181045"] = new AssetDto { Symbol = "MSFT", Name = "Microsoft Corp", ExternalId = "MSFT", Type = AssetType.Stock.Value }
+        };
+        _tickerResolver.ResolveIsinsAsync(Arg.Any<IEnumerable<ImportedTransactionRow>>(), Arg.Any<CancellationToken>())
+            .Returns(isinMap);
+
+        var previewRows = new List<ImportedTransactionRowPreview>
+        {
+            new(Raw: rows[0], ResolvedSymbol: "AAPL", ResolvedAssetId: null, WillAutoCreate: true,
+                IsDuplicate: false, IsUnresolvable: false, WarningMessage: null, ResolvedAssetType: AssetType.Stock.Value),
+            new(Raw: rows[1], ResolvedSymbol: "MSFT", ResolvedAssetId: null, WillAutoCreate: true,
+                IsDuplicate: false, IsUnresolvable: false, WarningMessage: null, ResolvedAssetType: AssetType.Stock.Value)
+        };
+        _previewClassifier.ClassifyRowsAsync(Arg.Any<IReadOnlyList<ImportedTransactionRow>>(),
+                Arg.Any<IReadOnlyDictionary<string, AssetDto?>>(),
+                Arg.Any<IReadOnlySet<string>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(previewRows);
 
         using var stream = new MemoryStream();
         var command = new PreviewImportTransactionsCommand("degiro", stream);
@@ -87,8 +106,19 @@ public class PreviewImportTransactionsCommandHandlerTests
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
 
-        _searchService.SearchAsync("IE00BK5BQT80")
-            .Returns([new AssetDto { Symbol = "VWCE", Name = "Vanguard FTSE All-World", ExternalId = "VWCE", Type = AssetType.Etf.Value }]);
+        _tickerResolver.ResolveIsinsAsync(Arg.Any<IEnumerable<ImportedTransactionRow>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase));
+
+        var previewRows = new List<ImportedTransactionRowPreview>
+        {
+            new(Raw: rows[0], ResolvedSymbol: "VWCE", ResolvedAssetId: null, WillAutoCreate: true,
+                IsDuplicate: false, IsUnresolvable: false, WarningMessage: null, ResolvedAssetType: AssetType.Etf.Value)
+        };
+        _previewClassifier.ClassifyRowsAsync(Arg.Any<IReadOnlyList<ImportedTransactionRow>>(),
+                Arg.Any<IReadOnlyDictionary<string, AssetDto?>>(),
+                Arg.Any<IReadOnlySet<string>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(previewRows);
 
         using var stream = new MemoryStream();
         var command = new PreviewImportTransactionsCommand("degiro", stream);
@@ -138,6 +168,20 @@ public class PreviewImportTransactionsCommandHandlerTests
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
 
+        _tickerResolver.ResolveIsinsAsync(Arg.Any<IEnumerable<ImportedTransactionRow>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase));
+
+        var previewRows = new List<ImportedTransactionRowPreview>
+        {
+            new(Raw: rows[0], ResolvedSymbol: null, ResolvedAssetId: null, WillAutoCreate: false,
+                IsDuplicate: true, IsUnresolvable: false, WarningMessage: "Transaction already imported.", ResolvedAssetType: null)
+        };
+        _previewClassifier.ClassifyRowsAsync(Arg.Any<IReadOnlyList<ImportedTransactionRow>>(),
+                Arg.Any<IReadOnlyDictionary<string, AssetDto?>>(),
+                Arg.Any<IReadOnlySet<string>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(previewRows);
+
         using var stream = new MemoryStream();
         var command = new PreviewImportTransactionsCommand("degiro", stream);
 
@@ -160,7 +204,20 @@ public class PreviewImportTransactionsCommandHandlerTests
             new(DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 10m, 10m, "EUR", null, 1m, -101m, "uuid-unknown")
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
-        _searchService.SearchAsync("ES0100000000").Returns([]);
+
+        _tickerResolver.ResolveIsinsAsync(Arg.Any<IEnumerable<ImportedTransactionRow>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase));
+
+        var previewRows = new List<ImportedTransactionRowPreview>
+        {
+            new(Raw: rows[0], ResolvedSymbol: null, ResolvedAssetId: null, WillAutoCreate: false,
+                IsDuplicate: false, IsUnresolvable: true, WarningMessage: "Could not resolve ticker symbol for ISIN 'ES0100000000'.", ResolvedAssetType: null)
+        };
+        _previewClassifier.ClassifyRowsAsync(Arg.Any<IReadOnlyList<ImportedTransactionRow>>(),
+                Arg.Any<IReadOnlyDictionary<string, AssetDto?>>(),
+                Arg.Any<IReadOnlySet<string>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(previewRows);
 
         using var stream = new MemoryStream();
         var command = new PreviewImportTransactionsCommand("degiro", stream);
