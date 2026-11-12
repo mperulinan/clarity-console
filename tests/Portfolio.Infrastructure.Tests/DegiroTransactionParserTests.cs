@@ -34,7 +34,7 @@ public class DegiroTransactionParserTests
         Assert.Equal(175.50m, buy.PricePerUnit);
         Assert.Equal("USD", buy.PriceCurrency);
         Assert.Equal(1.0635m, buy.FxRate);
-        Assert.Equal(1.00m, buy.FeeEur);
+        Assert.Equal(2.20m, buy.FeeEur);
         Assert.Equal(-1652.45m, buy.TotalEur);
         Assert.Equal("06db189d-3f4c-479f-b4d4-9d2e93dc0f2f", buy.BrokerTransactionId);
 
@@ -43,6 +43,7 @@ public class DegiroTransactionParserTests
         Assert.Equal(-5m, sell.Quantity);
         Assert.Equal(180.00m, sell.PricePerUnit);
         Assert.Equal("USD", sell.PriceCurrency);
+        Assert.Equal(1.80m, sell.FeeEur);
         Assert.Equal(848.20m, sell.TotalEur);
         Assert.Equal("17ec291a-4e2b-482f-8a12-7f9e8a1a3b5c", sell.BrokerTransactionId);
     }
@@ -115,7 +116,7 @@ public class DegiroTransactionParserTests
         Assert.Equal(100.0000m, row.PricePerUnit);
         Assert.Equal("USD", row.PriceCurrency);
         Assert.Equal(1.0864m, row.FxRate);
-        Assert.Equal(1.00m, row.FeeEur);
+        Assert.Equal(2.15m, row.FeeEur);
         Assert.Equal(-462.35m, row.TotalEur);
         Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", row.BrokerTransactionId);
     }
@@ -156,7 +157,7 @@ public class DegiroTransactionParserTests
         Assert.Equal(55.2500m, second.PricePerUnit);
         Assert.Equal("USD", second.PriceCurrency);
         Assert.Equal(-391.63m, second.TotalEur);
-        Assert.Equal(0.50m, second.FeeEur);
+        Assert.Equal(1.48m, second.FeeEur);
         Assert.Equal("bbbbbbbb-cccc-dddd-eeee-ffffffffffff", second.BrokerTransactionId);
     }
 

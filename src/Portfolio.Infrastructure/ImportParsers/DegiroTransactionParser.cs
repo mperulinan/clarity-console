@@ -83,9 +83,13 @@ public class DegiroTransactionParser : ITransactionImportParser
 
             var fxRate = ParseDecimal(csv.GetField("Tipo de cambio"));
             
-            // Fee in EUR column: "Costes de transacción y/o externos EUR"
+            // Fee in EUR: sum of broker transaction costs ("Costes de transacción y/o externos EUR")
+            // and currency conversion fees ("Comisión AutoFX")
             var rawFee = ParseDecimal(csv.GetField("Costes de transacción y/o externos EUR"));
-            decimal? feeEur = rawFee.HasValue ? Math.Abs(rawFee.Value) : null;
+            var rawAutoFx = ParseDecimal(csv.GetField("Comisión AutoFX"));
+            decimal? feeEur = (rawFee.HasValue || rawAutoFx.HasValue)
+                ? (rawFee.HasValue ? Math.Abs(rawFee.Value) : 0m) + (rawAutoFx.HasValue ? Math.Abs(rawAutoFx.Value) : 0m)
+                : null;
 
             var totalEur = ParseDecimal(csv.GetField("Total EUR")) ?? 0m;
 
