@@ -23,14 +23,14 @@ internal static class DegiroOrderIdResolver
         decimal totalEur)
     {
         // 1. Direct header lookup
-        var id = csv.GetField("ID Orden")?.Trim();
+        var id = csv.GetField(DegiroHeaders.OrderId)?.Trim();
         if (!string.IsNullOrWhiteSpace(id))
             return id;
 
         // 2. Adjacent shifted column check
         if (headers != null)
         {
-            var idIndex = Array.FindIndex(headers, h => string.Equals(h?.Trim(), "ID Orden", StringComparison.OrdinalIgnoreCase));
+            var idIndex = Array.FindIndex(headers, h => string.Equals(h?.Trim(), DegiroHeaders.OrderId, StringComparison.OrdinalIgnoreCase));
             if (idIndex >= 0)
             {
                 var adjacent = GetFieldByIndexSafe(csv, idIndex + 1);

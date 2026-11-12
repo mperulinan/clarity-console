@@ -22,8 +22,8 @@ internal class DegiroRowParser : IDegiroRowParser
     {
         row = null;
 
-        var fecha = csv.GetField("Fecha");
-        var hora = csv.GetField("Hora");
+        var fecha = csv.GetField(DegiroHeaders.Date);
+        var hora = csv.GetField(DegiroHeaders.Time);
 
         var dateTime = DegiroFormatParser.ParseDateTime(fecha, hora);
         if (!dateTime.HasValue)
@@ -31,14 +31,14 @@ internal class DegiroRowParser : IDegiroRowParser
             return false;
         }
 
-        var productName = csv.GetField("Producto")?.Trim() ?? string.Empty;
-        var isin = csv.GetField("ISIN")?.Trim() ?? string.Empty;
-        var exchange = csv.GetField("Bolsa de referencia")?.Trim() ?? string.Empty;
+        var productName = csv.GetField(DegiroHeaders.Product)?.Trim() ?? string.Empty;
+        var isin = csv.GetField(DegiroHeaders.Isin)?.Trim() ?? string.Empty;
+        var exchange = csv.GetField(DegiroHeaders.ReferenceExchange)?.Trim() ?? string.Empty;
 
-        var quantity = DegiroFormatParser.ParseDecimal(csv.GetField("Número")) ?? 0m;
-        var pricePerUnit = DegiroFormatParser.ParseDecimal(csv.GetField("Precio")) ?? 0m;
-        var totalEur = DegiroFormatParser.ParseDecimal(csv.GetField("Total EUR")) ?? 0m;
-        var fxRate = DegiroFormatParser.ParseDecimal(csv.GetField("Tipo de cambio"));
+        var quantity = DegiroFormatParser.ParseDecimal(csv.GetField(DegiroHeaders.Quantity)) ?? 0m;
+        var pricePerUnit = DegiroFormatParser.ParseDecimal(csv.GetField(DegiroHeaders.Price)) ?? 0m;
+        var totalEur = DegiroFormatParser.ParseDecimal(csv.GetField(DegiroHeaders.TotalEur)) ?? 0m;
+        var fxRate = DegiroFormatParser.ParseDecimal(csv.GetField(DegiroHeaders.FxRate));
 
         var priceCurrency = ResolvePriceCurrency(csv, headers);
         var feeEur = CalculateTotalFeeEur(csv);
@@ -72,7 +72,7 @@ internal class DegiroRowParser : IDegiroRowParser
     private static string ResolvePriceCurrency(CsvReader csv, string[] headers)
     {
         // In DEGIRO, price/monetary columns are paired with an unheadered currency column immediately after "Precio"
-        var precioIndex = Array.FindIndex(headers, h => string.Equals(h?.Trim(), "Precio", StringComparison.OrdinalIgnoreCase));
+        var precioIndex = Array.FindIndex(headers, h => string.Equals(h?.Trim(), DegiroHeaders.Price, StringComparison.OrdinalIgnoreCase));
         var priceCurrency = precioIndex >= 0 ? DegiroOrderIdResolver.GetFieldByIndexSafe(csv, precioIndex + 1) : null;
 
         return string.IsNullOrWhiteSpace(priceCurrency) ? "EUR" : priceCurrency.ToUpperInvariant();
@@ -81,8 +81,8 @@ internal class DegiroRowParser : IDegiroRowParser
     private static decimal? CalculateTotalFeeEur(CsvReader csv)
     {
         // Total fee combines broker execution fees and currency conversion (AutoFX) commissions
-        var rawFee = DegiroFormatParser.ParseDecimal(csv.GetField("Costes de transacción y/o externos EUR"));
-        var rawAutoFx = DegiroFormatParser.ParseDecimal(csv.GetField("Comisión AutoFX"));
+        var rawFee = DegiroFormatParser.ParseDecimal(csv.GetField(DegiroHeaders.TransactionAndExternalCostsEur));
+        var rawAutoFx = DegiroFormatParser.ParseDecimal(csv.GetField(DegiroHeaders.AutoFxCommission));
 
         if (!rawFee.HasValue && !rawAutoFx.HasValue)
         {

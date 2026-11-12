@@ -13,7 +13,6 @@ namespace Portfolio.Infrastructure.ImportParsers;
 /// </summary>
 public class DegiroTransactionParser : ITransactionImportParser
 {
-    private static readonly string[] RequiredHeaders = ["Fecha", "Producto", "ISIN", "Número", "Precio", "Total EUR", "ID Orden"];
     private readonly IDegiroRowParser _rowParser;
 
     public DegiroTransactionParser() : this(new DegiroRowParser()) { }
@@ -68,6 +67,6 @@ public class DegiroTransactionParser : ITransactionImportParser
 
     private static bool IsValidDegiroSpanishHeader(string[] headers)
     {
-        return RequiredHeaders.All(req => headers.Any(h => string.Equals(h?.Trim(), req, StringComparison.OrdinalIgnoreCase)));
+        return DegiroHeaders.Required.All(req => headers.Any(h => string.Equals(h?.Trim(), req, StringComparison.OrdinalIgnoreCase)));
     }
 }
