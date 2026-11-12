@@ -22,9 +22,18 @@ public class TwelveDataProvider(
     // Maps Twelve Data's instrument_type string → our AssetType
     private static readonly Dictionary<string, AssetType> InstrumentTypeMap = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["Common Stock"]     = AssetType.Stock,
-        ["ETF"]              = AssetType.Etf,
-        ["Digital Currency"] = AssetType.Crypto,
+        ["Common Stock"]                = AssetType.Stock,
+        ["American Depositary Receipt"] = AssetType.Stock,
+        ["Depositary Receipt"]          = AssetType.Stock,
+        ["Global Depositary Receipt"]   = AssetType.Stock,
+        ["ADR"]                         = AssetType.Stock,
+        ["GDR"]                         = AssetType.Stock,
+        ["Preferred Stock"]             = AssetType.Stock,
+        ["REIT"]                        = AssetType.Stock,
+        ["ETF"]                         = AssetType.Etf,
+        ["Exchange-Traded Fund"]        = AssetType.Etf,
+        ["Closed-end Fund"]             = AssetType.Etf,
+        ["Digital Currency"]            = AssetType.Crypto,
     };
 
     private string GetApiUrl(string endpoint)
@@ -144,24 +153,41 @@ public class TwelveDataProvider(
 
             return response.Data
                 .Where(d => !string.IsNullOrEmpty(d.Symbol)
-                         && !string.IsNullOrEmpty(d.InstrumentName)
-                         && InstrumentTypeMap.TryGetValue(d.InstrumentType ?? "", out _))
-                .Select(d => new SearchAssetResult(
-                    new Asset(
-                        d.Symbol.ToUpper(),
-                        d.Name ?? d.InstrumentName ?? d.Symbol,
-                        externalId: d.Symbol.ToUpper(),
-                        imageUrl: null,
-                        InstrumentTypeMap[d.InstrumentType!]
-                    ),
-                    MarketCapRank: null
-                ));
+                         && (!string.IsNullOrEmpty(d.InstrumentName) || !string.IsNullOrEmpty(d.Name))
+                         && TryResolveAssetType(d, out _))
+                .Select(d =>
+                {
+                    TryResolveAssetType(d, out var assetType);
+                    return new SearchAssetResult(
+                        new Asset(
+                            d.Symbol.ToUpperInvariant(),
+                            d.Name ?? d.InstrumentName ?? d.Symbol,
+                            externalId: d.Symbol.ToUpperInvariant(),
+                            imageUrl: null,
+                            assetType!
+                        ),
+                        MarketCapRank: null
+                    );
+                });
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Asset search failed on Twelve Data for query '{Query}'", query);
             return [];
         }
+    }
+
+    private static bool TryResolveAssetType(TwelveDataSearchItemDto dto, out AssetType? assetType)
+    {
+        var rawType = !string.IsNullOrWhiteSpace(dto.InstrumentType) ? dto.InstrumentType : dto.Type;
+        if (!string.IsNullOrWhiteSpace(rawType) && InstrumentTypeMap.TryGetValue(rawType, out var mappedType))
+        {
+            assetType = mappedType;
+            return true;
+        }
+
+        assetType = null;
+        return false;
     }
 
     // ── IAssetLogoProvider ──────────────────────────────────────────────
