@@ -55,6 +55,9 @@ public class DegiroBrokerTransactionMapperTests
         Assert.Equal("Imported from DEGIRO (Apple Inc). Order ID: tx-buy-1", transaction.Notes);
         Assert.Equal("tx-buy-1", transaction.BrokerTransactionId);
         Assert.Equal(row.Date, transaction.Date);
+        Assert.Equal(1m / 1.08m, transaction.UsdEurExchangeRate);
+        Assert.Equal(1.08m, transaction.SpotPriceUSD);
+        Assert.False(transaction.HasIncompleteExchangeRates);
     }
 
     [Fact]
@@ -90,6 +93,36 @@ public class DegiroBrokerTransactionMapperTests
         Assert.Equal(FiatCurrency.EUR.Id, transaction.FeeAssetId);
         Assert.Equal("Imported from DEGIRO (Microsoft Corp). Order ID: tx-sell-1", transaction.Notes);
         Assert.Equal("tx-sell-1", transaction.BrokerTransactionId);
+        Assert.Equal(1m / 1.07m, transaction.UsdEurExchangeRate);
+        Assert.False(transaction.HasIncompleteExchangeRates);
+    }
+
+    [Fact]
+    public void MapToTransaction_EurTradeWithoutFxRate_LeavesExchangeRatesIncompleteForBackgroundSync()
+    {
+        // Arrange
+        var targetAssetId = Guid.NewGuid();
+        var row = new ImportedTransactionRow(
+            Date: new DateTime(2026, 4, 10, 14, 0, 0, DateTimeKind.Utc),
+            ProductName: "SAP SE",
+            Isin: "DE0007164600",
+            Exchange: "XET",
+            Quantity: 5m,
+            PricePerUnit: 150m,
+            PriceCurrency: "EUR",
+            FxRate: null,
+            FeeEur: 1.0m,
+            TotalEur: -751m,
+            BrokerTransactionId: "tx-eur-1"
+        );
+
+        // Act
+        var transaction = _sut.MapToTransaction(row, targetAssetId);
+
+        // Assert
+        Assert.Null(transaction.UsdEurExchangeRate);
+        Assert.Null(transaction.SpotPriceUSD);
+        Assert.True(transaction.HasIncompleteExchangeRates);
     }
 
     [Fact]

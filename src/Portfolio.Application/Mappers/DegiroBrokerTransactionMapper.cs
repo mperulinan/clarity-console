@@ -40,7 +40,7 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
             amountReceived = Math.Abs(row.TotalEur);
         }
 
-        return new Transaction(
+        var transaction = new Transaction(
             date: row.Date,
             transactionType: TransactionType.Swap,
             fromAssetId: fromAssetId,
@@ -59,5 +59,16 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
             notes: $"Imported from {DisplayName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
             brokerTransactionId: row.BrokerTransactionId
         );
+
+        if (string.Equals(row.PriceCurrency, "USD", StringComparison.OrdinalIgnoreCase) &&
+            row.FxRate.HasValue && row.FxRate.Value > 0)
+        {
+            // DEGIRO quotes "Tipo de cambio" as EUR -> USD (e.g. 1 EUR = 1.0635 USD).
+            // Domain UsdEurExchangeRate is USD -> EUR (e.g. 1 USD = 0.9403 EUR).
+            decimal usdToEurRate = 1m / row.FxRate.Value;
+            transaction.UpdateExchangeRates(usdToEurRate);
+        }
+
+        return transaction;
     }
 }
