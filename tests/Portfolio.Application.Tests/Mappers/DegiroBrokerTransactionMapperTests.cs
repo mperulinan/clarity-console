@@ -151,4 +151,126 @@ public class DegiroBrokerTransactionMapperTests
         Assert.Equal(0m, transaction.Fee);
         Assert.Equal(FiatCurrency.EUR.Id, transaction.FeeAssetId);
     }
+
+    [Fact]
+    public void MapToTransaction_DepositRow_MapsToDepositTransactionInEur()
+    {
+        // Arrange
+        var row = new ImportedTransactionRow(
+            Date: new DateTime(2026, 1, 10, 9, 0, 0, DateTimeKind.Utc),
+            ProductName: "flatex Deposit",
+            Isin: string.Empty,
+            Exchange: string.Empty,
+            Quantity: 2500m,
+            PricePerUnit: 1m,
+            PriceCurrency: "EUR",
+            FxRate: null,
+            FeeEur: null,
+            TotalEur: 2500m,
+            BrokerTransactionId: "dep-1",
+            TransactionType: TransactionType.Deposit
+        );
+
+        // Act
+        var transaction = _sut.MapToTransaction(row, FiatCurrency.EUR.Id);
+
+        // Assert
+        Assert.Equal(TransactionType.Deposit, transaction.Type);
+        Assert.Null(transaction.FromAssetId);
+        Assert.Equal(FiatCurrency.EUR.Id, transaction.ToAssetId);
+        Assert.Equal(0m, transaction.AmountSpent);
+        Assert.Equal(2500m, transaction.AmountReceived);
+        Assert.Equal("dep-1", transaction.BrokerTransactionId);
+    }
+
+    [Fact]
+    public void MapToTransaction_WithdrawalRow_MapsToWithdrawalTransactionInEur()
+    {
+        // Arrange
+        var row = new ImportedTransactionRow(
+            Date: new DateTime(2026, 1, 15, 12, 0, 0, DateTimeKind.Utc),
+            ProductName: "flatex Withdrawal",
+            Isin: string.Empty,
+            Exchange: string.Empty,
+            Quantity: 1000m,
+            PricePerUnit: 1m,
+            PriceCurrency: "EUR",
+            FxRate: null,
+            FeeEur: null,
+            TotalEur: -1000m,
+            BrokerTransactionId: "wth-1",
+            TransactionType: TransactionType.Withdrawal
+        );
+
+        // Act
+        var transaction = _sut.MapToTransaction(row, FiatCurrency.EUR.Id);
+
+        // Assert
+        Assert.Equal(TransactionType.Withdrawal, transaction.Type);
+        Assert.Equal(FiatCurrency.EUR.Id, transaction.FromAssetId);
+        Assert.Null(transaction.ToAssetId);
+        Assert.Equal(1000m, transaction.AmountSpent);
+        Assert.Equal(0m, transaction.AmountReceived);
+        Assert.Equal("wth-1", transaction.BrokerTransactionId);
+    }
+
+    [Fact]
+    public void MapToTransaction_RewardRow_MapsToRewardTransaction()
+    {
+        // Arrange
+        var row = new ImportedTransactionRow(
+            Date: new DateTime(2026, 2, 1, 8, 0, 0, DateTimeKind.Utc),
+            ProductName: "Dividendo",
+            Isin: "US01609W1027",
+            Exchange: string.Empty,
+            Quantity: 15m,
+            PricePerUnit: 1m,
+            PriceCurrency: "EUR",
+            FxRate: null,
+            FeeEur: null,
+            TotalEur: 15m,
+            BrokerTransactionId: "div-1",
+            TransactionType: TransactionType.Reward
+        );
+
+        // Act
+        var transaction = _sut.MapToTransaction(row, FiatCurrency.EUR.Id);
+
+        // Assert
+        Assert.Equal(TransactionType.Reward, transaction.Type);
+        Assert.Null(transaction.FromAssetId);
+        Assert.Equal(FiatCurrency.EUR.Id, transaction.ToAssetId);
+        Assert.Equal(0m, transaction.AmountSpent);
+        Assert.Equal(15m, transaction.AmountReceived);
+    }
+
+    [Fact]
+    public void MapToTransaction_LossRow_MapsToLossTransaction()
+    {
+        // Arrange
+        var row = new ImportedTransactionRow(
+            Date: new DateTime(2026, 2, 5, 10, 0, 0, DateTimeKind.Utc),
+            ProductName: "Comisión de conectividad con el mercado",
+            Isin: string.Empty,
+            Exchange: string.Empty,
+            Quantity: 2.5m,
+            PricePerUnit: 1m,
+            PriceCurrency: "EUR",
+            FxRate: null,
+            FeeEur: null,
+            TotalEur: -2.5m,
+            BrokerTransactionId: "fee-conn-1",
+            TransactionType: TransactionType.Loss
+        );
+
+        // Act
+        var transaction = _sut.MapToTransaction(row, FiatCurrency.EUR.Id);
+
+        // Assert
+        Assert.Equal(TransactionType.Loss, transaction.Type);
+        Assert.Equal(FiatCurrency.EUR.Id, transaction.FromAssetId);
+        Assert.Null(transaction.ToAssetId);
+        Assert.Equal(2.5m, transaction.AmountSpent);
+        Assert.Equal(0m, transaction.AmountReceived);
+    }
 }

@@ -15,38 +15,48 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
     public string DisplayName => "DEGIRO";
 
     public Transaction MapToTransaction(
-        ImportedTransactionRow row, 
+        ImportedTransactionRow row,
         Guid targetAssetId)
     {
-        Guid fromAssetId;
-        Guid toAssetId;
-        decimal amountSpent;
-        decimal amountReceived;
+        var txType = row.TransactionType;
+        if (txType != null && txType != TransactionType.Swap)
+        {
+            var fromAssetId = txType.RequiresFromAsset ? targetAssetId : (Guid?)null;
+            var toAssetId   = txType.RequiresToAsset   ? targetAssetId : (Guid?)null;
+            var amountSpent    = txType.RequiresFromAsset ? Math.Abs(row.TotalEur) : 0m;
+            var amountReceived = txType.RequiresToAsset   ? Math.Abs(row.TotalEur) : 0m;
+            return BuildFiatTransaction(row, txType, fromAssetId, toAssetId, amountSpent, amountReceived);
+        }
+
+        Guid swapFromAssetId;
+        Guid swapToAssetId;
+        decimal swapAmountSpent;
+        decimal swapAmountReceived;
 
         if (row.Quantity > 0)
         {
             // BUY: Swap EUR -> Stock
-            fromAssetId = FiatCurrency.EUR.Id;
-            toAssetId = targetAssetId;
-            amountSpent = Math.Abs(row.TotalEur);
-            amountReceived = Math.Abs(row.Quantity);
+            swapFromAssetId = FiatCurrency.EUR.Id;
+            swapToAssetId = targetAssetId;
+            swapAmountSpent = Math.Abs(row.TotalEur);
+            swapAmountReceived = Math.Abs(row.Quantity);
         }
         else
         {
             // SELL: Swap Stock -> EUR
-            fromAssetId = targetAssetId;
-            toAssetId = FiatCurrency.EUR.Id;
-            amountSpent = Math.Abs(row.Quantity);
-            amountReceived = Math.Abs(row.TotalEur);
+            swapFromAssetId = targetAssetId;
+            swapToAssetId = FiatCurrency.EUR.Id;
+            swapAmountSpent = Math.Abs(row.Quantity);
+            swapAmountReceived = Math.Abs(row.TotalEur);
         }
 
         var transaction = new Transaction(
             date: row.Date,
             transactionType: TransactionType.Swap,
-            fromAssetId: fromAssetId,
-            toAssetId: toAssetId,
-            amountSpent: amountSpent,
-            amountReceived: amountReceived,
+            fromAssetId: swapFromAssetId,
+            toAssetId: swapToAssetId,
+            amountSpent: swapAmountSpent,
+            amountReceived: swapAmountReceived,
             spotPriceUSD: null,
             spotPriceEUR: null,
             fee: row.FeeEur ?? 0m,
@@ -71,4 +81,31 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
 
         return transaction;
     }
+
+    private Transaction BuildFiatTransaction(
+        ImportedTransactionRow row,
+        TransactionType type,
+        Guid? fromAssetId,
+        Guid? toAssetId,
+        decimal amountSpent,
+        decimal amountReceived) =>
+        new(
+            date: row.Date,
+            transactionType: type,
+            fromAssetId: fromAssetId,
+            toAssetId: toAssetId,
+            amountSpent: amountSpent,
+            amountReceived: amountReceived,
+            spotPriceUSD: null,
+            spotPriceEUR: 1m,
+            fee: 0m,
+            feeAssetId: null,
+            feeSpotPriceUSD: null,
+            feeSpotPriceEUR: null,
+            usdEurExchangeRate: null,
+            spotPriceInputCurrency: FiatCurrency.EUR,
+            feePriceInputCurrency: null,
+            notes: $"Imported from {DisplayName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
+            brokerTransactionId: row.BrokerTransactionId
+        );
 }
