@@ -9,6 +9,7 @@ namespace Portfolio.Application.Services;
 /// <summary>
 /// Classifies each raw imported row into a preview row by:
 ///   - Flagging duplicates from <paramref name="existingBrokerTransactionIds"/>.
+///   - Short-circuiting to a fiat asset for cash rows (non-Swap types with no ISIN).
 ///   - Resolving the asset via the ISIN-to-asset map from <see cref="IImportTickerResolver"/>.
 ///   - Checking local DB for the asset (Stock first, then ETF) to populate <c>ResolvedAssetId</c>.
 ///   - Marking rows as <c>WillAutoCreate</c> when the asset exists externally but not locally.
@@ -41,7 +42,21 @@ public class ImportPreviewClassifier(IUnitOfWork uow) : IImportPreviewClassifier
                 warningMessage = "Transaction already imported.";
             }
 
-            if (resolvedSearchAsset != null)
+            if (row.TransactionType != null &&
+                row.TransactionType != TransactionType.Swap &&
+                string.IsNullOrWhiteSpace(row.Isin))
+            {
+                var fiatCurrency = string.Equals(row.PriceCurrency, "USD", StringComparison.OrdinalIgnoreCase)
+                    ? FiatCurrency.USD
+                    : FiatCurrency.EUR;
+
+                resolvedAssetId = fiatCurrency.Id;
+                resolvedSymbol = fiatCurrency.Symbol;
+                resolvedAssetType = AssetType.Fiat.Value;
+                willAutoCreate = false;
+                isUnresolvable = false;
+            }
+            else if (resolvedSearchAsset != null)
             {
                 resolvedSymbol = resolvedSearchAsset.Symbol;
                 resolvedAssetType = resolvedSearchAsset.Type;

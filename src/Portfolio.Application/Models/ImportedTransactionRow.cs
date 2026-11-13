@@ -1,3 +1,5 @@
+using Portfolio.Domain.Enums;
+
 namespace Portfolio.Application.Models;
 
 public record ImportedTransactionRow(
@@ -11,5 +13,6 @@ public record ImportedTransactionRow(
     decimal? FxRate,
     decimal? FeeEur,
     decimal TotalEur,
-    string BrokerTransactionId
+    string BrokerTransactionId,
+    TransactionType? TransactionType = null
 );

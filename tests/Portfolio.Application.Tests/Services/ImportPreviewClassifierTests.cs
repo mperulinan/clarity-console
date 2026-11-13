@@ -151,5 +151,49 @@ public class ImportPreviewClassifierTests
         Assert.True(preview.IsUnresolvable);
         Assert.Equal("Could not resolve ticker symbol for ISIN 'ES0100000000'.", preview.WarningMessage);
     }
+
+    [Fact]
+    public async Task ClassifyRowsAsync_DepositRow_ResolvesDirectlyToFiatEur()
+    {
+        // Arrange
+        var row = new ImportedTransactionRow(
+            DateTime.UtcNow, "flatex Deposit", string.Empty, string.Empty, 2500m, 1m, "EUR", null, 0m, 2500m, "dep-1",
+            TransactionType: TransactionType.Deposit
+        );
+
+        // Act
+        var result = await _sut.ClassifyRowsAsync([row], new Dictionary<string, AssetDto?>(), new HashSet<string>());
+
+        // Assert
+        Assert.Single(result);
+        var preview = result[0];
+        Assert.Equal("EUR", preview.ResolvedSymbol);
+        Assert.Equal(FiatCurrency.EUR.Id, preview.ResolvedAssetId);
+        Assert.Equal(AssetType.Fiat.Value, preview.ResolvedAssetType);
+        Assert.False(preview.IsUnresolvable);
+        Assert.False(preview.WillAutoCreate);
+    }
+
+    [Fact]
+    public async Task ClassifyRowsAsync_WithdrawalRow_ResolvesDirectlyToFiatEur()
+    {
+        // Arrange
+        var row = new ImportedTransactionRow(
+            DateTime.UtcNow, "flatex Withdrawal", string.Empty, string.Empty, 1000m, 1m, "EUR", null, 0m, -1000m, "wth-1",
+            TransactionType: TransactionType.Withdrawal
+        );
+
+        // Act
+        var result = await _sut.ClassifyRowsAsync([row], new Dictionary<string, AssetDto?>(), new HashSet<string>());
+
+        // Assert
+        Assert.Single(result);
+        var preview = result[0];
+        Assert.Equal("EUR", preview.ResolvedSymbol);
+        Assert.Equal(FiatCurrency.EUR.Id, preview.ResolvedAssetId);
+        Assert.Equal(AssetType.Fiat.Value, preview.ResolvedAssetType);
+        Assert.False(preview.IsUnresolvable);
+        Assert.False(preview.WillAutoCreate);
+    }
 }
 
