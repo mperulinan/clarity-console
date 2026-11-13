@@ -1,4 +1,5 @@
 using System.Text;
+using Portfolio.Domain.Enums;
 using Portfolio.Infrastructure.ImportParsers;
 
 namespace Portfolio.Infrastructure.Tests;
@@ -13,8 +14,8 @@ public class DegiroTransactionParserTests
         // Arrange
         var csv = """
             Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,
-            20-10-2023,14:30,APPLE INC,US0378331005,NSY,XNYS,10,175.50,USD,-1755.00,USD,-1650.25,1.0635,-1.20,-1.00,-1652.45,06db189d-3f4c-479f-b4d4-9d2e93dc0f2f,
-            21-10-2023,15:45,APPLE INC,US0378331005,NSY,XNYS,-5,180.00,USD,900.00,USD,850.00,1.0588,-0.80,-1.00,848.20,17ec291a-4e2b-482f-8a12-7f9e8a1a3b5c,
+            20-10-2023,14:30,ACME CORP,XX0000000001,TST,XTST,10,175.50,USD,-1755.00,USD,-1650.25,1.0635,-1.20,-1.00,-1652.45,aaaaaaaa-bbbb-cccc-dddd-000000000001,
+            21-10-2023,15:45,ACME CORP,XX0000000001,TST,XTST,-5,180.00,USD,900.00,USD,850.00,1.0588,-0.80,-1.00,848.20,aaaaaaaa-bbbb-cccc-dddd-000000000002,
             """;
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
 
@@ -27,16 +28,16 @@ public class DegiroTransactionParserTests
 
         var buy = result[0];
         Assert.Equal(new DateTime(2023, 10, 20, 14, 30, 0, DateTimeKind.Utc), buy.Date);
-        Assert.Equal("APPLE INC", buy.ProductName);
-        Assert.Equal("US0378331005", buy.Isin);
-        Assert.Equal("NSY", buy.Exchange);
+        Assert.Equal("ACME CORP", buy.ProductName);
+        Assert.Equal("XX0000000001", buy.Isin);
+        Assert.Equal("TST", buy.Exchange);
         Assert.Equal(10m, buy.Quantity);
         Assert.Equal(175.50m, buy.PricePerUnit);
         Assert.Equal("USD", buy.PriceCurrency);
         Assert.Equal(1.0635m, buy.FxRate);
         Assert.Equal(2.20m, buy.FeeEur);
         Assert.Equal(-1652.45m, buy.TotalEur);
-        Assert.Equal("06db189d-3f4c-479f-b4d4-9d2e93dc0f2f", buy.BrokerTransactionId);
+        Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-000000000001", buy.BrokerTransactionId);
 
         var sell = result[1];
         Assert.Equal(new DateTime(2023, 10, 21, 15, 45, 0, DateTimeKind.Utc), sell.Date);
@@ -45,7 +46,7 @@ public class DegiroTransactionParserTests
         Assert.Equal("USD", sell.PriceCurrency);
         Assert.Equal(1.80m, sell.FeeEur);
         Assert.Equal(848.20m, sell.TotalEur);
-        Assert.Equal("17ec291a-4e2b-482f-8a12-7f9e8a1a3b5c", sell.BrokerTransactionId);
+        Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-000000000002", sell.BrokerTransactionId);
     }
 
     [Fact]
@@ -54,7 +55,7 @@ public class DegiroTransactionParserTests
         // Arrange
         var csv = """
             Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,
-            22-10-2023,10:00,SAP SE,DE0007164600,XET,XETR,5,120.00,EUR,-600.00,EUR,-600.00,,,,-600.00,28fc302b-5f3c-493f-9b23-8a239b2b4c6d,
+            22-10-2023,10:00,GLOBEX HOLDINGS,XX9999999002,TST,XTST,5,120.00,EUR,-600.00,EUR,-600.00,,,,-600.00,cccccccc-dddd-eeee-ffff-000000000001,
             """;
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
 
@@ -64,14 +65,14 @@ public class DegiroTransactionParserTests
         // Assert
         Assert.Single(result);
         var row = result[0];
-        Assert.Equal("DE0007164600", row.Isin);
+        Assert.Equal("XX9999999002", row.Isin);
         Assert.Equal(5m, row.Quantity);
         Assert.Equal(120.00m, row.PricePerUnit);
         Assert.Equal("EUR", row.PriceCurrency);
         Assert.Null(row.FxRate);
         Assert.Null(row.FeeEur);
         Assert.Equal(-600.00m, row.TotalEur);
-        Assert.Equal("28fc302b-5f3c-493f-9b23-8a239b2b4c6d", row.BrokerTransactionId);
+        Assert.Equal("cccccccc-dddd-eeee-ffff-000000000001", row.BrokerTransactionId);
     }
 
     [Fact]
@@ -80,7 +81,7 @@ public class DegiroTransactionParserTests
         // Arrange
         var csv = """
             Date,Time,Product,ISIN,Reference exchange,Venue,Quantity,Price
-            20-10-2023,14:30,APPLE INC,US0378331005,NSY,XNYS,10,175.50
+            20-10-2023,14:30,ACME CORP,XX0000000001,TST,XTST,10,175.50
             """;
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
 
@@ -173,5 +174,73 @@ public class DegiroTransactionParserTests
 
         // Assert
         Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ParseAsync_AccountStatementCsv_ParsesCashRowsAndSkipsTrades()
+    {
+        // Arrange
+        const string csv = """
+            Fecha,Hora,Fecha valor,Producto,ISIN,Descripción,Tipo,Variación,,Saldo,,ID Orden
+            25-05-2021,09:00,25-05-2021,,,flatex Deposit,,EUR,"2300,00",EUR,"2300,00",
+            26-05-2021,21:50,26-05-2021,ACME CORP,XX0000000001,"Compra 5 Acme Corp@200 USD (XX0000000001)",,USD,"-1000,00",USD,"-1000,00",ord-1
+            27-05-2021,10:00,27-05-2021,,,Degiro Cash Sweep Transfer,,EUR,"100,00",EUR,"2400,00",
+            06-02-2022,09:59,31-01-2022,,,Comisión de conectividad con el mercado 2022 (New York Stock Exchange - NSY),,EUR,"-2,50",EUR,"2297,50",
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+
+        // Act
+        var result = await _sut.ParseAsync(stream);
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Equal(TransactionType.Deposit, result[0].TransactionType);
+        Assert.Equal(2300m, result[0].TotalEur);
+        Assert.Equal(TransactionType.Loss, result[1].TransactionType);
+        Assert.Equal(-2.50m, result[1].TotalEur);
+    }
+
+    [Fact]
+    public async Task ParseAsync_AccountStatementWithWithdrawalsDividendsAndFees_ParsesCorrectly()
+    {
+        // Arrange
+        const string csv = """
+            Fecha,Hora,Fecha valor,Producto,ISIN,Descripción,Tipo,Variación,,Saldo,,ID Orden
+            07-04-2024,17:50,08-04-2024,,,flatex Withdrawal,,EUR,"-5000,00",EUR,"-4900,00",
+            14-07-2024,08:08,13-07-2024,ACME CORP ADR,XX0000000001,Dividendo,,USD,"25,00",USD,"25,00",
+            14-07-2024,08:09,13-07-2024,ACME CORP ADR,XX0000000001,ADR/GDR Pass-Through Fee,,USD,"-0,50",USD,"24,50",
+            03-10-2024,11:05,30-09-2024,,,Interés,,EUR,"-0,03",EUR,"1500,00",
+            04-10-2024,06:21,30-09-2024,,,Flatex Interest Income,,EUR,"0,00",EUR,"1500,00",
+            07-04-2024,17:50,08-04-2024,,,Processed Flatex Withdrawal,,EUR,"5000,00",EUR,"100,00",
+            15-07-2024,07:42,15-07-2024,,,"Transferir a su Cuenta de Efectivo en flatexDEGIRO Bank: 11,7 EUR",,,,EUR,"100,00",
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+
+        // Act
+        var result = await _sut.ParseAsync(stream);
+
+        // Assert
+        Assert.Equal(4, result.Count);
+
+        var withdrawal = result[0];
+        Assert.Equal(TransactionType.Withdrawal, withdrawal.TransactionType);
+        Assert.Equal(-5000m, withdrawal.TotalEur);
+        Assert.Equal(5000m, withdrawal.Quantity);
+
+        var dividend = result[1];
+        Assert.Equal(TransactionType.Reward, dividend.TransactionType);
+        Assert.Equal(25m, dividend.TotalEur);
+        Assert.Equal("USD", dividend.PriceCurrency);
+        Assert.Equal("XX0000000001", dividend.Isin);
+
+        var adrFee = result[2];
+        Assert.Equal(TransactionType.Loss, adrFee.TransactionType);
+        Assert.Equal(-0.50m, adrFee.TotalEur);
+        Assert.Equal("USD", adrFee.PriceCurrency);
+        Assert.Equal("XX0000000001", adrFee.Isin);
+
+        var interest = result[3];
+        Assert.Equal(TransactionType.Loss, interest.TransactionType);
+        Assert.Equal(-0.03m, interest.TotalEur);
     }
 }

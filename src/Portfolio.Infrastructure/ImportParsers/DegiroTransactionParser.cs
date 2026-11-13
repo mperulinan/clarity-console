@@ -9,17 +9,22 @@ namespace Portfolio.Infrastructure.ImportParsers;
 
 /// <summary>
 /// Handles CSV stream lifecycle, header validation, and record iteration for DEGIRO (Spanish) imports.
-/// Delegates row-level parsing and conversions to <see cref="IDegiroRowParser"/>.
+/// Automatically detects Trade exports ("Transacciones") versus Account statement exports ("Estado de cuenta")
+/// and delegates row-level parsing to <see cref="IDegiroRowParser"/> or <see cref="IDegiroAccountRowParser"/>.
 /// </summary>
 public class DegiroTransactionParser : ITransactionImportParser
 {
     private readonly IDegiroRowParser _rowParser;
+    private readonly IDegiroAccountRowParser _accountRowParser;
 
-    public DegiroTransactionParser() : this(new DegiroRowParser()) { }
+    public DegiroTransactionParser() : this(new DegiroRowParser(), new DegiroAccountRowParser()) { }
 
-    internal DegiroTransactionParser(IDegiroRowParser rowParser)
+    internal DegiroTransactionParser(IDegiroRowParser rowParser) : this(rowParser, new DegiroAccountRowParser()) { }
+
+    internal DegiroTransactionParser(IDegiroRowParser rowParser, IDegiroAccountRowParser accountRowParser)
     {
         _rowParser = rowParser;
+        _accountRowParser = accountRowParser;
     }
 
     public string BrokerKey => "degiro";
@@ -42,12 +47,16 @@ public class DegiroTransactionParser : ITransactionImportParser
 
         if (!await csv.ReadAsync())
         {
-            return Array.Empty<ImportedTransactionRow>();
+            return [];
         }
 
         csv.ReadHeader();
-        var headers = csv.HeaderRecord;
-        if (headers == null || !IsValidDegiroSpanishHeader(headers))
+        var headers = csv.HeaderRecord ?? throw new InvalidOperationException("The uploaded file does not match the expected DEGIRO (Spanish) CSV format.");
+
+        var isAccountStatement = IsValidDegiroAccountHeader(headers);
+        var isTradeStatement = IsValidDegiroTradeHeader(headers);
+
+        if (!isAccountStatement && !isTradeStatement)
         {
             throw new InvalidOperationException("The uploaded file does not match the expected DEGIRO (Spanish) CSV format.");
         }
@@ -56,17 +65,32 @@ public class DegiroTransactionParser : ITransactionImportParser
 
         while (await csv.ReadAsync())
         {
-            if (_rowParser.TryParseRow(csv, headers, out var row))
+            if (isAccountStatement)
             {
-                rows.Add(row);
+                if (_accountRowParser.TryParseRow(csv, headers, out var row))
+                {
+                    rows.Add(row);
+                }
+            }
+            else
+            {
+                if (_rowParser.TryParseRow(csv, headers, out var row))
+                {
+                    rows.Add(row);
+                }
             }
         }
 
         return rows;
     }
 
-    private static bool IsValidDegiroSpanishHeader(string[] headers)
+    private static bool IsValidDegiroTradeHeader(string[] headers)
     {
         return DegiroHeaders.Required.All(req => headers.Any(h => string.Equals(h?.Trim(), req, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static bool IsValidDegiroAccountHeader(string[] headers)
+    {
+        return DegiroHeaders.AccountRequired.All(req => headers.Any(h => string.Equals(h?.Trim(), req, StringComparison.OrdinalIgnoreCase)));
     }
 }
