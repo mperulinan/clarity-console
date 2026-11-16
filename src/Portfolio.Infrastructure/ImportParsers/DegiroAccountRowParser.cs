@@ -8,18 +8,10 @@ using Portfolio.Domain.Enums;
 namespace Portfolio.Infrastructure.ImportParsers;
 
 /// <summary>
-/// Strategy for extracting and mapping a single DEGIRO account statement CSV row into an <see cref="ImportedTransactionRow"/>.
-/// </summary>
-internal interface IDegiroAccountRowParser
-{
-    bool TryParseRow(CsvReader csv, string[] headers, [NotNullWhen(true)] out ImportedTransactionRow? row);
-}
-
-/// <summary>
 /// Extracts cash transactions (deposits, withdrawals, dividends, account fees) from a DEGIRO account statement (Estado de cuenta).
 /// Skips internal bank cash sweeps and trade-related execution rows.
 /// </summary>
-internal class DegiroAccountRowParser : IDegiroAccountRowParser
+internal class DegiroAccountRowParser : IDegiroRowParser
 {
     public bool TryParseRow(CsvReader csv, string[] headers, [NotNullWhen(true)] out ImportedTransactionRow? row)
     {

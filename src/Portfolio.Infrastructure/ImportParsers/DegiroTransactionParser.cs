@@ -10,16 +10,16 @@ namespace Portfolio.Infrastructure.ImportParsers;
 /// <summary>
 /// Handles CSV stream lifecycle, header validation, and record iteration for DEGIRO (Spanish) imports.
 /// Automatically detects Trade exports ("Transacciones") versus Account statement exports ("Estado de cuenta")
-/// and delegates row-level parsing to <see cref="IDegiroRowParser"/> or <see cref="IDegiroAccountRowParser"/>.
+/// and delegates row-level parsing to the corresponding <see cref="IDegiroRowParser"/> implementation.
 /// </summary>
 public class DegiroTransactionParser : ITransactionImportParser
 {
-    private readonly IDegiroRowParser _rowParser;
-    private readonly IDegiroAccountRowParser _accountRowParser;
+    private readonly IDegiroRowParser _tradeRowParser;
+    private readonly IDegiroRowParser _accountRowParser;
 
     public DegiroTransactionParser()
     {
-        _rowParser = new DegiroRowParser();
+        _tradeRowParser = new DegiroRowParser();
         _accountRowParser = new DegiroAccountRowParser();
     }
 
@@ -57,23 +57,14 @@ public class DegiroTransactionParser : ITransactionImportParser
             throw new InvalidOperationException("The uploaded file does not match the expected DEGIRO (Spanish) CSV format.");
         }
 
+        var rowParser = isAccountStatement ? _accountRowParser : _tradeRowParser;
         var rows = new List<ImportedTransactionRow>();
 
         while (await csv.ReadAsync())
         {
-            if (isAccountStatement)
+            if (rowParser.TryParseRow(csv, headers, out var row))
             {
-                if (_accountRowParser.TryParseRow(csv, headers, out var row))
-                {
-                    rows.Add(row);
-                }
-            }
-            else
-            {
-                if (_rowParser.TryParseRow(csv, headers, out var row))
-                {
-                    rows.Add(row);
-                }
+                rows.Add(row);
             }
         }
 
