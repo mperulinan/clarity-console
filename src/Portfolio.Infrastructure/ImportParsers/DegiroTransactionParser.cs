@@ -17,14 +17,10 @@ public class DegiroTransactionParser : ITransactionImportParser
     private readonly IDegiroRowParser _rowParser;
     private readonly IDegiroAccountRowParser _accountRowParser;
 
-    public DegiroTransactionParser() : this(new DegiroRowParser(), new DegiroAccountRowParser()) { }
-
-    internal DegiroTransactionParser(IDegiroRowParser rowParser) : this(rowParser, new DegiroAccountRowParser()) { }
-
-    internal DegiroTransactionParser(IDegiroRowParser rowParser, IDegiroAccountRowParser accountRowParser)
+    public DegiroTransactionParser()
     {
-        _rowParser = rowParser;
-        _accountRowParser = accountRowParser;
+        _rowParser = new DegiroRowParser();
+        _accountRowParser = new DegiroAccountRowParser();
     }
 
     public string BrokerKey => "degiro";
