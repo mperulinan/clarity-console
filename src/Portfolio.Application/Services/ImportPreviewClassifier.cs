@@ -61,9 +61,8 @@ public class ImportPreviewClassifier(IUnitOfWork uow) : IImportPreviewClassifier
                 resolvedSymbol = resolvedSearchAsset.Symbol;
                 resolvedAssetType = resolvedSearchAsset.Type;
 
-                var localAsset =
-                    await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, AssetType.Stock, cancellationToken)
-                    ?? await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, AssetType.Etf, cancellationToken);
+                var assetType = ResolveAssetType(resolvedSearchAsset.Type);
+                var localAsset = await uow.Assets.GetBySymbolAsync(resolvedSearchAsset.Symbol, assetType, cancellationToken);
 
                 if (localAsset != null)
                 {
@@ -94,6 +93,21 @@ public class ImportPreviewClassifier(IUnitOfWork uow) : IImportPreviewClassifier
         }
 
         return previewRows;
+    }
+
+    private static AssetType ResolveAssetType(string rawType)
+    {
+        if (AssetType.TryFromValue(rawType, out var byValue))
+        {
+            return byValue;
+        }
+
+        if (AssetType.TryFromName(rawType, ignoreCase: true, out var byName))
+        {
+            return byName;
+        }
+
+        return AssetType.Stock;
     }
 }
 
