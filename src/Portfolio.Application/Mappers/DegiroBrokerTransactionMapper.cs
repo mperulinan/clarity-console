@@ -88,24 +88,39 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
         Guid? fromAssetId,
         Guid? toAssetId,
         decimal amountSpent,
-        decimal amountReceived) =>
-        new(
+        decimal amountReceived)
+    {
+        var isUsd = string.Equals(row.PriceCurrency, FiatCurrency.USD.Symbol, StringComparison.OrdinalIgnoreCase);
+        var inputCurrency = isUsd ? FiatCurrency.USD : FiatCurrency.EUR;
+        decimal? spotPriceUsd = isUsd ? 1m : null;
+        decimal? spotPriceEur = isUsd ? null : 1m;
+
+        var transaction = new Transaction(
             date: row.Date,
             transactionType: type,
             fromAssetId: fromAssetId,
             toAssetId: toAssetId,
             amountSpent: amountSpent,
             amountReceived: amountReceived,
-            spotPriceUSD: null,
-            spotPriceEUR: 1m,
+            spotPriceUSD: spotPriceUsd,
+            spotPriceEUR: spotPriceEur,
             fee: 0m,
             feeAssetId: null,
             feeSpotPriceUSD: null,
             feeSpotPriceEUR: null,
             usdEurExchangeRate: null,
-            spotPriceInputCurrency: FiatCurrency.EUR,
+            spotPriceInputCurrency: inputCurrency,
             feePriceInputCurrency: null,
             notes: $"Imported from {DisplayName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
             brokerTransactionId: row.BrokerTransactionId
         );
+
+        if (isUsd && row.FxRate.HasValue && row.FxRate.Value > 0)
+        {
+            decimal usdToEurRate = 1m / row.FxRate.Value;
+            transaction.UpdateExchangeRates(usdToEurRate);
+        }
+
+        return transaction;
+    }
 }

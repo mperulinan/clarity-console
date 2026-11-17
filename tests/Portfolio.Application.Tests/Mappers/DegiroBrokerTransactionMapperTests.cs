@@ -273,4 +273,66 @@ public class DegiroBrokerTransactionMapperTests
         Assert.Equal(2.5m, transaction.AmountSpent);
         Assert.Equal(0m, transaction.AmountReceived);
     }
+
+    [Fact]
+    public void MapToTransaction_UsdRewardRowWithoutFxRate_MapsWithUsdInputCurrencyAndIncompleteExchangeRate()
+    {
+        // Arrange
+        var row = new ImportedTransactionRow(
+            Date: new DateTime(2026, 2, 1, 8, 0, 0, DateTimeKind.Utc),
+            ProductName: "Dividendo USD",
+            Isin: "US01609W1027",
+            Exchange: string.Empty,
+            Quantity: 25m,
+            PricePerUnit: 1m,
+            PriceCurrency: "USD",
+            FxRate: null,
+            FeeEur: null,
+            TotalEur: 25m,
+            BrokerTransactionId: "div-usd-1",
+            TransactionType: TransactionType.Reward
+        );
+
+        // Act
+        var transaction = _sut.MapToTransaction(row, FiatCurrency.USD.Id);
+
+        // Assert
+        Assert.Equal(TransactionType.Reward, transaction.Type);
+        Assert.Equal(FiatCurrency.USD, transaction.SpotPriceInputCurrency);
+        Assert.Equal(1m, transaction.SpotPriceUSD);
+        Assert.Null(transaction.SpotPriceEUR);
+        Assert.True(transaction.HasIncompleteExchangeRates);
+    }
+
+    [Fact]
+    public void MapToTransaction_UsdRewardRowWithFxRate_UpdatesExchangeRates()
+    {
+        // Arrange
+        var row = new ImportedTransactionRow(
+            Date: new DateTime(2026, 2, 1, 8, 0, 0, DateTimeKind.Utc),
+            ProductName: "Dividendo USD",
+            Isin: "US01609W1027",
+            Exchange: string.Empty,
+            Quantity: 25m,
+            PricePerUnit: 1m,
+            PriceCurrency: "USD",
+            FxRate: 1.10m, // DEGIRO EUR -> USD
+            FeeEur: null,
+            TotalEur: 25m,
+            BrokerTransactionId: "div-usd-2",
+            TransactionType: TransactionType.Reward
+        );
+
+        // Act
+        var transaction = _sut.MapToTransaction(row, FiatCurrency.USD.Id);
+
+        // Assert
+        Assert.Equal(TransactionType.Reward, transaction.Type);
+        Assert.Equal(FiatCurrency.USD, transaction.SpotPriceInputCurrency);
+        Assert.Equal(1m, transaction.SpotPriceUSD);
+        Assert.NotNull(transaction.SpotPriceEUR);
+        Assert.Equal(1m / 1.10m, transaction.SpotPriceEUR.Value);
+        Assert.Equal(1m / 1.10m, transaction.UsdEurExchangeRate);
+        Assert.False(transaction.HasIncompleteExchangeRates);
+    }
 }
