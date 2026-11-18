@@ -22,7 +22,7 @@ namespace Portfolio.Application.Models;
 ///       Represents cash transactions such as deposits, withdrawals, dividends (<see cref="TransactionType.Reward"/>),
 ///       or connectivity/ADR fees (<see cref="TransactionType.Loss"/>).
 ///       <see cref="Quantity"/> reflects the absolute cash amount, <see cref="PricePerUnit"/> defaults to 1m,
-///       <see cref="TotalEur"/> carries the signed cash variation, and execution-specific fields
+///       <see cref="TotalAmount"/> carries the signed cash variation in <see cref="TotalCurrency"/>, and execution-specific fields
 ///       (<see cref="Exchange"/>, <see cref="FxRate"/>, <see cref="FeeEur"/>) are unused or defaulted.
 ///     </description>
 ///   </item>
@@ -39,7 +39,8 @@ public record ImportedTransactionRow(
     string PriceCurrency,       // e.g. "USD", "EUR"
     decimal? FxRate,
     decimal? FeeEur,
-    decimal TotalEur,
+    decimal TotalAmount,
+    string TotalCurrency,
     string BrokerTransactionId,
     TransactionType? TransactionType = null
 );

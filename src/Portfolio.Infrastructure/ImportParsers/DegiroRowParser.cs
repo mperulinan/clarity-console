@@ -62,7 +62,8 @@ internal class DegiroRowParser : IDegiroRowParser
             PriceCurrency: priceCurrency,
             FxRate: fxRate,
             FeeEur: feeEur,
-            TotalEur: totalEur,
+            TotalAmount: totalEur,
+            TotalCurrency: DegiroHeaders.DefaultCurrency,
             BrokerTransactionId: brokerTransactionId
         );
 

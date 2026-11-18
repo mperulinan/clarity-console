@@ -23,8 +23,8 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
         {
             var fromAssetId = txType.RequiresFromAsset ? targetAssetId : (Guid?)null;
             var toAssetId   = txType.RequiresToAsset   ? targetAssetId : (Guid?)null;
-            var amountSpent    = txType.RequiresFromAsset ? Math.Abs(row.TotalEur) : 0m;
-            var amountReceived = txType.RequiresToAsset   ? Math.Abs(row.TotalEur) : 0m;
+            var amountSpent    = txType.RequiresFromAsset ? Math.Abs(row.TotalAmount) : 0m;
+            var amountReceived = txType.RequiresToAsset   ? Math.Abs(row.TotalAmount) : 0m;
             return BuildFiatTransaction(row, txType, fromAssetId, toAssetId, amountSpent, amountReceived);
         }
 
@@ -38,7 +38,7 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
             // BUY: Swap EUR -> Stock
             swapFromAssetId = FiatCurrency.EUR.Id;
             swapToAssetId = targetAssetId;
-            swapAmountSpent = Math.Abs(row.TotalEur);
+            swapAmountSpent = Math.Abs(row.TotalAmount);
             swapAmountReceived = Math.Abs(row.Quantity);
         }
         else
@@ -47,7 +47,7 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
             swapFromAssetId = targetAssetId;
             swapToAssetId = FiatCurrency.EUR.Id;
             swapAmountSpent = Math.Abs(row.Quantity);
-            swapAmountReceived = Math.Abs(row.TotalEur);
+            swapAmountReceived = Math.Abs(row.TotalAmount);
         }
 
         var transaction = new Transaction(

@@ -68,7 +68,8 @@ internal class DegiroAccountRowParser : IDegiroRowParser
             PriceCurrency: currency,
             FxRate: null,
             FeeEur: 0m,
-            TotalEur: amount.Value,
+            TotalAmount: amount.Value,
+            TotalCurrency: currency,
             BrokerTransactionId: brokerTransactionId,
             TransactionType: txType
         );
