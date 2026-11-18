@@ -263,7 +263,7 @@
             <!-- Price / Total -->
             <td class="col-price">
               <span class="cell-primary">{{ row.raw.pricePerUnit | number:'1.2-4' }} {{ row.raw.priceCurrency }}</span>
-              <span class="cell-secondary">{{ row.raw.totalEur | number:'1.2-2' }} EUR</span>
+              <span class="cell-secondary">{{ row.raw.totalAmount | number:'1.2-2' }} {{ row.raw.totalCurrency || 'EUR' }}</span>
             </td>
 
             <!-- Resolved symbol -->

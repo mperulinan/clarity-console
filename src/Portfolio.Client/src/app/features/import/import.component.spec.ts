@@ -36,6 +36,8 @@ describe('ImportComponent', () => {
       priceCurrency: 'USD',
       fxRate: 1.06,
       feeEur: 1,
+      totalAmount: -1750,
+      totalCurrency: 'EUR',
       totalEur: -1750,
       brokerTransactionId: id
     },

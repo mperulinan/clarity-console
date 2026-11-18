@@ -13,8 +13,11 @@ export interface ImportedTransactionRow {
   priceCurrency: string;
   fxRate?: number | null;
   feeEur?: number | null;
-  totalEur: number;
+  totalAmount: number;
+  totalCurrency: string;
+  totalEur?: number;
   brokerTransactionId: string;
+  transactionType?: string | null;
 }
 
 export interface ImportedTransactionRowPreview {
