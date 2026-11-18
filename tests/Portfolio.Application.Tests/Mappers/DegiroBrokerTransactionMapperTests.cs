@@ -36,7 +36,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "USD",
             FxRate: 1.08m,
             FeeEur: 1.5m,
-            TotalEur: -1620.37m,
+            TotalAmount: -1620.37m,
+            TotalCurrency: "EUR",
             BrokerTransactionId: "tx-buy-1"
         );
 
@@ -75,7 +76,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "USD",
             FxRate: 1.07m,
             FeeEur: 2.0m,
-            TotalEur: 1960.50m,
+            TotalAmount: 1960.50m,
+            TotalCurrency: "EUR",
             BrokerTransactionId: "tx-sell-1"
         );
 
@@ -112,7 +114,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "EUR",
             FxRate: null,
             FeeEur: 1.0m,
-            TotalEur: -751m,
+            TotalAmount: -751m,
+            TotalCurrency: "EUR",
             BrokerTransactionId: "tx-eur-1"
         );
 
@@ -140,7 +143,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "USD",
             FxRate: null,
             FeeEur: null,
-            TotalEur: -330m,
+            TotalAmount: -330m,
+            TotalCurrency: "EUR",
             BrokerTransactionId: "tx-no-fee"
         );
 
@@ -166,7 +170,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "EUR",
             FxRate: null,
             FeeEur: null,
-            TotalEur: 2500m,
+            TotalAmount: 2500m,
+            TotalCurrency: "EUR",
             BrokerTransactionId: "dep-1",
             TransactionType: TransactionType.Deposit
         );
@@ -197,7 +202,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "EUR",
             FxRate: null,
             FeeEur: null,
-            TotalEur: -1000m,
+            TotalAmount: -1000m,
+            TotalCurrency: "EUR",
             BrokerTransactionId: "wth-1",
             TransactionType: TransactionType.Withdrawal
         );
@@ -228,7 +234,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "EUR",
             FxRate: null,
             FeeEur: null,
-            TotalEur: 15m,
+            TotalAmount: 15m,
+            TotalCurrency: "EUR",
             BrokerTransactionId: "div-1",
             TransactionType: TransactionType.Reward
         );
@@ -258,7 +265,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "EUR",
             FxRate: null,
             FeeEur: null,
-            TotalEur: -2.5m,
+            TotalAmount: -2.5m,
+            TotalCurrency: "EUR",
             BrokerTransactionId: "fee-conn-1",
             TransactionType: TransactionType.Loss
         );
@@ -288,7 +296,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "USD",
             FxRate: null,
             FeeEur: null,
-            TotalEur: 25m,
+            TotalAmount: 25m,
+            TotalCurrency: "USD",
             BrokerTransactionId: "div-usd-1",
             TransactionType: TransactionType.Reward
         );
@@ -318,7 +327,8 @@ public class DegiroBrokerTransactionMapperTests
             PriceCurrency: "USD",
             FxRate: 1.10m, // DEGIRO EUR -> USD
             FeeEur: null,
-            TotalEur: 25m,
+            TotalAmount: 25m,
+            TotalCurrency: "USD",
             BrokerTransactionId: "div-usd-2",
             TransactionType: TransactionType.Reward
         );

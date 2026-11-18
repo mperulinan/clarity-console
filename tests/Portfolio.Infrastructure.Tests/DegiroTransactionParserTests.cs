@@ -34,9 +34,10 @@ public class DegiroTransactionParserTests
         Assert.Equal(10m, buy.Quantity);
         Assert.Equal(175.50m, buy.PricePerUnit);
         Assert.Equal("USD", buy.PriceCurrency);
+        Assert.Equal("EUR", buy.TotalCurrency);
         Assert.Equal(1.0635m, buy.FxRate);
         Assert.Equal(2.20m, buy.FeeEur);
-        Assert.Equal(-1652.45m, buy.TotalEur);
+        Assert.Equal(-1652.45m, buy.TotalAmount);
         Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-000000000001", buy.BrokerTransactionId);
 
         var sell = result[1];
@@ -45,7 +46,7 @@ public class DegiroTransactionParserTests
         Assert.Equal(180.00m, sell.PricePerUnit);
         Assert.Equal("USD", sell.PriceCurrency);
         Assert.Equal(1.80m, sell.FeeEur);
-        Assert.Equal(848.20m, sell.TotalEur);
+        Assert.Equal(848.20m, sell.TotalAmount);
         Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-000000000002", sell.BrokerTransactionId);
     }
 
@@ -71,7 +72,7 @@ public class DegiroTransactionParserTests
         Assert.Equal("EUR", row.PriceCurrency);
         Assert.Null(row.FxRate);
         Assert.Null(row.FeeEur);
-        Assert.Equal(-600.00m, row.TotalEur);
+        Assert.Equal(-600.00m, row.TotalAmount);
         Assert.Equal("cccccccc-dddd-eeee-ffff-000000000001", row.BrokerTransactionId);
     }
 
@@ -118,7 +119,7 @@ public class DegiroTransactionParserTests
         Assert.Equal("USD", row.PriceCurrency);
         Assert.Equal(1.0864m, row.FxRate);
         Assert.Equal(2.15m, row.FeeEur);
-        Assert.Equal(-462.35m, row.TotalEur);
+        Assert.Equal(-462.35m, row.TotalAmount);
         Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", row.BrokerTransactionId);
     }
 
@@ -148,7 +149,7 @@ public class DegiroTransactionParserTests
         Assert.Equal(5m, first.Quantity);
         Assert.Equal(100.0000m, first.PricePerUnit);
         Assert.Equal("USD", first.PriceCurrency);
-        Assert.Equal(-462.35m, first.TotalEur);
+        Assert.Equal(-462.35m, first.TotalAmount);
         Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", first.BrokerTransactionId);
 
         var second = result[1];
@@ -157,7 +158,7 @@ public class DegiroTransactionParserTests
         Assert.Equal(8m, second.Quantity);
         Assert.Equal(55.2500m, second.PricePerUnit);
         Assert.Equal("USD", second.PriceCurrency);
-        Assert.Equal(-391.63m, second.TotalEur);
+        Assert.Equal(-391.63m, second.TotalAmount);
         Assert.Equal(1.48m, second.FeeEur);
         Assert.Equal("bbbbbbbb-cccc-dddd-eeee-ffffffffffff", second.BrokerTransactionId);
     }
@@ -195,9 +196,9 @@ public class DegiroTransactionParserTests
         // Assert
         Assert.Equal(2, result.Count);
         Assert.Equal(TransactionType.Deposit, result[0].TransactionType);
-        Assert.Equal(2300m, result[0].TotalEur);
+        Assert.Equal(2300m, result[0].TotalAmount);
         Assert.Equal(TransactionType.Loss, result[1].TransactionType);
-        Assert.Equal(-2.50m, result[1].TotalEur);
+        Assert.Equal(-2.50m, result[1].TotalAmount);
     }
 
     [Fact]
@@ -224,23 +225,27 @@ public class DegiroTransactionParserTests
 
         var withdrawal = result[0];
         Assert.Equal(TransactionType.Withdrawal, withdrawal.TransactionType);
-        Assert.Equal(-5000m, withdrawal.TotalEur);
+        Assert.Equal(-5000m, withdrawal.TotalAmount);
+        Assert.Equal("EUR", withdrawal.TotalCurrency);
         Assert.Equal(5000m, withdrawal.Quantity);
 
         var dividend = result[1];
         Assert.Equal(TransactionType.Reward, dividend.TransactionType);
-        Assert.Equal(25m, dividend.TotalEur);
+        Assert.Equal(25m, dividend.TotalAmount);
         Assert.Equal("USD", dividend.PriceCurrency);
+        Assert.Equal("USD", dividend.TotalCurrency);
         Assert.Equal("XX0000000001", dividend.Isin);
 
         var adrFee = result[2];
         Assert.Equal(TransactionType.Loss, adrFee.TransactionType);
-        Assert.Equal(-0.50m, adrFee.TotalEur);
+        Assert.Equal(-0.50m, adrFee.TotalAmount);
         Assert.Equal("USD", adrFee.PriceCurrency);
+        Assert.Equal("USD", adrFee.TotalCurrency);
         Assert.Equal("XX0000000001", adrFee.Isin);
 
         var interest = result[3];
         Assert.Equal(TransactionType.Loss, interest.TransactionType);
-        Assert.Equal(-0.03m, interest.TotalEur);
+        Assert.Equal(-0.03m, interest.TotalAmount);
+        Assert.Equal("EUR", interest.TotalCurrency);
     }
 }

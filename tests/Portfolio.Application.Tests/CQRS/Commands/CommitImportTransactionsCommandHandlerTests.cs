@@ -54,7 +54,7 @@ public class CommitImportTransactionsCommandHandlerTests
         var previewRows = new List<ImportedTransactionRowPreview>
         {
             new(
-                Raw: new ImportedTransactionRow(DateTime.UtcNow.AddDays(-2), "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1.5m, -1650m, "uuid-buy"),
+                Raw: new ImportedTransactionRow(DateTime.UtcNow.AddDays(-2), "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1.5m, -1650m, "EUR", "uuid-buy"),
                 ResolvedSymbol: "AAPL",
                 ResolvedAssetId: stockAssetId,
                 WillAutoCreate: false,
@@ -63,7 +63,7 @@ public class CommitImportTransactionsCommandHandlerTests
                 WarningMessage: null
             ),
             new(
-                Raw: new ImportedTransactionRow(DateTime.UtcNow.AddDays(-1), "Apple Inc", "US0378331005", "NSY", -5m, 180m, "USD", 1.06m, 1.5m, 850m, "uuid-sell"),
+                Raw: new ImportedTransactionRow(DateTime.UtcNow.AddDays(-1), "Apple Inc", "US0378331005", "NSY", -5m, 180m, "USD", 1.06m, 1.5m, 850m, "EUR", "uuid-sell"),
                 ResolvedSymbol: "AAPL",
                 ResolvedAssetId: stockAssetId,
                 WillAutoCreate: false,
@@ -126,7 +126,7 @@ public class CommitImportTransactionsCommandHandlerTests
         var previewRows = new List<ImportedTransactionRowPreview>
         {
             new(
-                Raw: new ImportedTransactionRow(DateTime.UtcNow.AddDays(-2), "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "uuid-keep"),
+                Raw: new ImportedTransactionRow(DateTime.UtcNow.AddDays(-2), "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "EUR", "uuid-keep"),
                 ResolvedSymbol: "AAPL",
                 ResolvedAssetId: stockAssetId,
                 WillAutoCreate: false,
@@ -135,7 +135,7 @@ public class CommitImportTransactionsCommandHandlerTests
                 WarningMessage: null
             ),
             new(
-                Raw: new ImportedTransactionRow(DateTime.UtcNow.AddDays(-1), "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "uuid-skip"),
+                Raw: new ImportedTransactionRow(DateTime.UtcNow.AddDays(-1), "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "EUR", "uuid-skip"),
                 ResolvedSymbol: "AAPL",
                 ResolvedAssetId: stockAssetId,
                 WillAutoCreate: false,
@@ -174,7 +174,7 @@ public class CommitImportTransactionsCommandHandlerTests
         var previewRows = new List<ImportedTransactionRowPreview>
         {
             new(
-                Raw: new ImportedTransactionRow(DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 5m, 100m, "EUR", null, 1m, -501m, "uuid-unresolved"),
+                Raw: new ImportedTransactionRow(DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 5m, 100m, "EUR", null, 1m, -501m, "EUR", "uuid-unresolved"),
                 ResolvedSymbol: null,
                 ResolvedAssetId: null,
                 WillAutoCreate: false,
@@ -213,7 +213,7 @@ public class CommitImportTransactionsCommandHandlerTests
         var previewRows = new List<ImportedTransactionRowPreview>
         {
             new(
-                Raw: new ImportedTransactionRow(DateTime.UtcNow, "Vanguard FTSE All-World", "IE00BK5BQT80", "EAM", 10m, 100m, "EUR", null, 1m, -1001m, "uuid-etf-buy"),
+                Raw: new ImportedTransactionRow(DateTime.UtcNow, "Vanguard FTSE All-World", "IE00BK5BQT80", "EAM", 10m, 100m, "EUR", null, 1m, -1001m, "EUR", "uuid-etf-buy"),
                 ResolvedSymbol: "VWCE",
                 ResolvedAssetId: null, // Needs resolution via assetResolver
                 WillAutoCreate: false,

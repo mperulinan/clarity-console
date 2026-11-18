@@ -26,7 +26,7 @@ public class ImportTickerResolverTests
         // Arrange
         var rows = new List<ImportedTransactionRow>
         {
-            new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "id-1")
+            new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "USD", "id-1")
         };
 
         var expectedDto = new AssetDto
@@ -54,7 +54,7 @@ public class ImportTickerResolverTests
         // Arrange
         var rows = new List<ImportedTransactionRow>
         {
-            new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "id-1")
+            new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "USD", "id-1")
         };
 
         var fallbackDto = new AssetDto
@@ -83,7 +83,7 @@ public class ImportTickerResolverTests
         // Arrange
         var rows = new List<ImportedTransactionRow>
         {
-            new(DateTime.UtcNow, "SAP SE", "DE0007164600", "XET", 5m, 150m, "EUR", null, 1m, -750m, "id-1")
+            new(DateTime.UtcNow, "SAP SE", "DE0007164600", "XET", 5m, 150m, "EUR", null, 1m, -750m, "EUR", "id-1")
         };
 
         var candidateWithoutTx = new AssetDto { Symbol = "SAP.DE", Name = "SAP SE XETRA", ExternalId = "1", TransactionCount = 0 };
@@ -105,7 +105,7 @@ public class ImportTickerResolverTests
         // Arrange
         var rows = new List<ImportedTransactionRow>
         {
-            new(DateTime.UtcNow, "SAP SE", "DE0007164600", "XETRA", 5m, 150m, "EUR", null, 1m, -750m, "id-1")
+            new(DateTime.UtcNow, "SAP SE", "DE0007164600", "XETRA", 5m, 150m, "EUR", null, 1m, -750m, "EUR", "id-1")
         };
 
         var candidateOther = new AssetDto { Symbol = "SAP.US", Name = "SAP SE NYSE", ExternalId = "1", TransactionCount = 0 };
@@ -127,7 +127,7 @@ public class ImportTickerResolverTests
         // Arrange
         var rows = new List<ImportedTransactionRow>
         {
-            new(DateTime.UtcNow, "Error Corp", "DE0000000000", "FRA", 1m, 10m, "EUR", null, 1m, -10m, "id-err")
+            new(DateTime.UtcNow, "Error Corp", "DE0000000000", "FRA", 1m, 10m, "EUR", null, 1m, -10m, "EUR", "id-err")
         };
 
         _searchService.SearchAsync("DE0000000000").Throws(new HttpRequestException("Network failure"));

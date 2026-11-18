@@ -23,7 +23,7 @@ public class ImportPreviewClassifierTests
     {
         // Arrange
         var row = new ImportedTransactionRow(
-            DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "dup-id"
+            DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "EUR", "dup-id"
         );
 
         var isinMap = new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase)
@@ -51,7 +51,7 @@ public class ImportPreviewClassifierTests
         await _uow.Assets.AddAsync(stock);
 
         var row = new ImportedTransactionRow(
-            DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "id-1"
+            DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "EUR", "id-1"
         );
 
         var isinMap = new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase)
@@ -81,7 +81,7 @@ public class ImportPreviewClassifierTests
         await _uow.Assets.AddAsync(etf);
 
         var row = new ImportedTransactionRow(
-            DateTime.UtcNow, "Vanguard FTSE All-World", "IE00BK5BQT80", "EAM", 10m, 100m, "EUR", null, 1m, -1001m, "id-etf"
+            DateTime.UtcNow, "Vanguard FTSE All-World", "IE00BK5BQT80", "EAM", 10m, 100m, "EUR", null, 1m, -1001m, "EUR", "id-etf"
         );
 
         var isinMap = new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase)
@@ -108,7 +108,7 @@ public class ImportPreviewClassifierTests
     {
         // Arrange
         var row = new ImportedTransactionRow(
-            DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "id-1"
+            DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "EUR", "id-1"
         );
 
         var isinMap = new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase)
@@ -134,7 +134,7 @@ public class ImportPreviewClassifierTests
     {
         // Arrange
         var row = new ImportedTransactionRow(
-            DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 10m, 10m, "EUR", null, 1m, -101m, "id-unknown"
+            DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 10m, 10m, "EUR", null, 1m, -101m, "EUR", "id-unknown"
         );
 
         var isinMap = new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase)
@@ -157,7 +157,7 @@ public class ImportPreviewClassifierTests
     {
         // Arrange
         var row = new ImportedTransactionRow(
-            DateTime.UtcNow, "flatex Deposit", string.Empty, string.Empty, 2500m, 1m, "EUR", null, 0m, 2500m, "dep-1",
+            DateTime.UtcNow, "flatex Deposit", string.Empty, string.Empty, 2500m, 1m, "EUR", null, 0m, 2500m, "EUR", "dep-1",
             TransactionType: TransactionType.Deposit
         );
 
@@ -179,7 +179,7 @@ public class ImportPreviewClassifierTests
     {
         // Arrange
         var row = new ImportedTransactionRow(
-            DateTime.UtcNow, "flatex Withdrawal", string.Empty, string.Empty, 1000m, 1m, "EUR", null, 0m, -1000m, "wth-1",
+            DateTime.UtcNow, "flatex Withdrawal", string.Empty, string.Empty, 1000m, 1m, "EUR", null, 0m, -1000m, "EUR", "wth-1",
             TransactionType: TransactionType.Withdrawal
         );
 

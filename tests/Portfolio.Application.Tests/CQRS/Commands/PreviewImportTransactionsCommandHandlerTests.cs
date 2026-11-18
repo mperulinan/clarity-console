@@ -46,8 +46,8 @@ public class PreviewImportTransactionsCommandHandlerTests
         // Arrange
         var rows = new List<ImportedTransactionRow>
         {
-            new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "uuid-1"),
-            new(DateTime.UtcNow, "Microsoft Corp", "US5949181045", "NDQ", 5m, 330m, "USD", 1.06m, 1m, -1550m, "uuid-2")
+            new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "USD", "uuid-1"),
+            new(DateTime.UtcNow, "Microsoft Corp", "US5949181045", "NDQ", 5m, 330m, "USD", 1.06m, 1m, -1550m, "USD", "uuid-2")
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
 
@@ -102,7 +102,7 @@ public class PreviewImportTransactionsCommandHandlerTests
         // Arrange
         var rows = new List<ImportedTransactionRow>
         {
-            new(DateTime.UtcNow, "Vanguard FTSE All-World", "IE00BK5BQT80", "EAM", 10m, 100m, "EUR", null, 1m, -1001m, "uuid-etf-1")
+            new(DateTime.UtcNow, "Vanguard FTSE All-World", "IE00BK5BQT80", "EAM", 10m, 100m, "EUR", null, 1m, -1001m, "EUR", "uuid-etf-1")
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
 
@@ -164,7 +164,7 @@ public class PreviewImportTransactionsCommandHandlerTests
 
         var rows = new List<ImportedTransactionRow>
         {
-            new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "uuid-dup")
+            new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "USD", "uuid-dup")
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
 
@@ -201,7 +201,7 @@ public class PreviewImportTransactionsCommandHandlerTests
         // Arrange
         var rows = new List<ImportedTransactionRow>
         {
-            new(DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 10m, 10m, "EUR", null, 1m, -101m, "uuid-unknown")
+            new(DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 10m, 10m, "EUR", null, 1m, -101m, "EUR", "uuid-unknown")
         };
         _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
 
