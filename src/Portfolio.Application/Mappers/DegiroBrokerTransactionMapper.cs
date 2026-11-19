@@ -50,22 +50,14 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
             swapAmountReceived = Math.Abs(row.TotalAmount);
         }
 
-        var transaction = new Transaction(
+        var transaction = Transaction.CreateSwap(
             date: row.Date,
-            transactionType: TransactionType.Swap,
             fromAssetId: swapFromAssetId,
             toAssetId: swapToAssetId,
             amountSpent: swapAmountSpent,
             amountReceived: swapAmountReceived,
-            spotPriceUSD: null,
-            spotPriceEUR: null,
             fee: row.FeeEur ?? 0m,
             feeAssetId: FiatCurrency.EUR.Id,
-            feeSpotPriceUSD: null,
-            feeSpotPriceEUR: null,
-            usdEurExchangeRate: null,
-            spotPriceInputCurrency: null,
-            feePriceInputCurrency: null,
             notes: $"Imported from {DisplayName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
             brokerTransactionId: row.BrokerTransactionId
         );
@@ -95,7 +87,7 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
         decimal? spotPriceUsd = isUsd ? 1m : null;
         decimal? spotPriceEur = isUsd ? null : 1m;
 
-        var transaction = new Transaction(
+        var transaction = Transaction.Create(
             date: row.Date,
             transactionType: type,
             fromAssetId: fromAssetId,
@@ -104,13 +96,7 @@ public class DegiroBrokerTransactionMapper : IBrokerTransactionMapper
             amountReceived: amountReceived,
             spotPriceUSD: spotPriceUsd,
             spotPriceEUR: spotPriceEur,
-            fee: 0m,
-            feeAssetId: null,
-            feeSpotPriceUSD: null,
-            feeSpotPriceEUR: null,
-            usdEurExchangeRate: null,
             spotPriceInputCurrency: inputCurrency,
-            feePriceInputCurrency: null,
             notes: $"Imported from {DisplayName} ({row.ProductName}). Order ID: {row.BrokerTransactionId}",
             brokerTransactionId: row.BrokerTransactionId
         );
