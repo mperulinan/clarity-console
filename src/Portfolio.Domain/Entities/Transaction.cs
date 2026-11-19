@@ -41,16 +41,16 @@ public class Transaction
         Guid? toAssetId,
         decimal amountSpent,
         decimal amountReceived,
-        decimal? spotPriceUSD,
-        decimal? spotPriceEUR,
-        decimal fee,
-        Guid? feeAssetId,
-        decimal? feeSpotPriceUSD,
-        decimal? feeSpotPriceEUR,
-        decimal? usdEurExchangeRate,
-        FiatCurrency? spotPriceInputCurrency,
-        FiatCurrency? feePriceInputCurrency,
-        string? notes,
+        decimal? spotPriceUSD = null,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0m,
+        Guid? feeAssetId = null,
+        decimal? feeSpotPriceUSD = null,
+        decimal? feeSpotPriceEUR = null,
+        decimal? usdEurExchangeRate = null,
+        FiatCurrency? spotPriceInputCurrency = null,
+        FiatCurrency? feePriceInputCurrency = null,
+        string? notes = null,
         string? brokerTransactionId = null)
     {
         SetCoreDetails(
@@ -73,6 +73,231 @@ public class Transaction
         UsdEurExchangeRate = usdEurExchangeRate;
         BrokerTransactionId = brokerTransactionId;
     }
+
+    #region Factory Methods
+
+    public static Transaction Create(
+        DateTime date,
+        TransactionType transactionType,
+        Guid? fromAssetId,
+        Guid? toAssetId,
+        decimal amountSpent,
+        decimal amountReceived,
+        decimal? spotPriceUSD = null,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0m,
+        Guid? feeAssetId = null,
+        decimal? feeSpotPriceUSD = null,
+        decimal? feeSpotPriceEUR = null,
+        decimal? usdEurExchangeRate = null,
+        FiatCurrency? spotPriceInputCurrency = null,
+        FiatCurrency? feePriceInputCurrency = null,
+        string? notes = null,
+        string? brokerTransactionId = null)
+    {
+        return new Transaction(
+            date,
+            transactionType,
+            fromAssetId,
+            toAssetId,
+            amountSpent,
+            amountReceived,
+            spotPriceUSD,
+            spotPriceEUR,
+            fee,
+            feeAssetId,
+            feeSpotPriceUSD,
+            feeSpotPriceEUR,
+            usdEurExchangeRate,
+            spotPriceInputCurrency,
+            feePriceInputCurrency,
+            notes,
+            brokerTransactionId);
+    }
+
+    public static Transaction CreateSwap(
+        DateTime date,
+        Guid fromAssetId,
+        Guid toAssetId,
+        decimal amountSpent,
+        decimal amountReceived,
+        decimal? spotPriceUSD = null,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0m,
+        Guid? feeAssetId = null,
+        decimal? feeSpotPriceUSD = null,
+        decimal? feeSpotPriceEUR = null,
+        decimal? usdEurExchangeRate = null,
+        FiatCurrency? spotPriceInputCurrency = null,
+        FiatCurrency? feePriceInputCurrency = null,
+        string? notes = null,
+        string? brokerTransactionId = null)
+    {
+        return Create(
+            date,
+            TransactionType.Swap,
+            fromAssetId,
+            toAssetId,
+            amountSpent,
+            amountReceived,
+            spotPriceUSD,
+            spotPriceEUR,
+            fee,
+            feeAssetId,
+            feeSpotPriceUSD,
+            feeSpotPriceEUR,
+            usdEurExchangeRate,
+            spotPriceInputCurrency,
+            feePriceInputCurrency,
+            notes,
+            brokerTransactionId);
+    }
+
+    public static Transaction CreateDeposit(
+        DateTime date,
+        decimal amountReceived,
+        Guid? toAssetId = null,
+        decimal? spotPriceUSD = null,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0m,
+        Guid? feeAssetId = null,
+        decimal? feeSpotPriceUSD = null,
+        decimal? feeSpotPriceEUR = null,
+        decimal? usdEurExchangeRate = null,
+        FiatCurrency? spotPriceInputCurrency = null,
+        FiatCurrency? feePriceInputCurrency = null,
+        string? notes = null,
+        string? brokerTransactionId = null)
+    {
+        return Create(
+            date,
+            TransactionType.Deposit,
+            fromAssetId: null,
+            toAssetId: toAssetId ?? FiatCurrency.TaxCurrency.Id,
+            amountSpent: 0m,
+            amountReceived: amountReceived,
+            spotPriceUSD: spotPriceUSD,
+            spotPriceEUR: spotPriceEUR,
+            fee: fee,
+            feeAssetId: feeAssetId,
+            feeSpotPriceUSD: feeSpotPriceUSD,
+            feeSpotPriceEUR: feeSpotPriceEUR,
+            usdEurExchangeRate: usdEurExchangeRate,
+            spotPriceInputCurrency: spotPriceInputCurrency,
+            feePriceInputCurrency: feePriceInputCurrency,
+            notes: notes,
+            brokerTransactionId: brokerTransactionId);
+    }
+
+    public static Transaction CreateWithdrawal(
+        DateTime date,
+        decimal amountSpent,
+        Guid? fromAssetId = null,
+        decimal? spotPriceUSD = null,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0m,
+        Guid? feeAssetId = null,
+        decimal? feeSpotPriceUSD = null,
+        decimal? feeSpotPriceEUR = null,
+        decimal? usdEurExchangeRate = null,
+        FiatCurrency? spotPriceInputCurrency = null,
+        FiatCurrency? feePriceInputCurrency = null,
+        string? notes = null,
+        string? brokerTransactionId = null)
+    {
+        return Create(
+            date,
+            TransactionType.Withdrawal,
+            fromAssetId: fromAssetId ?? FiatCurrency.TaxCurrency.Id,
+            toAssetId: null,
+            amountSpent: amountSpent,
+            amountReceived: 0m,
+            spotPriceUSD: spotPriceUSD,
+            spotPriceEUR: spotPriceEUR,
+            fee: fee,
+            feeAssetId: feeAssetId,
+            feeSpotPriceUSD: feeSpotPriceUSD,
+            feeSpotPriceEUR: feeSpotPriceEUR,
+            usdEurExchangeRate: usdEurExchangeRate,
+            spotPriceInputCurrency: spotPriceInputCurrency,
+            feePriceInputCurrency: feePriceInputCurrency,
+            notes: notes,
+            brokerTransactionId: brokerTransactionId);
+    }
+
+    public static Transaction CreateReward(
+        DateTime date,
+        Guid toAssetId,
+        decimal amountReceived,
+        decimal? spotPriceUSD = null,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0m,
+        Guid? feeAssetId = null,
+        decimal? feeSpotPriceUSD = null,
+        decimal? feeSpotPriceEUR = null,
+        decimal? usdEurExchangeRate = null,
+        FiatCurrency? spotPriceInputCurrency = null,
+        FiatCurrency? feePriceInputCurrency = null,
+        string? notes = null,
+        string? brokerTransactionId = null)
+    {
+        return Create(
+            date,
+            TransactionType.Reward,
+            fromAssetId: null,
+            toAssetId: toAssetId,
+            amountSpent: 0m,
+            amountReceived: amountReceived,
+            spotPriceUSD: spotPriceUSD,
+            spotPriceEUR: spotPriceEUR,
+            fee: fee,
+            feeAssetId: feeAssetId,
+            feeSpotPriceUSD: feeSpotPriceUSD,
+            feeSpotPriceEUR: feeSpotPriceEUR,
+            usdEurExchangeRate: usdEurExchangeRate,
+            spotPriceInputCurrency: spotPriceInputCurrency,
+            feePriceInputCurrency: feePriceInputCurrency,
+            notes: notes,
+            brokerTransactionId: brokerTransactionId);
+    }
+
+    public static Transaction CreateLoss(
+        DateTime date,
+        Guid fromAssetId,
+        decimal amountSpent,
+        decimal? spotPriceUSD = null,
+        decimal? spotPriceEUR = null,
+        decimal fee = 0m,
+        Guid? feeAssetId = null,
+        decimal? feeSpotPriceUSD = null,
+        decimal? feeSpotPriceEUR = null,
+        decimal? usdEurExchangeRate = null,
+        FiatCurrency? spotPriceInputCurrency = null,
+        FiatCurrency? feePriceInputCurrency = null,
+        string? notes = null,
+        string? brokerTransactionId = null)
+    {
+        return Create(
+            date,
+            TransactionType.Loss,
+            fromAssetId: fromAssetId,
+            toAssetId: null,
+            amountSpent: amountSpent,
+            amountReceived: 0m,
+            spotPriceUSD: spotPriceUSD,
+            spotPriceEUR: spotPriceEUR,
+            fee: fee,
+            feeAssetId: feeAssetId,
+            feeSpotPriceUSD: feeSpotPriceUSD,
+            feeSpotPriceEUR: feeSpotPriceEUR,
+            usdEurExchangeRate: usdEurExchangeRate,
+            spotPriceInputCurrency: spotPriceInputCurrency,
+            feePriceInputCurrency: feePriceInputCurrency,
+            notes: notes,
+            brokerTransactionId: brokerTransactionId);
+    }
+
+    #endregion
 
     private void SetCoreDetails(
         DateTime date,
