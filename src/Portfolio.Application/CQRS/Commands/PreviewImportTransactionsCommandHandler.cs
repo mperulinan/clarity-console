@@ -34,7 +34,14 @@ public class PreviewImportTransactionsCommandHandler(
             ?? throw new InvalidOperationException($"No transaction import parser registered for broker '{command.BrokerKey}'.");
 
         logger.LogInformation("Parsing import stream for broker '{BrokerKey}'", command.BrokerKey);
-        var rawRows = await parser.ParseAsync(command.FileStream, cancellationToken);
+        var parseResult = await parser.ParseAsync(command.FileStream, cancellationToken);
+        var rawRows = parseResult.Rows;
+
+        if (parseResult.SkippedRowCount > 0)
+        {
+            logger.LogWarning("Broker parser '{BrokerKey}' skipped {SkippedRowCount} row(s) during import parsing.",
+                command.BrokerKey, parseResult.SkippedRowCount);
+        }
 
         if (rawRows.Count == 0)
         {

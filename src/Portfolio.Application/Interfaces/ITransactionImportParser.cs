@@ -6,7 +6,7 @@ public interface ITransactionImportParser
 {
     string BrokerKey { get; }
     string DisplayName { get; }
-    Task<IReadOnlyList<ImportedTransactionRow>> ParseAsync(
+    Task<ImportParseResult> ParseAsync(
         Stream csvStream, 
         CancellationToken cancellationToken = default);
 }
