@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Text;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Portfolio.Application.Interfaces;
 using Portfolio.Application.Models;
 
@@ -12,21 +14,16 @@ namespace Portfolio.Infrastructure.ImportParsers;
 /// Automatically detects Trade exports ("Transacciones") versus Account statement exports ("Estado de cuenta")
 /// and delegates row-level parsing to the corresponding <see cref="IDegiroRowParser"/> implementation.
 /// </summary>
-public class DegiroTransactionParser : ITransactionImportParser
+public class DegiroTransactionParser(ILogger<DegiroTransactionParser>? logger = null) : ITransactionImportParser
 {
-    private readonly IDegiroRowParser _tradeRowParser;
-    private readonly IDegiroRowParser _accountRowParser;
-
-    public DegiroTransactionParser()
-    {
-        _tradeRowParser = new DegiroRowParser();
-        _accountRowParser = new DegiroAccountRowParser();
-    }
+    private readonly ILogger<DegiroTransactionParser> _logger = logger ?? NullLogger<DegiroTransactionParser>.Instance;
+    private readonly IDegiroRowParser _tradeRowParser = new DegiroRowParser();
+    private readonly IDegiroRowParser _accountRowParser = new DegiroAccountRowParser();
 
     public string BrokerKey => "degiro";
     public string DisplayName => "DEGIRO";
 
-    public async Task<IReadOnlyList<ImportedTransactionRow>> ParseAsync(
+    public async Task<ImportParseResult> ParseAsync(
         Stream csvStream, 
         CancellationToken cancellationToken = default)
     {
@@ -43,7 +40,7 @@ public class DegiroTransactionParser : ITransactionImportParser
 
         if (!await csv.ReadAsync())
         {
-            return [];
+            return ImportParseResult.Empty;
         }
 
         csv.ReadHeader();
@@ -59,16 +56,33 @@ public class DegiroTransactionParser : ITransactionImportParser
 
         var rowParser = isAccountStatement ? _accountRowParser : _tradeRowParser;
         var rows = new List<ImportedTransactionRow>();
+        var warnings = new List<string>();
+        var skippedCount = 0;
+        var rowIndex = 1;
 
         while (await csv.ReadAsync())
         {
+            rowIndex++;
             if (rowParser.TryParseRow(csv, headers, out var row))
             {
                 rows.Add(row);
             }
+            else
+            {
+                skippedCount++;
+                var rawRecord = csv.Parser.RawRecord?.TrimEnd('\r', '\n');
+                warnings.Add($"Row {rowIndex} could not be parsed or was ignored.");
+                _logger.LogWarning("DEGIRO import skipped row {RowIndex}: {RawRecord}", rowIndex, rawRecord);
+            }
         }
 
-        return rows;
+        if (skippedCount > 0)
+        {
+            _logger.LogInformation("DEGIRO import parsed {ParsedCount} transaction(s), skipped {SkippedCount} row(s).",
+                rows.Count, skippedCount);
+        }
+
+        return new ImportParseResult(rows, skippedCount, warnings);
     }
 
     private static bool IsValidDegiroTradeHeader(string[] headers)
