@@ -49,7 +49,7 @@ public class PreviewImportTransactionsCommandHandlerTests
             new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "USD", "uuid-1"),
             new(DateTime.UtcNow, "Microsoft Corp", "US5949181045", "NDQ", 5m, 330m, "USD", 1.06m, 1m, -1550m, "USD", "uuid-2")
         };
-        _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
+        _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(new ImportParseResult(rows));
 
         var isinMap = new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase)
         {
@@ -104,7 +104,7 @@ public class PreviewImportTransactionsCommandHandlerTests
         {
             new(DateTime.UtcNow, "Vanguard FTSE All-World", "IE00BK5BQT80", "EAM", 10m, 100m, "EUR", null, 1m, -1001m, "EUR", "uuid-etf-1")
         };
-        _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
+        _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(new ImportParseResult(rows));
 
         _tickerResolver.ResolveIsinsAsync(Arg.Any<IEnumerable<ImportedTransactionRow>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase));
@@ -166,7 +166,7 @@ public class PreviewImportTransactionsCommandHandlerTests
         {
             new(DateTime.UtcNow, "Apple Inc", "US0378331005", "NSY", 10m, 175m, "USD", 1.06m, 1m, -1650m, "USD", "uuid-dup")
         };
-        _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
+        _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(new ImportParseResult(rows));
 
         _tickerResolver.ResolveIsinsAsync(Arg.Any<IEnumerable<ImportedTransactionRow>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase));
@@ -203,7 +203,7 @@ public class PreviewImportTransactionsCommandHandlerTests
         {
             new(DateTime.UtcNow, "Unknown Stock", "ES0100000000", "BME", 10m, 10m, "EUR", null, 1m, -101m, "EUR", "uuid-unknown")
         };
-        _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(rows);
+        _parser.ParseAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(new ImportParseResult(rows));
 
         _tickerResolver.ResolveIsinsAsync(Arg.Any<IEnumerable<ImportedTransactionRow>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, AssetDto?>(StringComparer.OrdinalIgnoreCase));

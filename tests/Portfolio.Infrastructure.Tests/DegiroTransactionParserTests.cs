@@ -1,4 +1,6 @@
 using System.Text;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Portfolio.Domain.Enums;
 using Portfolio.Infrastructure.ImportParsers;
 
@@ -24,9 +26,10 @@ public class DegiroTransactionParserTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(2, result.Count);
+        Assert.Equal(2, result.Rows.Count);
+        Assert.Equal(0, result.SkippedRowCount);
 
-        var buy = result[0];
+        var buy = result.Rows[0];
         Assert.Equal(new DateTime(2023, 10, 20, 14, 30, 0, DateTimeKind.Utc), buy.Date);
         Assert.Equal("ACME CORP", buy.ProductName);
         Assert.Equal("XX0000000001", buy.Isin);
@@ -40,7 +43,7 @@ public class DegiroTransactionParserTests
         Assert.Equal(-1652.45m, buy.TotalAmount);
         Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-000000000001", buy.BrokerTransactionId);
 
-        var sell = result[1];
+        var sell = result.Rows[1];
         Assert.Equal(new DateTime(2023, 10, 21, 15, 45, 0, DateTimeKind.Utc), sell.Date);
         Assert.Equal(-5m, sell.Quantity);
         Assert.Equal(180.00m, sell.PricePerUnit);
@@ -64,8 +67,8 @@ public class DegiroTransactionParserTests
         var result = await _sut.ParseAsync(stream);
 
         // Assert
-        Assert.Single(result);
-        var row = result[0];
+        Assert.Single(result.Rows);
+        var row = result.Rows[0];
         Assert.Equal("XX9999999002", row.Isin);
         Assert.Equal(5m, row.Quantity);
         Assert.Equal(120.00m, row.PricePerUnit);
@@ -108,8 +111,8 @@ public class DegiroTransactionParserTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Single(result);
-        var row = result[0];
+        Assert.Single(result.Rows);
+        var row = result.Rows[0];
         Assert.Equal(new DateTime(2022, 3, 15, 10, 30, 0, DateTimeKind.Utc), row.Date);
         Assert.Equal("ACME CORP", row.ProductName);
         Assert.Equal("XX0000000001", row.Isin);
@@ -141,9 +144,9 @@ public class DegiroTransactionParserTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(2, result.Count);
+        Assert.Equal(2, result.Rows.Count);
 
-        var first = result[0];
+        var first = result.Rows[0];
         Assert.Equal("ACME CORP", first.ProductName);
         Assert.Equal("XX0000000001", first.Isin);
         Assert.Equal(5m, first.Quantity);
@@ -152,7 +155,7 @@ public class DegiroTransactionParserTests
         Assert.Equal(-462.35m, first.TotalAmount);
         Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", first.BrokerTransactionId);
 
-        var second = result[1];
+        var second = result.Rows[1];
         Assert.Equal("GLOBEX HOLDINGS ADR", second.ProductName);
         Assert.Equal("XX9999999002", second.Isin);
         Assert.Equal(8m, second.Quantity);
@@ -174,7 +177,8 @@ public class DegiroTransactionParserTests
         var result = await _sut.ParseAsync(stream);
 
         // Assert
-        Assert.Empty(result);
+        Assert.Empty(result.Rows);
+        Assert.Equal(0, result.SkippedRowCount);
     }
 
     [Fact]
@@ -194,11 +198,12 @@ public class DegiroTransactionParserTests
         var result = await _sut.ParseAsync(stream);
 
         // Assert
-        Assert.Equal(2, result.Count);
-        Assert.Equal(TransactionType.Deposit, result[0].TransactionType);
-        Assert.Equal(2300m, result[0].TotalAmount);
-        Assert.Equal(TransactionType.Loss, result[1].TransactionType);
-        Assert.Equal(-2.50m, result[1].TotalAmount);
+        Assert.Equal(2, result.Rows.Count);
+        Assert.Equal(2, result.SkippedRowCount);
+        Assert.Equal(TransactionType.Deposit, result.Rows[0].TransactionType);
+        Assert.Equal(2300m, result.Rows[0].TotalAmount);
+        Assert.Equal(TransactionType.Loss, result.Rows[1].TransactionType);
+        Assert.Equal(-2.50m, result.Rows[1].TotalAmount);
     }
 
     [Fact]
@@ -221,31 +226,65 @@ public class DegiroTransactionParserTests
         var result = await _sut.ParseAsync(stream);
 
         // Assert
-        Assert.Equal(4, result.Count);
+        Assert.Equal(4, result.Rows.Count);
+        Assert.Equal(3, result.SkippedRowCount);
 
-        var withdrawal = result[0];
+        var withdrawal = result.Rows[0];
         Assert.Equal(TransactionType.Withdrawal, withdrawal.TransactionType);
         Assert.Equal(-5000m, withdrawal.TotalAmount);
         Assert.Equal("EUR", withdrawal.TotalCurrency);
         Assert.Equal(5000m, withdrawal.Quantity);
 
-        var dividend = result[1];
+        var dividend = result.Rows[1];
         Assert.Equal(TransactionType.Reward, dividend.TransactionType);
         Assert.Equal(25m, dividend.TotalAmount);
         Assert.Equal("USD", dividend.PriceCurrency);
         Assert.Equal("USD", dividend.TotalCurrency);
         Assert.Equal("XX0000000001", dividend.Isin);
 
-        var adrFee = result[2];
+        var adrFee = result.Rows[2];
         Assert.Equal(TransactionType.Loss, adrFee.TransactionType);
         Assert.Equal(-0.50m, adrFee.TotalAmount);
         Assert.Equal("USD", adrFee.PriceCurrency);
         Assert.Equal("USD", adrFee.TotalCurrency);
         Assert.Equal("XX0000000001", adrFee.Isin);
 
-        var interest = result[3];
+        var interest = result.Rows[3];
         Assert.Equal(TransactionType.Loss, interest.TransactionType);
         Assert.Equal(-0.03m, interest.TotalAmount);
         Assert.Equal("EUR", interest.TotalCurrency);
+    }
+
+    [Fact]
+    public async Task ParseAsync_MalformedRows_TracksSkippedRowCountAndLogsWarnings()
+    {
+        // Arrange
+        var logger = Substitute.For<ILogger<DegiroTransactionParser>>();
+        var sut = new DegiroTransactionParser(logger);
+
+        const string csv = """
+            Fecha,Hora,Producto,ISIN,Bolsa de referencia,Centro de ejecución,Número,Precio,,Valor local,,Valor EUR,Tipo de cambio,Comisión AutoFX,Costes de transacción y/o externos EUR,Total EUR,ID Orden,
+            20-10-2023,14:30,ACME CORP,XX0000000001,TST,XTST,10,175.50,USD,-1755.00,USD,-1650.25,1.0635,-1.20,-1.00,-1652.45,order-1,
+            invalid-date,14:30,BAD CORP,XX0000000002,TST,XTST,10,10.00,EUR,-100.00,EUR,-100.00,,,,-100.00,order-bad,
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+
+        // Act
+        var result = await sut.ParseAsync(stream);
+
+        // Assert
+        Assert.Single(result.Rows);
+        Assert.Equal("order-1", result.Rows[0].BrokerTransactionId);
+        Assert.Equal(1, result.SkippedRowCount);
+        Assert.Single(result.Warnings);
+        Assert.Contains("Row 3", result.Warnings[0]);
+
+        // Verify logger warning was called with skipped record info
+        logger.Received(1).Log(
+            LogLevel.Warning,
+            Arg.Any<EventId>(),
+            Arg.Is<object>(o => o.ToString()!.Contains("skipped row 3")),
+            Arg.Any<Exception?>(),
+            Arg.Any<Func<object, Exception?, string>>());
     }
 }
