@@ -164,4 +164,142 @@ public class TransactionTests
 
         Assert.Null(tx.FeePriceEUR);
     }
+
+    [Fact]
+    public void CreateSwap_ValidParameters_CreatesExpectedSwapTransaction()
+    {
+        // Arrange
+        var date = DateTime.UtcNow.AddMinutes(-5);
+        var fromId = Guid.NewGuid();
+        var toId = Guid.NewGuid();
+
+        // Act
+        var tx = Transaction.CreateSwap(
+            date: date,
+            fromAssetId: fromId,
+            toAssetId: toId,
+            amountSpent: 100m,
+            amountReceived: 2m,
+            spotPriceUSD: 50m,
+            spotPriceInputCurrency: FiatCurrency.USD,
+            fee: 1.5m,
+            feeAssetId: FiatCurrency.EUR.Id,
+            notes: "Test swap",
+            brokerTransactionId: "broker-123"
+        );
+
+        // Assert
+        Assert.Equal(TransactionType.Swap, tx.Type);
+        Assert.Equal(date, tx.Date);
+        Assert.Equal(fromId, tx.FromAssetId);
+        Assert.Equal(toId, tx.ToAssetId);
+        Assert.Equal(100m, tx.AmountSpent);
+        Assert.Equal(2m, tx.AmountReceived);
+        Assert.Equal(50m, tx.SpotPriceUSD);
+        Assert.Equal(1.5m, tx.Fee);
+        Assert.Equal(FiatCurrency.EUR.Id, tx.FeeAssetId);
+        Assert.Equal("Test swap", tx.Notes);
+        Assert.Equal("broker-123", tx.BrokerTransactionId);
+    }
+
+    [Fact]
+    public void CreateDeposit_ValidParameters_CreatesExpectedDepositTransaction()
+    {
+        // Arrange
+        var date = DateTime.UtcNow.AddMinutes(-10);
+
+        // Act
+        var tx = Transaction.CreateDeposit(
+            date: date,
+            amountReceived: 500m,
+            notes: "Bank transfer"
+        );
+
+        // Assert
+        Assert.Equal(TransactionType.Deposit, tx.Type);
+        Assert.Null(tx.FromAssetId);
+        Assert.Equal(FiatCurrency.TaxCurrency.Id, tx.ToAssetId);
+        Assert.Equal(0m, tx.AmountSpent);
+        Assert.Equal(500m, tx.AmountReceived);
+        Assert.Equal(FiatCurrency.EUR, tx.SpotPriceInputCurrency);
+        Assert.Equal(1m, tx.SpotPriceEUR);
+        Assert.Equal("Bank transfer", tx.Notes);
+    }
+
+    [Fact]
+    public void CreateWithdrawal_ValidParameters_CreatesExpectedWithdrawalTransaction()
+    {
+        // Arrange
+        var date = DateTime.UtcNow.AddMinutes(-15);
+
+        // Act
+        var tx = Transaction.CreateWithdrawal(
+            date: date,
+            amountSpent: 250m,
+            notes: "ATM withdrawal"
+        );
+
+        // Assert
+        Assert.Equal(TransactionType.Withdrawal, tx.Type);
+        Assert.Equal(FiatCurrency.TaxCurrency.Id, tx.FromAssetId);
+        Assert.Null(tx.ToAssetId);
+        Assert.Equal(250m, tx.AmountSpent);
+        Assert.Equal(0m, tx.AmountReceived);
+        Assert.Equal(FiatCurrency.EUR, tx.SpotPriceInputCurrency);
+        Assert.Equal(1m, tx.SpotPriceEUR);
+    }
+
+    [Fact]
+    public void CreateReward_ValidParameters_CreatesExpectedRewardTransaction()
+    {
+        // Arrange
+        var date = DateTime.UtcNow.AddMinutes(-20);
+        var assetId = Guid.NewGuid();
+
+        // Act
+        var tx = Transaction.CreateReward(
+            date: date,
+            toAssetId: assetId,
+            amountReceived: 10m,
+            spotPriceUSD: 100m,
+            spotPriceInputCurrency: FiatCurrency.USD,
+            notes: "Dividend reward"
+        );
+
+        // Assert
+        Assert.Equal(TransactionType.Reward, tx.Type);
+        Assert.Null(tx.FromAssetId);
+        Assert.Equal(assetId, tx.ToAssetId);
+        Assert.Equal(0m, tx.AmountSpent);
+        Assert.Equal(10m, tx.AmountReceived);
+        Assert.Equal(100m, tx.SpotPriceUSD);
+        Assert.Equal(FiatCurrency.USD, tx.SpotPriceInputCurrency);
+    }
+
+    [Fact]
+    public void CreateLoss_ValidParameters_CreatesExpectedLossTransaction()
+    {
+        // Arrange
+        var date = DateTime.UtcNow.AddMinutes(-25);
+        var assetId = Guid.NewGuid();
+
+        // Act
+        var tx = Transaction.CreateLoss(
+            date: date,
+            fromAssetId: assetId,
+            amountSpent: 2.5m,
+            spotPriceEUR: 1m,
+            spotPriceInputCurrency: FiatCurrency.EUR,
+            notes: "Connectivity fee"
+        );
+
+        // Assert
+        Assert.Equal(TransactionType.Loss, tx.Type);
+        Assert.Equal(assetId, tx.FromAssetId);
+        Assert.Null(tx.ToAssetId);
+        Assert.Equal(2.5m, tx.AmountSpent);
+        Assert.Equal(0m, tx.AmountReceived);
+        Assert.Equal(1m, tx.SpotPriceEUR);
+        Assert.Equal(FiatCurrency.EUR, tx.SpotPriceInputCurrency);
+    }
 }
