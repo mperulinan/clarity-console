@@ -1,4 +1,5 @@
 using Portfolio.Domain.Enums;
+using Portfolio.Domain.Services;
 
 namespace Portfolio.Domain.Entities;
 
@@ -13,16 +14,51 @@ public class Transaction
     public Asset? ToAsset { get; set; }
     public decimal AmountSpent { get; private set; }
     public decimal AmountReceived { get; private set; }
+
+    /// <summary>
+    /// Market unit price in USD of the transaction's primary "priced asset":
+    /// <list type="bullet">
+    ///   <item><description><b>Disposals/Swaps/Losses (<c>RequiresFromAsset == true</c>):</b> Market price of <see cref="FromAsset"/>.</description></item>
+    ///   <item><description><b>Acquisitions/Deposits/Rewards (<c>RequiresFromAsset == false</c>):</b> Market price of <see cref="ToAsset"/>.</description></item>
+    /// </list>
+    /// </summary>
     public decimal? SpotPriceUSD { get; private set; }
+
+    /// <summary>
+    /// Market unit price in EUR of the transaction's primary "priced asset" (see <see cref="SpotPriceUSD"/>).
+    /// </summary>
     public decimal? SpotPriceEUR { get; private set; }
+
     public decimal Fee { get; private set; }
     public Guid? FeeAssetId { get; private set; }
     public Asset? FeeAsset { get; set; }
+
+    /// <summary>
+    /// Market unit price in USD of the fee asset (<see cref="FeeAssetId"/>).
+    /// </summary>
     public decimal? FeePriceUSD { get; private set; }
+
+    /// <summary>
+    /// Market unit price in EUR of the fee asset (<see cref="FeeAssetId"/>).
+    /// </summary>
     public decimal? FeePriceEUR { get; private set; }
+
+    /// <summary>
+    /// Historical exchange rate between USD and EUR applicable on <see cref="Date"/> (1 USD = X EUR).
+    /// </summary>
     public decimal? UsdEurExchangeRate { get; private set; }
+
+    /// <summary>
+    /// The fiat currency (USD or EUR) serving as the original source of truth for <see cref="SpotPriceUSD"/> / <see cref="SpotPriceEUR"/>.
+    /// Used when calculating cross-currency exchange rates.
+    /// </summary>
     public FiatCurrency SpotPriceInputCurrency { get; private set; } = null!;
+
+    /// <summary>
+    /// The fiat currency serving as the source of truth for <see cref="FeePriceUSD"/> / <see cref="FeePriceEUR"/>, if a fee was charged.
+    /// </summary>
     public FiatCurrency? FeePriceInputCurrency { get; private set; }
+
     public string? Notes { get; private set; }
     public string? BrokerTransactionId { get; private set; }
 
@@ -327,16 +363,21 @@ public class Transaction
         Fee = fee;
         FeeAssetId = feeAssetId;
 
-        ProcessFiatDerivations(ref spotPriceUSD, ref spotPriceEUR, ref spotPriceInputCurrency);
-        ProcessFeeFiatDerivations(ref feeSpotPriceUSD, ref feeSpotPriceEUR, ref feePriceInputCurrency);
-        ValidateRequiredPrices(spotPriceInputCurrency, spotPriceUSD, spotPriceEUR);
+        var derivedSpot = TransactionPriceResolver.ResolveSpotPrice(
+            transactionType, fromAssetId, toAssetId, amountSpent, amountReceived,
+            spotPriceUSD, spotPriceEUR, spotPriceInputCurrency);
 
-        SpotPriceUSD = spotPriceUSD;
-        SpotPriceEUR = spotPriceEUR;
-        FeePriceUSD = feeSpotPriceUSD;
-        FeePriceEUR = feeSpotPriceEUR;
-        SpotPriceInputCurrency = spotPriceInputCurrency!;
-        FeePriceInputCurrency = feePriceInputCurrency;
+        var derivedFee = TransactionPriceResolver.ResolveFeePrice(
+            feeAssetId, feeSpotPriceUSD, feeSpotPriceEUR, feePriceInputCurrency);
+
+        SpotPriceUSD = derivedSpot.PriceUSD;
+        SpotPriceEUR = derivedSpot.PriceEUR;
+        SpotPriceInputCurrency = derivedSpot.InputCurrency;
+
+        FeePriceUSD = derivedFee.PriceUSD;
+        FeePriceEUR = derivedFee.PriceEUR;
+        FeePriceInputCurrency = derivedFee.InputCurrency;
+
         Notes = notes;
     }
 
@@ -366,55 +407,6 @@ public class Transaction
 
         if (transactionType == TransactionType.Withdrawal && FiatCurrency.FromIdOrDefault(fromAssetId) != FiatCurrency.TaxCurrency)
             throw new ArgumentException($"Withdrawal must be in the tax currency ({FiatCurrency.TaxCurrency.Symbol}).");
-    }
-
-    private static void ValidateRequiredPrices(
-        FiatCurrency? spotPriceInputCurrency,
-        decimal? spotPriceUSD,
-        decimal? spotPriceEUR)
-    {
-        if (spotPriceInputCurrency == null)
-            throw new ArgumentException("SpotPriceInputCurrency must be provided if the transaction does not implicitly involve a Fiat currency.");
-
-        if (!spotPriceUSD.HasValue && !spotPriceEUR.HasValue)
-            throw new ArgumentException("Either SpotPriceUSD or SpotPriceEUR must logically have a value depending on the Input Currency.");
-    }
-
-    private void ProcessFiatDerivations(ref decimal? spotPriceUSD, ref decimal? spotPriceEUR, ref FiatCurrency? spotPriceInputCurrency)
-    {
-        bool pricesFromAsset = Type.RequiresFromAsset;
-        Guid? pricedAssetId = pricesFromAsset ? FromAssetId : ToAssetId;
-
-        var pricedFiat = FiatCurrency.FromIdOrDefault(pricedAssetId);
-        if (pricedFiat != null)
-        {
-            spotPriceInputCurrency = pricedFiat;
-            if (pricedFiat == FiatCurrency.USD) spotPriceUSD = 1m;
-            if (pricedFiat == FiatCurrency.EUR) spotPriceEUR = 1m;
-        }
-        else if (pricesFromAsset && ToAssetId.HasValue)
-        {
-            var toFiat = FiatCurrency.FromIdOrDefault(ToAssetId);
-            if (toFiat != null)
-            {
-                spotPriceInputCurrency = toFiat;
-                decimal derivedPrice = AmountSpent > 0 ? AmountReceived / AmountSpent : 0m;
-                
-                if (toFiat == FiatCurrency.USD) spotPriceUSD = derivedPrice;
-                if (toFiat == FiatCurrency.EUR) spotPriceEUR = derivedPrice;
-            }
-        }
-    }
-
-    private void ProcessFeeFiatDerivations(ref decimal? feeSpotPriceUSD, ref decimal? feeSpotPriceEUR, ref FiatCurrency? feePriceInputCurrency)
-    {
-        var feeFiat = FiatCurrency.FromIdOrDefault(FeeAssetId);
-        if (feeFiat != null)
-        {
-            feePriceInputCurrency = feeFiat;
-            feeSpotPriceUSD = feeFiat == FiatCurrency.USD ? 1m : feeSpotPriceUSD;
-            feeSpotPriceEUR = feeFiat == FiatCurrency.EUR ? 1m : feeSpotPriceEUR;
-        }
     }
 
     public void UpdateExchangeRates(decimal usdEurRate)
@@ -486,16 +478,19 @@ public class Transaction
 
     public decimal? GetToAssetPrice(FiatCurrency currency)
     {
-        if (!Type.RequiresFromAsset)
+        // For direct acquisitions (Deposit or Reward), SpotPrice directly describes ToAsset.
+        bool isDirectAcquisition = !Type.RequiresFromAsset;
+        if (isDirectAcquisition)
         {
             if (currency == FiatCurrency.USD) return SpotPriceUSD;
             if (currency == FiatCurrency.EUR) return SpotPriceEUR;
             return null;
         }
 
+        // Transactions without a received asset (Withdrawal or Loss) have no ToAsset price.
         if (!Type.RequiresToAsset) return null;
 
-        // For Swap: derive ToAsset price from FromAsset price (SpotPrice)
+        // For Swap: derive ToAsset acquisition price from FromAsset price (SpotPrice)
         decimal? fromPrice = GetFromAssetPrice(currency);
         if (!fromPrice.HasValue || AmountReceived == 0) return null;
 
