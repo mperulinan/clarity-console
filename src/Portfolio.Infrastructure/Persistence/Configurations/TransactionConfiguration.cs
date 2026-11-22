@@ -15,13 +15,42 @@ internal sealed class TransactionConfiguration : IEntityTypeConfiguration<Transa
         entity.Property(e => e.Date).HasColumnType("datetime");
         entity.Property(e => e.AmountSpent).HasColumnType("decimal(36, 18)");
         entity.Property(e => e.AmountReceived).HasColumnType("decimal(36, 18)");
-        entity.Property(e => e.SpotPriceUSD).HasColumnType("decimal(36, 18)");
-        entity.Property(e => e.SpotPriceEUR).HasColumnType("decimal(36, 18)");
         entity.Property(e => e.Fee).HasColumnType("decimal(36, 18)");
-        entity.Property(e => e.FeePriceUSD).HasColumnType("decimal(36, 18)");
-        entity.Property(e => e.FeePriceEUR).HasColumnType("decimal(36, 18)");
         entity.Property(e => e.UsdEurExchangeRate).HasColumnType("decimal(18, 8)");
         entity.Property(e => e.Notes).HasMaxLength(-1);
+
+        entity.ComplexProperty(e => e.SpotPrice, b =>
+        {
+            b.Property(p => p.USD)
+                .HasColumnName("SpotPriceUSD")
+                .HasColumnType("decimal(36, 18)");
+            b.Property(p => p.EUR)
+                .HasColumnName("SpotPriceEUR")
+                .HasColumnType("decimal(36, 18)");
+            b.Property(p => p.InputCurrency)
+                .HasColumnName("SpotPriceInputCurrency")
+                .HasMaxLength(10)
+                .IsRequired()
+                .HasConversion(
+                    v => v!.Value,
+                    v => FiatCurrency.FromValue(v));
+        });
+
+        entity.ComplexProperty(e => e.FeePrice, b =>
+        {
+            b.Property(p => p.USD)
+                .HasColumnName("FeePriceUSD")
+                .HasColumnType("decimal(36, 18)");
+            b.Property(p => p.EUR)
+                .HasColumnName("FeePriceEUR")
+                .HasColumnType("decimal(36, 18)");
+            b.Property(p => p.InputCurrency)
+                .HasColumnName("FeePriceInputCurrency")
+                .HasMaxLength(10)
+                .HasConversion(
+                    v => v == null ? null : v.Value,
+                    v => v == null ? null : FiatCurrency.FromValue(v));
+        });
 
         entity.HasOne(d => d.FromAsset)
             .WithMany()
@@ -47,18 +76,6 @@ internal sealed class TransactionConfiguration : IEntityTypeConfiguration<Transa
             .HasConversion(
                 v => v.Value,
                 v => TransactionType.FromValue(v));
-
-        entity.Property(e => e.SpotPriceInputCurrency)
-            .HasMaxLength(10)
-            .HasConversion(
-                v => v.Value,
-                v => FiatCurrency.FromValue(v));
-
-        entity.Property(e => e.FeePriceInputCurrency)
-            .HasMaxLength(10)
-            .HasConversion(
-                v => v == null ? null : v.Value,
-                v => v == null ? null : FiatCurrency.FromValue(v));
 
         entity.Property(e => e.BrokerTransactionId)
             .HasMaxLength(100)

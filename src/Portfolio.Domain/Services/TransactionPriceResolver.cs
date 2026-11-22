@@ -33,7 +33,7 @@ namespace Portfolio.Domain.Services;
 /// </summary>
 public static class TransactionPriceResolver
 {
-    public static DerivedSpotPrice ResolveSpotPrice(
+    public static Price ResolveSpotPrice(
         TransactionType transactionType,
         Guid? fromAssetId,
         Guid? toAssetId,
@@ -44,13 +44,10 @@ public static class TransactionPriceResolver
         FiatCurrency? spotPriceInputCurrency)
     {
         // 1. Determine which asset is the primary "priced asset":
-        //    - Transactions spending an asset (Swap, Withdrawal, Loss): SpotPrice describes FromAsset.
-        //    - Direct acquisitions without FromAsset (Deposit, Reward): SpotPrice describes ToAsset.
         bool isDisposalOrSwap = transactionType.RequiresFromAsset;
         Guid? pricedAssetId = isDisposalOrSwap ? fromAssetId : toAssetId;
 
-        // 2. Case A: The priced asset is itself fiat currency (e.g. depositing EUR, or swapping EUR -> Stock).
-        //    1.0 unit of fiat has a spot price of 1.0 in its own currency.
+        // 2. Case A: The priced asset is itself fiat currency.
         var pricedFiat = FiatCurrency.FromIdOrDefault(pricedAssetId);
         if (pricedFiat != null)
         {
@@ -59,7 +56,6 @@ public static class TransactionPriceResolver
             if (pricedFiat == FiatCurrency.EUR) spotPriceEUR = 1m;
         }
         // 3. Case B: Selling an asset for fiat (e.g. selling 2 AAPL for 300 USD).
-        //    Derive the unit price of the asset being sold from the fiat amount received.
         else if (isDisposalOrSwap && toAssetId.HasValue)
         {
             var counterpartyFiat = FiatCurrency.FromIdOrDefault(toAssetId);
@@ -76,10 +72,10 @@ public static class TransactionPriceResolver
         // 4. Validate that a reference currency and at least one price are established.
         ValidateRequiredPrices(spotPriceInputCurrency, spotPriceUSD, spotPriceEUR);
 
-        return new DerivedSpotPrice(spotPriceUSD, spotPriceEUR, spotPriceInputCurrency!);
+        return new Price(spotPriceUSD, spotPriceEUR, spotPriceInputCurrency!);
     }
 
-    public static DerivedFeePrice ResolveFeePrice(
+    public static Price? ResolveFeePrice(
         Guid? feeAssetId,
         decimal? feeSpotPriceUSD,
         decimal? feeSpotPriceEUR,
@@ -93,7 +89,12 @@ public static class TransactionPriceResolver
             feeSpotPriceEUR = feeFiat == FiatCurrency.EUR ? 1m : feeSpotPriceEUR;
         }
 
-        return new DerivedFeePrice(feeSpotPriceUSD, feeSpotPriceEUR, feePriceInputCurrency);
+        if (!feeAssetId.HasValue && !feeSpotPriceUSD.HasValue && !feeSpotPriceEUR.HasValue && feePriceInputCurrency == null)
+        {
+            return null;
+        }
+
+        return new Price(feeSpotPriceUSD, feeSpotPriceEUR, feePriceInputCurrency);
     }
 
     private static void ValidateRequiredPrices(
