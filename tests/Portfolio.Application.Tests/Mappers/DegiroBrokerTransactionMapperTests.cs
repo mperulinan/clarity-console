@@ -57,7 +57,7 @@ public class DegiroBrokerTransactionMapperTests
         Assert.Equal("tx-buy-1", transaction.BrokerTransactionId);
         Assert.Equal(row.Date, transaction.Date);
         Assert.Equal(1m / 1.08m, transaction.UsdEurExchangeRate);
-        Assert.Equal(1.08m, transaction.SpotPriceUSD);
+        Assert.Equal(1.08m, transaction.SpotPrice.USD);
         Assert.False(transaction.HasIncompleteExchangeRates);
     }
 
@@ -124,7 +124,7 @@ public class DegiroBrokerTransactionMapperTests
 
         // Assert
         Assert.Null(transaction.UsdEurExchangeRate);
-        Assert.Null(transaction.SpotPriceUSD);
+        Assert.Null(transaction.SpotPrice.USD);
         Assert.True(transaction.HasIncompleteExchangeRates);
     }
 
@@ -307,9 +307,9 @@ public class DegiroBrokerTransactionMapperTests
 
         // Assert
         Assert.Equal(TransactionType.Reward, transaction.Type);
-        Assert.Equal(FiatCurrency.USD, transaction.SpotPriceInputCurrency);
-        Assert.Equal(1m, transaction.SpotPriceUSD);
-        Assert.Null(transaction.SpotPriceEUR);
+        Assert.Equal(FiatCurrency.USD, transaction.SpotPrice.InputCurrency);
+        Assert.Equal(1m, transaction.SpotPrice.USD);
+        Assert.Null(transaction.SpotPrice.EUR);
         Assert.True(transaction.HasIncompleteExchangeRates);
     }
 
@@ -338,10 +338,10 @@ public class DegiroBrokerTransactionMapperTests
 
         // Assert
         Assert.Equal(TransactionType.Reward, transaction.Type);
-        Assert.Equal(FiatCurrency.USD, transaction.SpotPriceInputCurrency);
-        Assert.Equal(1m, transaction.SpotPriceUSD);
-        Assert.NotNull(transaction.SpotPriceEUR);
-        Assert.Equal(1m / 1.10m, transaction.SpotPriceEUR.Value);
+        Assert.Equal(FiatCurrency.USD, transaction.SpotPrice.InputCurrency);
+        Assert.Equal(1m, transaction.SpotPrice.USD);
+        Assert.NotNull(transaction.SpotPrice.EUR);
+        Assert.Equal(1m / 1.10m, transaction.SpotPrice.EUR.Value);
         Assert.Equal(1m / 1.10m, transaction.UsdEurExchangeRate);
         Assert.False(transaction.HasIncompleteExchangeRates);
     }

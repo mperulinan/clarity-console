@@ -24,8 +24,8 @@ public class TransactionPriceResolverTests
             spotPriceInputCurrency: null);
 
         // Assert
-        Assert.Equal(1m, result.PriceEUR);
-        Assert.Null(result.PriceUSD);
+        Assert.Equal(1m, result.EUR);
+        Assert.Null(result.USD);
         Assert.Equal(FiatCurrency.EUR, result.InputCurrency);
     }
 
@@ -47,8 +47,8 @@ public class TransactionPriceResolverTests
             spotPriceInputCurrency: null);
 
         // Assert
-        Assert.Equal(1m, result.PriceUSD);
-        Assert.Null(result.PriceEUR);
+        Assert.Equal(1m, result.USD);
+        Assert.Null(result.EUR);
         Assert.Equal(FiatCurrency.USD, result.InputCurrency);
     }
 
@@ -71,8 +71,8 @@ public class TransactionPriceResolverTests
             spotPriceInputCurrency: null);
 
         // Assert: 300 USD / 2 units = 150 USD per unit
-        Assert.Equal(150m, result.PriceUSD);
-        Assert.Null(result.PriceEUR);
+        Assert.Equal(150m, result.USD);
+        Assert.Null(result.EUR);
         Assert.Equal(FiatCurrency.USD, result.InputCurrency);
     }
 
@@ -95,8 +95,8 @@ public class TransactionPriceResolverTests
             spotPriceInputCurrency: null);
 
         // Assert: 500 EUR / 5 units = 100 EUR per unit
-        Assert.Equal(100m, result.PriceEUR);
-        Assert.Null(result.PriceUSD);
+        Assert.Equal(100m, result.EUR);
+        Assert.Null(result.USD);
         Assert.Equal(FiatCurrency.EUR, result.InputCurrency);
     }
 
@@ -119,8 +119,8 @@ public class TransactionPriceResolverTests
             spotPriceInputCurrency: FiatCurrency.USD);
 
         // Assert
-        Assert.Equal(60000m, result.PriceUSD);
-        Assert.Equal(55000m, result.PriceEUR);
+        Assert.Equal(60000m, result.USD);
+        Assert.Equal(55000m, result.EUR);
         Assert.Equal(FiatCurrency.USD, result.InputCurrency);
     }
 
@@ -175,8 +175,9 @@ public class TransactionPriceResolverTests
             feePriceInputCurrency: null);
 
         // Assert
-        Assert.Equal(1m, result.PriceEUR);
-        Assert.Null(result.PriceUSD);
+        Assert.NotNull(result);
+        Assert.Equal(1m, result.EUR);
+        Assert.Null(result.USD);
         Assert.Equal(FiatCurrency.EUR, result.InputCurrency);
     }
 
@@ -191,8 +192,9 @@ public class TransactionPriceResolverTests
             feePriceInputCurrency: null);
 
         // Assert
-        Assert.Equal(1m, result.PriceUSD);
-        Assert.Null(result.PriceEUR);
+        Assert.NotNull(result);
+        Assert.Equal(1m, result.USD);
+        Assert.Null(result.EUR);
         Assert.Equal(FiatCurrency.USD, result.InputCurrency);
     }
 
@@ -210,8 +212,23 @@ public class TransactionPriceResolverTests
             feePriceInputCurrency: FiatCurrency.USD);
 
         // Assert
-        Assert.Equal(2500m, result.PriceUSD);
-        Assert.Equal(2300m, result.PriceEUR);
+        Assert.NotNull(result);
+        Assert.Equal(2500m, result.USD);
+        Assert.Equal(2300m, result.EUR);
         Assert.Equal(FiatCurrency.USD, result.InputCurrency);
+    }
+
+    [Fact]
+    public void ResolveFeePrice_NoFee_ReturnsNull()
+    {
+        // Act
+        var result = TransactionPriceResolver.ResolveFeePrice(
+            feeAssetId: null,
+            feeSpotPriceUSD: null,
+            feeSpotPriceEUR: null,
+            feePriceInputCurrency: null);
+
+        // Assert
+        Assert.Null(result);
     }
 }

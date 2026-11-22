@@ -36,7 +36,7 @@ public class SyncTransactionExchangeRateCommandHandlerTests
         var savedTx = await uow.Transactions.GetByIdAsync(1);
         Assert.NotNull(savedTx);
         Assert.Equal(0.85m, savedTx.UsdEurExchangeRate);
-        Assert.Equal(0.85m, savedTx.SpotPriceEUR); // Assuming SpotPriceUSD = 1 and usdEurExchangeRate = 0.85
+        Assert.Equal(0.85m, savedTx.SpotPrice.EUR); // Assuming SpotPriceUSD = 1 and usdEurExchangeRate = 0.85
         Assert.Equal(1, uow.SaveChangesCallCount);
     }
 

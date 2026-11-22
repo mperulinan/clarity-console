@@ -257,7 +257,7 @@ public class TransactionValidationTests
         );
 
         // Assert
-        Assert.Equal(FiatCurrency.USD, tx.SpotPriceInputCurrency);
-        Assert.Equal(1m, tx.SpotPriceUSD);
+        Assert.Equal(FiatCurrency.USD, tx.SpotPrice.InputCurrency);
+        Assert.Equal(1m, tx.SpotPrice.USD);
     }
 }

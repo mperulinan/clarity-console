@@ -72,7 +72,7 @@ public class CalculateExchangeRatesCommandHandlerTests
         await handler.Handle(new CalculateExchangeRatesCommand(), CancellationToken.None);
 
         Assert.Equal(0.85m, tx.UsdEurExchangeRate);
-        Assert.Equal(0.85m, tx.SpotPriceEUR);
+        Assert.Equal(0.85m, tx.SpotPrice.EUR);
         Assert.Equal(1, uow.SaveChangesCallCount);
     }
 
@@ -110,7 +110,7 @@ public class CalculateExchangeRatesCommandHandlerTests
         var handler = new CalculateExchangeRatesCommandHandler(uow, _mockRates, NullLogger<CalculateExchangeRatesCommandHandler>.Instance);
         await handler.Handle(new CalculateExchangeRatesCommand(), CancellationToken.None);
 
-        Assert.Equal(125m, tx.SpotPriceUSD);
-        Assert.Equal(100m, tx.SpotPriceEUR);
+        Assert.Equal(125m, tx.SpotPrice.USD);
+        Assert.Equal(100m, tx.SpotPrice.EUR);
     }
 }

@@ -75,8 +75,8 @@ public class TransactionTests
         tx.UpdateExchangeRates(0.9m);
 
         Assert.Equal(0.9m, tx.UsdEurExchangeRate);
-        Assert.Equal(90m, tx.SpotPriceEUR);
-        Assert.Equal(9m, tx.FeePriceEUR); // 10 * 0.9
+        Assert.Equal(90m, tx.SpotPrice.EUR);
+        Assert.Equal(9m, tx.FeePrice?.EUR); // 10 * 0.9
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class TransactionTests
 
         tx.UpdateExchangeRates(0.9m);
 
-        Assert.Equal(100m, tx.SpotPriceUSD);
+        Assert.Equal(100m, tx.SpotPrice.USD);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class TransactionTests
         // SpotPriceEUR was 85, logic says SpotPriceEUR = SpotPriceUSD * rate = 100 * 0.9 = 90.
         // The current implementation OVERWRITES derived prices even if they exist.
         // Let's verify this behavior.
-        Assert.Equal(90m, tx.SpotPriceEUR);
+        Assert.Equal(90m, tx.SpotPrice.EUR);
     }
     
     [Fact]
@@ -116,7 +116,7 @@ public class TransactionTests
 
         tx.UpdateExchangeRates(0.8m);
 
-        Assert.Equal(12.5m, tx.FeePriceUSD);
+        Assert.Equal(12.5m, tx.FeePrice?.USD);
     }
 
     [Fact]
@@ -125,20 +125,20 @@ public class TransactionTests
         var tx = CreateTx(spotPriceUSD: null, spotPriceEUR: 10, spotCurrency: FiatCurrency.EUR);
         
         tx.UpdateExchangeRates(0);
-        Assert.Null(tx.SpotPriceUSD);
+        Assert.Null(tx.SpotPrice.USD);
 
         tx.UpdateExchangeRates(-1);
-        Assert.Null(tx.SpotPriceUSD);
+        Assert.Null(tx.SpotPrice.USD);
     }
     
     [Fact]
     public void Constructor_ShouldSetTruthSourceCorrectly()
     {
         var txUsd = CreateTx(spotPriceUSD: 100, spotCurrency: FiatCurrency.USD);
-        Assert.Equal(FiatCurrency.USD, txUsd.SpotPriceInputCurrency);
+        Assert.Equal(FiatCurrency.USD, txUsd.SpotPrice.InputCurrency);
 
         var txEur = CreateTx(spotPriceUSD: null, spotPriceEUR: 90, spotCurrency: FiatCurrency.EUR);
-        Assert.Equal(FiatCurrency.EUR, txEur.SpotPriceInputCurrency);
+        Assert.Equal(FiatCurrency.EUR, txEur.SpotPrice.InputCurrency);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class TransactionTests
 
         tx.UpdateExchangeRates(0.9m);
 
-        Assert.Equal(9m, tx.FeePriceEUR);
+        Assert.Equal(9m, tx.FeePrice?.EUR);
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public class TransactionTests
 
         tx.UpdateExchangeRates(0.9m);
 
-        Assert.Null(tx.FeePriceEUR);
+        Assert.Null(tx.FeePrice?.EUR);
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class TransactionTests
         Assert.Equal(toId, tx.ToAssetId);
         Assert.Equal(100m, tx.AmountSpent);
         Assert.Equal(2m, tx.AmountReceived);
-        Assert.Equal(50m, tx.SpotPriceUSD);
+        Assert.Equal(50m, tx.SpotPrice.USD);
         Assert.Equal(1.5m, tx.Fee);
         Assert.Equal(FiatCurrency.EUR.Id, tx.FeeAssetId);
         Assert.Equal("Test swap", tx.Notes);
@@ -221,8 +221,8 @@ public class TransactionTests
         Assert.Equal(FiatCurrency.TaxCurrency.Id, tx.ToAssetId);
         Assert.Equal(0m, tx.AmountSpent);
         Assert.Equal(500m, tx.AmountReceived);
-        Assert.Equal(FiatCurrency.EUR, tx.SpotPriceInputCurrency);
-        Assert.Equal(1m, tx.SpotPriceEUR);
+        Assert.Equal(FiatCurrency.EUR, tx.SpotPrice.InputCurrency);
+        Assert.Equal(1m, tx.SpotPrice.EUR);
         Assert.Equal("Bank transfer", tx.Notes);
     }
 
@@ -245,8 +245,8 @@ public class TransactionTests
         Assert.Null(tx.ToAssetId);
         Assert.Equal(250m, tx.AmountSpent);
         Assert.Equal(0m, tx.AmountReceived);
-        Assert.Equal(FiatCurrency.EUR, tx.SpotPriceInputCurrency);
-        Assert.Equal(1m, tx.SpotPriceEUR);
+        Assert.Equal(FiatCurrency.EUR, tx.SpotPrice.InputCurrency);
+        Assert.Equal(1m, tx.SpotPrice.EUR);
     }
 
     [Fact]
@@ -272,8 +272,8 @@ public class TransactionTests
         Assert.Equal(assetId, tx.ToAssetId);
         Assert.Equal(0m, tx.AmountSpent);
         Assert.Equal(10m, tx.AmountReceived);
-        Assert.Equal(100m, tx.SpotPriceUSD);
-        Assert.Equal(FiatCurrency.USD, tx.SpotPriceInputCurrency);
+        Assert.Equal(100m, tx.SpotPrice.USD);
+        Assert.Equal(FiatCurrency.USD, tx.SpotPrice.InputCurrency);
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public class TransactionTests
         Assert.Null(tx.ToAssetId);
         Assert.Equal(2.5m, tx.AmountSpent);
         Assert.Equal(0m, tx.AmountReceived);
-        Assert.Equal(1m, tx.SpotPriceEUR);
-        Assert.Equal(FiatCurrency.EUR, tx.SpotPriceInputCurrency);
+        Assert.Equal(1m, tx.SpotPrice.EUR);
+        Assert.Equal(FiatCurrency.EUR, tx.SpotPrice.InputCurrency);
     }
 }
