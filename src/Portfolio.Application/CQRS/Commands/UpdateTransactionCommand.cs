@@ -72,12 +72,14 @@ public class UpdateTransactionCommandHandler(
             ToAsset = transaction.ToAssetId.HasValue ? new AssetDto { Id = transaction.ToAssetId.Value } : null,
             AmountSpent = transaction.AmountSpent,
             AmountReceived = transaction.AmountReceived,
-            SpotPriceUSD = transaction.SpotPriceUSD,
-            SpotPriceEUR = transaction.SpotPriceEUR,
+            SpotPriceUSD = transaction.SpotPrice.USD,
+            SpotPriceEUR = transaction.SpotPrice.EUR,
+            SpotPriceInputCurrency = transaction.SpotPrice.InputCurrency?.Value,
             Fee = transaction.Fee,
             FeeAsset = transaction.FeeAssetId.HasValue ? new AssetDto { Id = transaction.FeeAssetId.Value } : null,
-            FeePriceUSD = transaction.FeePriceUSD,
-            FeePriceEUR = transaction.FeePriceEUR,
+            FeePriceUSD = transaction.FeePrice?.USD,
+            FeePriceEUR = transaction.FeePrice?.EUR,
+            FeePriceInputCurrency = transaction.FeePrice?.InputCurrency?.Value,
             UsdEurExchangeRate = transaction.UsdEurExchangeRate,
             Notes = transaction.Notes
         };
