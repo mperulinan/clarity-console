@@ -36,7 +36,7 @@ internal sealed class TransactionConfiguration : IEntityTypeConfiguration<Transa
                     v => FiatCurrency.FromValue(v));
         });
 
-        entity.ComplexProperty(e => e.FeePrice, b =>
+        entity.OwnsOne(e => e.FeePrice, b =>
         {
             b.Property(p => p.USD)
                 .HasColumnName("FeePriceUSD")
